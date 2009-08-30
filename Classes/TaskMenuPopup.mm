@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 15:53:01
+ * Last-modified: 2009-08-30 15:57:08
  */
 
 /**
@@ -477,7 +477,7 @@ static NSArray * $BGAlert$blacklistedApps(SBAlert *self, SEL sel)
 
 static id $BGAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size)
 {
-    return [[[objc_getClass("BackgrounderAlertDisplay") alloc] initWithSize:size] autorelease];
+    return [[[objc_getClass("KirikaeAlertDisplay") alloc] initWithSize:size] autorelease];
 }
 
 //______________________________________________________________________________
@@ -493,7 +493,7 @@ void initTaskMenuPopup()
 
     // Create custom alert-display class
     Class $SBAlertDisplay(objc_getClass("SBAlertDisplay"));
-    Class $BGAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "BackgrounderAlertDisplay", 0);
+    Class $BGAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
     unsigned int size, align;
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($BGAlertDisplay, "currentStatusBarMode", size, align, "i");
@@ -512,7 +512,7 @@ void initTaskMenuPopup()
 
     // Create custom alert class
     Class $SBAlert(objc_getClass("SBAlert"));
-    Class $BGAlert = objc_allocateClassPair($SBAlert, "BackgrounderAlert", 0);
+    Class $BGAlert = objc_allocateClassPair($SBAlert, "KirikaeAlert", 0);
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($BGAlert, "currentApp", size, align, "@");
     class_addIvar($BGAlert, "otherApps", size, align, "@");

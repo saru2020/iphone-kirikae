@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 15:51:40
+ * Last-modified: 2009-08-30 16:00:44
  */
 
 /**
@@ -296,7 +296,7 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
         identifier = @"com.apple.springboard";
     }
 
-    alert = [[objc_getClass("BackgrounderAlert") alloc] initWithCurrentApp:identifier otherApps:array blacklistedApps:blacklistedApps];
+    alert = [[objc_getClass("KirikaeAlert") alloc] initWithCurrentApp:identifier otherApps:array blacklistedApps:blacklistedApps];
     [(SBAlert *)alert activate];
 }
 
@@ -384,8 +384,9 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
                 killedApp = [identifier copy];
                 [app kill];
             } else {
-                // Disable backgrounding for the application
-                [self setBackgroundingEnabled:NO forDisplayIdentifier:identifier];
+                if ([self respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)])
+                    // Disable backgrounding for the application
+                    [self setBackgroundingEnabled:NO forDisplayIdentifier:identifier];
 
                 // NOTE: Must set animation flag for deactivation, otherwise
                 //       application window does not disappear (reason yet unknown)
@@ -462,7 +463,7 @@ HOOK(SBApplication, deactivate, BOOL)
 HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
 {
     if ([[self displayIdentifier] isEqualToString:killedApp]) {
-        // Was killed by Backgrounder; do not allow relaunch
+        // Was killed by us; do not allow relaunch
         [killedApp release];
         killedApp = nil;
     } else {

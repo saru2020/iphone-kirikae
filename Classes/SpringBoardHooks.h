@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 13:19:35
+ * Last-modified: 2009-08-30 16:00:48
  */
 
 /**
@@ -42,8 +42,12 @@
 
 #import <SpringBoard/SpringBoard.h>
 
+// NOTE: This is needed to prevent a compiler warning
 @interface SpringBoard (Backgrounder)
-- (void)setBackgroundingEnabled:(BOOL)enable forDisplayIdentifier:(NSString *)identifier;
+- (void)setBackgroundingEnabled:(BOOL)enabled forDisplayIdentifier:(NSString *)identifier;
+@end
+
+@interface SpringBoard (Kirikae)
 - (void)invokeKirikae;
 - (void)dismissKirikae;
 - (void)switchToAppWithDisplayIdentifier:(NSString *)identifier;
