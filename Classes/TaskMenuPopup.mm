@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 15:57:08
+ * Last-modified: 2009-08-30 22:52:47
  */
 
 /**
@@ -487,9 +487,9 @@ void initTaskMenuPopup()
 {
     // Override default text for cell "delete" button
     Class $UITableView(objc_getClass("UITableView"));
-    _UITableView$titleForDeleteConfirmationButton$ =
-        MSHookMessage($UITableView, @selector(titleForDeleteConfirmationButton:),
-            &$UITableView$titleForDeleteConfirmationButton$);
+    MSHookMessage($UITableView, @selector(titleForDeleteConfirmationButton:),
+        &$UITableView$titleForDeleteConfirmationButton$,
+        &_UITableView$titleForDeleteConfirmationButton$);
 
     // Create custom alert-display class
     Class $SBAlertDisplay(objc_getClass("SBAlertDisplay"));
