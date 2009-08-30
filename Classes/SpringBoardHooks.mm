@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 13:19:04
+ * Last-modified: 2009-08-30 15:22:18
  */
 
 /**
@@ -75,12 +75,12 @@ static NSMutableArray *activeApps = nil;
 static NSMutableArray *bgEnabledApps = nil;
 static NSArray *blacklistedApps = nil;
 
-static NSMutableDictionary *statusBarStates = nil;
-static NSString *deactivatingApp = nil;
+//static NSMutableDictionary *statusBarStates = nil;
+//static NSString *deactivatingApp = nil;
 
 static NSString *killedApp = nil;
 
-static BOOL animateStatusBar = YES;
+//static BOOL animateStatusBar = YES;
 static BOOL animationsEnabled = YES;
 static BOOL badgeEnabled = NO;
 
@@ -338,83 +338,60 @@ static void $SpringBoard$setBackgroundingEnabled$forDisplayIdentifier$(SpringBoa
 
 static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
 {
-    SBApplication *currApp = [SBWActiveDisplayStack topApplication];
-    NSString *currIdent = currApp ? [currApp displayIdentifier] : @"com.apple.springboard";
-    if (![currIdent isEqualToString:identifier]) {
-        // Save the identifier for later use
-        deactivatingApp = [currIdent copy];
+    SBApplication *fromApp = [SBWActiveDisplayStack topApplication];
+    NSString *fromIdent = fromApp ? [fromApp displayIdentifier] : @"com.apple.springboard";
+    if (![fromIdent isEqualToString:identifier]) {
+        // App to switch to is not the current app
+        // NOTE: Save the identifier for later use
+        //deactivatingApp = [fromIdent copy];
 
-        if ([identifier isEqualToString:@"com.apple.springboard"]) {
-            // Switching to SpringBoard
-            //[[objc_getClass("SBUIController") sharedInstance] quitTopApplication:NULL];
+        SBApplication *toApp = [[objc_getClass("SBApplicationController") sharedInstance]
+            applicationWithDisplayIdentifier:identifier];
+        if (toApp) {
+            // FIXME: Handle case when toApp == nil
+            if ([fromIdent isEqualToString:@"com.apple.springboard"]) {
+                // Switching from SpringBoard; simply activate the target app
+                [toApp setDisplaySetting:0x4 flag:YES]; // animate
 
-            // NOTE: Must set animation flag for deactivation, otherwise
-            //       application window does not disappear (reason yet unknown)
-            [currApp setDeactivationSetting:0x2 flag:YES]; // animate
+                // Activate the target application
+                [SBWPreActivateDisplayStack pushDisplay:toApp];
+            } else {
+                // Switching from another app
+                if (![identifier isEqualToString:@"com.apple.springboard"]) {
+                    // Switching to another app; setup app-to-app
+                    [toApp setActivationSetting:0x40 flag:YES]; // animateOthersSuspension
+                    [toApp setActivationSetting:0x20000 flag:YES]; // appToApp
+                    [toApp setDisplaySetting:0x4 flag:YES]; // animate
 
-            // NOTE: animationStart can be used to delay or skip the act/deact
-            //       animation. Based on current uptime, setting it to a future
-            //       value will delay the animation; setting it to a past time
-            //       skips the animation. Setting it to now, or leaving it
-            //       unset, causes the animation to begin immediately.
-            //[currApp setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:(CACurrentMediaTime())]]; // animationStart
+                    //[toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:(CACurrentMediaTime()) - 5]]; // animationStart
 
-            // Deactivate the current app
-            [SBWActiveDisplayStack popDisplay:currApp];
-            [SBWSuspendingDisplayStack pushDisplay:currApp];
-            [self dismissKirikae];
-        } else {
-            // Switching to an application other than SpringBoard
-            SBApplication *otherApp = [[objc_getClass("SBApplicationController") sharedInstance]
-                applicationWithDisplayIdentifier:identifier];
-            if (otherApp) {
-                if (animationsEnabled) {
-                    if ([currIdent isEqualToString:@"com.apple.springboard"]) {
-                        [otherApp setActivationSetting:0x4 flag:YES]; // animated
-                    } else {
-                    #if 0
-                        [otherApp setActivationSetting:0x20 flag:YES]; // suspendOthers
-                        [otherApp setActivationSetting:0x200 flag:YES]; // animateOthersSuspension
-                        [otherApp setActivationSetting:0x20000000 flag:YES]; // appToApp
-                    #else
-                        //[otherApp setActivationSetting:0x20 flag:YES]; // suspendOthers
-                        [otherApp setActivationSetting:0x40 flag:YES]; // animateOthersSuspension
-                        [otherApp setActivationSetting:0x20000 flag:YES]; // appToApp
-                    #endif
-                    }
-                } else {
-                    // NOTE: Must set animation flag for deactivation, otherwise
-                    //       application window does not disappear (reason yet unknown)
-                    [currApp setDeactivationSetting:0x2 flag:YES]; // animate
-
-                    NSArray *state = [statusBarStates objectForKey:identifier];
-                    [otherApp setDisplaySetting:0x10 value:[state objectAtIndex:0]]; // statusBarMode
-                    [otherApp setDisplaySetting:0x20 value:[state objectAtIndex:1]]; // statusBarOrienation
-
-                    // Make sure SpringBoard dock and icons are hidden
-                    [[objc_getClass("SBIconController") sharedInstance] scatter:NO startTime:CFAbsoluteTimeGetCurrent()];
-                    [[objc_getClass("SBUIController") sharedInstance] showButtonBar:NO animate:NO action:NULL delegate:nil];
-
-                    // Prevent status bar from fading in
-                    animateStatusBar = NO;
+                    // Activate the target application (will wait for
+                    // deactivation of current app)
+                    [SBWPreActivateDisplayStack pushDisplay:toApp];
                 }
+
+                // Deactivate the current application
+
+                // NOTE: Must set animation flag for deactivation, otherwise
+                //       application window does not disappear (reason yet unknown)
+                [fromApp setDeactivationSetting:0x2 flag:YES]; // animate
+
+                // NOTE: animationStart can be used to delay or skip the act/deact
+                //       animation. Based on current uptime, setting it to a future
+                //       value will delay the animation; setting it to a past time
+                //       skips the animation. Setting it to now, or leaving it
+                //       unset, causes the animation to begin immediately.
+                //[fromApp setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:(CACurrentMediaTime()) - 5]]; // animationStart
+
+                // Deactivate by moving from active stack to suspending stack
+                [SBWActiveDisplayStack popDisplay:fromApp];
+                [SBWSuspendingDisplayStack pushDisplay:fromApp];
             }
-
-            // Activate the target application
-            // FIXME: Originally was Pre or Activating (and not Active)
-            [(animationsEnabled ? SBWPreActivateDisplayStack : SBWActiveDisplayStack) pushDisplay:otherApp];
-
-            if (!animationsEnabled && currApp)
-                // Deactivate the current app
-                [SBWSuspendingDisplayStack pushDisplay:currApp];
-            else
-                // Is SpringBoard
-                [self dismissKirikae];
         }
-    } else {
-        // Application to switch to is same as current
-        [self dismissKirikae];
     }
+
+    // Hide the task menu
+    [self dismissKirikae];
 }
 
 static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
