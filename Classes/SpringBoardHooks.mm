@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 15:22:18
+ * Last-modified: 2009-08-30 15:51:40
  */
 
 /**
@@ -65,14 +65,11 @@
 struct GSEvent;
 
 
-static BOOL isPersistent = YES;
-
 #define HOME_SHORT_PRESS 0
 #define HOME_DOUBLE_TAP 1
 static int invocationMethod = HOME_DOUBLE_TAP;
 
 static NSMutableArray *activeApps = nil;
-static NSMutableArray *bgEnabledApps = nil;
 static NSArray *blacklistedApps = nil;
 
 //static NSMutableDictionary *statusBarStates = nil;
@@ -82,7 +79,6 @@ static NSString *killedApp = nil;
 
 //static BOOL animateStatusBar = YES;
 static BOOL animationsEnabled = YES;
-static BOOL badgeEnabled = NO;
 
 //______________________________________________________________________________
 //______________________________________________________________________________
@@ -257,7 +253,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
     // NOTE: The initial capacity value was chosen to hold the default active
     //       apps (MobilePhone and MobileMail) plus two others
     activeApps = [[NSMutableArray alloc] initWithCapacity:4];
-    bgEnabledApps = [[NSMutableArray alloc] initWithCapacity:2];
 
 #if 0
     // Create a dictionary to store the statusbar state for active apps
@@ -274,7 +269,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
 HOOK(SpringBoard, dealloc, void)
 {
     //[killedApp release];
-    [bgEnabledApps release];
     [activeApps release];
     [displayStacks release];
     CALL_ORIG(SpringBoard, dealloc);
@@ -315,25 +309,6 @@ static void $SpringBoard$dismissKirikae(SpringBoard *self, SEL sel)
     [[alert display] dismiss];
     [alert release];
     alert = nil;
-}
-
-static void $SpringBoard$setBackgroundingEnabled$forDisplayIdentifier$(SpringBoard *self, SEL sel, BOOL enable, NSString *identifier)
-{
-    BOOL isEnabled = [bgEnabledApps containsObject:identifier];
-    if (isEnabled != enable) {
-        // Tell the application to change its backgrounding status
-        SBApplication *app = [[objc_getClass("SBApplicationController") sharedInstance]
-            applicationWithDisplayIdentifier:identifier];
-        // FIXME: If the target application does not have the Backgrounder
-        //        hooks enabled, this will cause it to exit abnormally
-        kill([app pid], SIGUSR1);
-
-        // Store the new backgrounding status of the application
-        if (enable)
-            [bgEnabledApps addObject:identifier];
-        else
-            [bgEnabledApps removeObject:identifier];
-    }
 }
 
 static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
@@ -431,55 +406,15 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
 HOOK(SBApplication, launchSucceeded$, void, BOOL unknownFlag)
 {
     NSString *identifier = [self displayIdentifier];
-
-    BOOL isAlwaysEnabled = NO;
-    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("enabledApplications"), CFSTR(APP_ID));
-    if (propList) {
-        if (CFGetTypeID(propList) == CFArrayGetTypeID())
-            isAlwaysEnabled = [(NSArray *)propList containsObject:identifier];
-        CFRelease(propList);
-    }
-
-    if ([activeApps containsObject:identifier]) {
-        // Was restored from backgrounded state
-        if (!isPersistent && !isAlwaysEnabled) {
-            // Tell the application to disable backgrounding
-            kill([self pid], SIGUSR1);
-
-            // Store the backgrounding status of the application
-            [bgEnabledApps removeObject:identifier];
-        } 
-    } else {
-        // Initial launch; check if this application is set to always background
-        if (isAlwaysEnabled) {
-            // Tell the application to enable backgrounding
-            kill([self pid], SIGUSR1);
-
-            // Store the backgrounding status of the application
-            [bgEnabledApps addObject:identifier];
-        }
-
-        if (badgeEnabled) {
-            // Update the SpringBoard icon to indicate that the app is running
-            SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
-            UIImageView *badgeView = [[UIImageView alloc] initWithImage:[UIImage imageWithContentsOfFile:@"/Applications/Backgrounder.app/images/badge.png"]];
-            [badgeView setOrigin:CGPointMake(-12.0f, 39.0f)];
-            [badgeView setTag:1000];
-            [icon addSubview:badgeView];
-            [badgeView release];
-        }
-
+    if (![activeApps containsObject:identifier])
         // Track active status of application
         [activeApps addObject:identifier];
-    }
 
     CALL_ORIG(SBApplication, launchSucceeded$, unknownFlag);
 }
 
 HOOK(SBApplication, exitedAbnormally, void)
 {
-    [bgEnabledApps removeObject:[self displayIdentifier]];
-
 #if 0
     if (animationsEnabled && ![self isSystemApplication])
         [[NSFileManager defaultManager] removeItemAtPath:[self defaultImage:"Default"] error:nil];
@@ -499,12 +434,6 @@ HOOK(SBApplication, exitedCommon, void)
     // ... also remove status bar state data from states list
     [statusBarStates removeObjectForKey:identifier];
 #endif
-
-    if (badgeEnabled) {
-        // Update the SpringBoard icon to indicate that the app is not running
-        SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
-        [[icon viewWithTag:1000] removeFromSuperview];
-    }
 
     CALL_ORIG(SBApplication, exitedCommon);
 }
@@ -526,38 +455,8 @@ HOOK(SBApplication, deactivate, BOOL)
     [statusBarStates setObject:[NSArray arrayWithObjects:mode, orientation, nil] forKey:identifier];
 #endif
 
-    BOOL isBackgrounded = [bgEnabledApps containsObject:[self displayIdentifier]];
-    BOOL flag;
-    if (isBackgrounded) {
-        // Temporarily enable the eventOnly flag to prevent the applications's views
-        // from being deallocated.
-        // NOTE: Credit for this goes to phoenix3200 (author of Pandora Controls, http://phoenix-dev.com/)
-        // FIXME: Run a trace on deactivate to determine why this works.
-        flag = [self deactivationSetting:0x1];
-        [self setDeactivationSetting:0x1 flag:YES];
-    }
+    return CALL_ORIG(SBApplication, deactivate);
 
-    BOOL result = CALL_ORIG(SBApplication, deactivate);
-
-    if (isBackgrounded)
-        // Must disable the eventOnly flag before returning, or else the application
-        // will remain in the event-only display stack and prevent SpringBoard from
-        // operating properly.
-        // NOTE: This is the continuation of phoenix3200's fix
-        [self setDeactivationSetting:0x1 flag:flag];
-
-    return result;
-}
-
-// NOTE: Observed types:
-//         0: Launch
-//         1: Resume
-//         2: Deactivation
-//         3: Termination
-HOOK(SBApplication, _startWatchdogTimerType$, void, int type)
-{
-    if (type != 3 || ![bgEnabledApps containsObject:[self displayIdentifier]])
-        CALL_ORIG(SBApplication, _startWatchdogTimerType$, type);
 }
 
 HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
@@ -627,8 +526,6 @@ void initSpringBoardHooks()
     _SpringBoard$_handleMenuButtonEvent =
         MSHookMessage($SpringBoard, @selector(_handleMenuButtonEvent), &$SpringBoard$_handleMenuButtonEvent);
 
-    class_addMethod($SpringBoard, @selector(setBackgroundingEnabled:forDisplayIdentifier:),
-        (IMP)&$SpringBoard$setBackgroundingEnabled$forDisplayIdentifier$, "v@:c@");
     class_addMethod($SpringBoard, @selector(invokeKirikae), (IMP)&$SpringBoard$invokeKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(switchToAppWithDisplayIdentifier:), (IMP)&$SpringBoard$switchToAppWithDisplayIdentifier$, "v@:@");
@@ -643,8 +540,6 @@ void initSpringBoardHooks()
         MSHookMessage($SBApplication, @selector(exitedAbnormally), &$SBApplication$exitedAbnormally);
     _SBApplication$exitedCommon =
         MSHookMessage($SBApplication, @selector(exitedCommon), &$SBApplication$exitedCommon);
-    _SBApplication$_startWatchdogTimerType$ =
-        MSHookMessage($SBApplication, @selector(_startWatchdogTimerType:), &$SBApplication$_startWatchdogTimerType$);
     _SBApplication$_relaunchAfterAbnormalExit$ =
         MSHookMessage($SBApplication, @selector(_relaunchAfterAbnormalExit:), &$SBApplication$_relaunchAfterAbnormalExit$);
 #if 0
