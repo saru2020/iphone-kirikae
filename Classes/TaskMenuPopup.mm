@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 22:52:47
+ * Last-modified: 2009-09-01 10:28:55
  */
 
 /**
@@ -374,6 +374,7 @@ static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, 
 
 static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
 {
+#if 0
     // Task list displays a black status bar; save current status-bar settings
     SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
     int &currentStatusBarMode = MSHookIvar<int>(self, "currentStatusBarMode");
@@ -383,6 +384,7 @@ static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL 
         currentStatusBarOrientation = [sbCont statusBarOrientation];
         [sbCont setStatusBarMode:2 orientation:0 duration:0.4f animation:0];
     }
+#endif
 
     // FIXME: The proper method for animating an SBAlertDisplay is currently
     //        unknown; for now, the following method seems to work well enough
@@ -396,6 +398,7 @@ static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL 
 
 static void $BGAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
 {
+#if 0
     int &currentStatusBarMode = MSHookIvar<int>(self, "currentStatusBarMode");
     if (currentStatusBarMode != 2) {
         // Restore the previous status-bar mode
@@ -404,6 +407,7 @@ static void $BGAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
         [sbCont setStatusBarMode:currentStatusBarMode orientation:currentStatusBarOrientation
             duration:0.4f animation:0];
     }
+#endif
 
     // FIXME: The proper method for animating an SBAlertDisplay is currently
     //        unknown; for now, the following method seems to work well enough
