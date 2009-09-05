@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:48:26
+ * Last-modified: 2009-09-06 01:25:54
  */
 
 /**
@@ -53,23 +53,11 @@
     NSDictionary *onDiskValues;
 
     BOOL firstRun;
-    BOOL persistent;
     BOOL animationsEnabled;
-    BOOL badgeEnabled;
-    unsigned int invocationMethod;
-    unsigned int feedbackType;
-    NSArray *enabledApplications;
-    NSArray *blacklistedApplications;
 }
 
 @property(nonatomic) BOOL firstRun;
-@property(nonatomic, getter=isPersistent) BOOL persistent;
 @property(nonatomic) BOOL animationsEnabled;
-@property(nonatomic) BOOL badgeEnabled;
-@property(nonatomic) unsigned int invocationMethod;
-@property(nonatomic) unsigned int feedbackType;
-@property(nonatomic, retain) NSArray *enabledApplications;
-@property(nonatomic, retain) NSArray *blacklistedApplications;
 
 + (Preferences *)sharedInstance;
 

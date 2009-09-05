@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 01:13:28
+ * Last-modified: 2009-09-06 01:29:06
  */
 
 /**
@@ -50,10 +50,8 @@
 
 #import <UIKit/UIViewController-UINavigationControllerItem.h>
 
-#import "AppSpecificPrefsController.h"
 #import "Constants.h"
 #import "DocumentationController.h"
-#import "GlobalPrefsController.h"
 #import "Preferences.h"
 
 
@@ -229,13 +227,7 @@
 {
     UIViewController *vc = nil;
 
-    if (indexPath.section == 0) {
-        if (indexPath.row == 0)
-            vc = [[[GlobalPrefsController alloc] initWithStyle:1] autorelease];
-        else
-            vc = [[[AppSpecificPrefsController alloc] initWithStyle:1] autorelease];
-    } else if (indexPath.section == 1) {
-        // Preferences
+    if (indexPath.section == 1) {
         // Documentation
         static NSString *fileNames[] = { @"usage.html", @"release_notes.html", @"known_issues.html" };
         static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };

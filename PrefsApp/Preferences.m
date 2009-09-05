@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:51:05
+ * Last-modified: 2009-09-06 01:27:00
  */
 
 /**
@@ -45,20 +45,10 @@
 #import <Foundation/Foundation.h>
 
 
-// Allowed values
-static NSArray *allowedInvocationMethods = nil;
-static NSArray *allowedFeedbackTypes = nil;
-
 @implementation Preferences
 
 @synthesize firstRun;
-@synthesize persistent;
 @synthesize animationsEnabled;
-@synthesize badgeEnabled;
-@synthesize invocationMethod;
-@synthesize feedbackType;
-@synthesize enabledApplications;
-@synthesize blacklistedApplications;
 
 #pragma mark - Methods
 
@@ -74,11 +64,6 @@ static NSArray *allowedFeedbackTypes = nil;
 {
     self = [super init];
     if (self) {
-        allowedInvocationMethods = [[NSArray alloc] initWithObjects:
-            @"homeShortPress", @"homeDoubleTap", @"homeSingleTap", nil];
-        allowedFeedbackTypes = [[NSArray alloc] initWithObjects:
-            @"simplePopup", @"taskMenuPopup", nil];
-
         // Setup default values
         [self registerDefaults];
 
@@ -98,8 +83,6 @@ static NSArray *allowedFeedbackTypes = nil;
 {
     [onDiskValues release];
     [initialValues release];
-    [allowedInvocationMethods release];
-    [allowedFeedbackTypes release];
 
     [super dealloc];
 }
@@ -111,29 +94,7 @@ static NSArray *allowedFeedbackTypes = nil;
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:4];
 
     [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
-    [dict setObject:[NSNumber numberWithBool:persistent] forKey:@"persistent"];
     [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
-    [dict setObject:[NSNumber numberWithBool:badgeEnabled] forKey:@"badgeEnabled"];
-
-    NSString *string = nil;
-    @try {
-        string = [allowedInvocationMethods objectAtIndex:invocationMethod];
-        [dict setObject:[string copy] forKey:@"invocationMethod"];
-    }
-    @catch (NSException *exception) {
-        // Ignore the exception (assumed to be NSRangeException)
-    }
-
-    @try {
-        string = [allowedFeedbackTypes objectAtIndex:feedbackType];
-        [dict setObject:[string copy] forKey:@"feedbackType"];
-    }
-    @catch (NSException *exception) {
-        // Ignore the exception (assumed to be NSRangeException)
-    }
-
-    [dict setObject:[enabledApplications copy] forKey:@"enabledApplications"];
-    [dict setObject:[blacklistedApplications copy] forKey:@"blacklistedApplications"];
 
     return dict;
 }
@@ -161,19 +122,7 @@ static NSArray *allowedFeedbackTypes = nil;
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:4];
 
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"persistent"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
-    [dict setObject:[NSNumber numberWithBool:NO] forKey:@"badgeEnabled"];
-    [dict setObject:@"homeShortPress" forKey:@"invocationMethod"];
-    [dict setObject:@"simplePopup" forKey:@"feedbackType"];
-
-    [dict setObject:[NSArray array] forKey:@"enabledApplications"];
-
-    NSArray *array = [NSArray arrayWithObjects:
-        @"com.apple.mobilephone", @"com.apple.mobilemail", @"com.apple.mobilesafari", @"com.apple.mobileipod",
-        nil];
-    [dict setObject:array forKey:@"blacklistedApplications"];
-
 
     [defaults registerDefaults:dict];
 }
@@ -183,20 +132,7 @@ static NSArray *allowedFeedbackTypes = nil;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     
     firstRun = [defaults boolForKey:@"firstRun"];
-    persistent = [defaults boolForKey:@"persistent"];
     animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
-    badgeEnabled = [defaults boolForKey:@"badgeEnabled"];
-
-    NSString *string = [defaults stringForKey:@"invocationMethod"];
-    unsigned int index = [allowedInvocationMethods indexOfObject:string];
-    invocationMethod = (index == NSNotFound) ? 0 : index;
-
-    string = [defaults stringForKey:@"feedbackType"];
-    index = [allowedFeedbackTypes indexOfObject:string];
-    feedbackType = (index == NSNotFound) ? 0 : index;
-
-    enabledApplications = [[defaults arrayForKey:@"enabledApplications"] retain];
-    blacklistedApplications = [[defaults arrayForKey:@"blacklistedApplications"] retain];
 }
 
 - (void)writeToDisk
