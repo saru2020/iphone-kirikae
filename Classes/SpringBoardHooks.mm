@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 22:52:22
+ * Last-modified: 2009-09-05 12:47:00
  */
 
 /**
@@ -268,7 +268,7 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
 
 HOOK(SpringBoard, dealloc, void)
 {
-    //[killedApp release];
+    [killedApp release];
     [activeApps release];
     [displayStacks release];
     CALL_ORIG(SpringBoard, dealloc);
@@ -379,10 +379,20 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
         SBApplication *app = [[objc_getClass("SBApplicationController") sharedInstance]
             applicationWithDisplayIdentifier:identifier];
         if (app) {
-            if ([blacklistedApps containsObject:identifier]) {
-                // Is blacklisted; should force-quit
-                killedApp = [identifier copy];
+            if ([identifier isEqualToString:@"com.apple.mobilephone"]
+                    || [identifier isEqualToString:@"com.apple.mobilemail"]
+                    || [identifier isEqualToString:@"com.apple.safari"]
+                    || [identifier hasPrefix:@"com.apple.mobileipod"]
+                    || [identifier isEqualToString:@"com.googlecode.mobileterminal"]) {
+                // Is an application with native backgrounding capability
+                // FIXME: Either find a way to detect which applications support
+                //        native backgrounding, or use a timer to ensure
+                //        termination.
                 [app kill];
+
+                // Save identifier to prevent possible auto-relaunch
+                [killedApp release];
+                killedApp = [identifier copy];
             } else {
                 if ([self respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)])
                     // Disable backgrounding for the application
@@ -463,7 +473,7 @@ HOOK(SBApplication, deactivate, BOOL)
 HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
 {
     if ([[self displayIdentifier] isEqualToString:killedApp]) {
-        // Was killed by us; do not allow relaunch
+        // We killed this app; do not let it relaunch
         [killedApp release];
         killedApp = nil;
     } else {
