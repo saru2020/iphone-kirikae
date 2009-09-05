@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:49:21
+ * Last-modified: 2009-09-06 02:41:03
  */
 
 /**
@@ -56,7 +56,6 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
     Preferences *prefs = [Preferences sharedInstance];
-#if 0
     if ([prefs firstRun]) {
         // Show a once-only warning
         NSString *title = [NSString stringWithFormat:@"Welcome to %@", @APP_TITLE];
@@ -69,7 +68,6 @@
         [prefs setFirstRun:NO];
         [prefs writeToDisk];
     }
-#endif
 
     // Create our navigation controller with the initial view controller
     navController = [[UINavigationController alloc] initWithRootViewController:
