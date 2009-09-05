@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-01 10:28:55
+ * Last-modified: 2009-09-06 02:42:01
  */
 
 /**
@@ -84,8 +84,6 @@ HOOK(UITableView, titleForDeleteConfirmationButton$, NSString *, id cell)
 
 //______________________________________________________________________________
 //______________________________________________________________________________
-
-#import "../../DebugUIKit.h"
 
 @interface TaskListCell : UITableViewCell
 {
