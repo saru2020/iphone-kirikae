@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-05 22:25:28
+ * Last-modified: 2009-09-06 01:13:28
  */
 
 /**
@@ -93,13 +93,13 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    static NSString *headers[] = {nil, @"Documentation", nil, nil};
+    static NSString *headers[] = {@"Preferences", @"Documentation", nil, nil};
     return headers[section];
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {2, 4, 2};
+    static int rows[] = {1, 4, 2};
     return rows[section];
 }
 
@@ -109,9 +109,26 @@
     static NSString *reuseIdName = @"NameCell";
     static NSString *reuseIdSafari = @"SafariCell";
     static NSString *reuseIdSimple = @"SimpleCell";
+    static NSString *reuseIdToggle = @"ToggleCell";
 
     UITableViewCell *cell = nil;
-    if (indexPath.section == 1 && indexPath.row == 3) {
+
+    if (indexPath.section == 0) {
+        // Try to retrieve from the table view a now-unused cell with the given identifier
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
+        if (cell == nil) {
+            // Cell does not exist, create a new one
+            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
+            [cell setSelectionStyle:0];
+
+            UISwitch *toggle = [[UISwitch alloc] init];
+            [cell setText:@"Animate switching"];
+            [toggle setOn:[[Preferences sharedInstance] animationsEnabled]];
+            [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:4096]; // ValueChanged
+            [cell setAccessoryView:toggle];
+            [toggle release];
+        }
+    } else if (indexPath.section == 1 && indexPath.row == 3) {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSafari];
         if (cell == nil) {
@@ -185,10 +202,7 @@
             }
         }
     } else {
-        static NSString *cellTitles[][3] = {
-            { @"Global", @"Application-specific", nil },
-            { @"How to Use", @"Release Notes", @"Known Issues" }
-        };
+        static NSString *cellTitles[] = {@"How to Use", @"Release Notes", @"Known Issues"};
 
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -198,7 +212,7 @@
             [cell setSelectionStyle:2]; // Gray
             [cell setAccessoryType:1]; // Simple arrow
         }
-        [cell setText:cellTitles[indexPath.section][indexPath.row]];
+        [cell setText:cellTitles[indexPath.row]];
     }
 
     return cell;
@@ -244,6 +258,13 @@
 
     if (vc)
         [[self navigationController] pushViewController:vc animated:YES];
+}
+
+#pragma mark - Switch delegate
+
+- (void)switchToggled:(UISwitch *)control
+{
+    [[Preferences sharedInstance] setAnimationsEnabled:[control isOn]];
 }
 
 @end
