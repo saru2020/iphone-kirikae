@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-05 12:52:34
+ * Last-modified: 2009-09-06 00:49:15
  */
 
 /**
@@ -245,6 +245,13 @@ HOOK(SpringBoard, _handleMenuButtonEvent, void)
     }
 }
 
+// NOTE: Only hooked when animationsEnabled == NO
+HOOK(SpringBoard, frontDisplayDidChange, void)
+{
+    [self dismissKirikae];
+    CALL_ORIG(SpringBoard, frontDisplayDidChange);
+}
+
 HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
 {
     // NOTE: SpringBoard creates four stacks at startup:
@@ -327,6 +334,15 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
             if ([fromIdent isEqualToString:@"com.apple.springboard"]) {
                 // Switching from SpringBoard; simply activate the target app
                 [toApp setDisplaySetting:0x4 flag:YES]; // animate
+                if (!animationsEnabled)
+                    // NOTE: animationStart can be used to delay or skip the act/deact
+                    //       animation. Based on current uptime, setting it to a future
+                    //       value will delay the animation; setting it to a past time
+                    //       skips the animation. Setting it to now, or leaving it
+                    //       unset, causes the animation to begin immediately.
+                    // NOTE: The proper way to set this would be via CACurrentMediaTime(),
+                    //       but using 1 (not 0) appears to work okay.
+                    [toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                 // Activate the target application
                 [SBWPreActivateDisplayStack pushDisplay:toApp];
@@ -338,7 +354,8 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
                     [toApp setActivationSetting:0x20000 flag:YES]; // appToApp
                     [toApp setDisplaySetting:0x4 flag:YES]; // animate
 
-                    //[toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:(CACurrentMediaTime()) - 5]]; // animationStart
+                    if (!animationsEnabled)
+                        [toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                     // Activate the target application (will wait for
                     // deactivation of current app)
@@ -351,12 +368,8 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
                 //       application window does not disappear (reason yet unknown)
                 [fromApp setDeactivationSetting:0x2 flag:YES]; // animate
 
-                // NOTE: animationStart can be used to delay or skip the act/deact
-                //       animation. Based on current uptime, setting it to a future
-                //       value will delay the animation; setting it to a past time
-                //       skips the animation. Setting it to now, or leaving it
-                //       unset, causes the animation to begin immediately.
-                //[fromApp setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:(CACurrentMediaTime()) - 5]]; // animationStart
+                if (!animationsEnabled)
+                    [fromApp setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                 // Deactivate by moving from active stack to suspending stack
                 [SBWActiveDisplayStack popDisplay:fromApp];
@@ -365,8 +378,9 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
         }
     }
 
-    // Hide the task menu
-    [self dismissKirikae];
+    if (animationsEnabled)
+        // Hide the task menu
+        [self dismissKirikae];
 }
 
 static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
@@ -398,14 +412,13 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
                     // Disable backgrounding for the application
                     [self setBackgroundingEnabled:NO forDisplayIdentifier:identifier];
 
-                if ([SBWActiveDisplayStack containsDisplay:app]) {
+                if ([SBWActiveDisplayStack containsDisplay:app])
                     // Application is current app
                     // NOTE: Must set animation flag for deactivation, otherwise
                     //       application window does not disappear (reason yet unknown)
                     [app setDeactivationSetting:0x2 flag:YES]; // animate
                     if (!animationsEnabled)
-                        [app setDeactivationSetting:0x4000 value:[NSNumber numberWithDouble:0]]; // animation duration
-                }
+                        [app setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                 // Deactivate the application
                 [SBWSuspendingDisplayStack pushDisplay:app];
@@ -528,6 +541,9 @@ void initSpringBoardHooks()
         MSHookMessage($SpringBoard, @selector(menuButtonDown:), &$SpringBoard$menuButtonDown$, &_SpringBoard$menuButtonDown$);
         MSHookMessage($SpringBoard, @selector(menuButtonUp:), &$SpringBoard$menuButtonUp$, &_SpringBoard$menuButtonUp$);
     }
+
+    if (!animationsEnabled)
+        MSHookMessage($SpringBoard, @selector(frontDisplayDidChange), &$SpringBoard$frontDisplayDidChange, &_SpringBoard$frontDisplayDidChange);
 
     MSHookMessage($SpringBoard, @selector(_handleMenuButtonEvent), &$SpringBoard$_handleMenuButtonEvent, &_SpringBoard$_handleMenuButtonEvent);
 
