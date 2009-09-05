@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 00:49:15
+ * Last-modified: 2009-09-06 01:32:28
  */
 
 /**
@@ -85,12 +85,19 @@ static BOOL animationsEnabled = YES;
 
 static void loadPreferences()
 {
-    CFPropertyListRef prefMethod = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
-    if (prefMethod) {
+    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
+    if (propList) {
         // NOTE: Defaults to HOME_SHORT_PRESS
-        if ([(NSString *)prefMethod isEqualToString:@"homeDoubleTap"])
+        if ([(NSString *)propList isEqualToString:@"homeDoubleTap"])
             invocationMethod = HOME_DOUBLE_TAP;
-        CFRelease(prefMethod);
+        CFRelease(propList);
+    }
+
+    propList = CFPreferencesCopyAppValue(CFSTR("animationsEnabled"), CFSTR(APP_ID));
+    if (propList) {
+        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+            animationsEnabled = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+        CFRelease(propList);
     }
 }
 
