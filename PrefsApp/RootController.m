@@ -1,13 +1,13 @@
 /**
- * Name: Backgrounder
+ * Name: Kirikae
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
- * Description: allow applications to run in the background
+ * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
  * Last-modified: 2009-08-26 00:49:25
  */
 
 /**
- * Copyright (C) 2008-2009  Lance Fetters (aka. ashikase)
+ * Copyright (C) 2009  Lance Fetters (aka. ashikase)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@
 {
     self = [super initWithStyle:style];
     if (self) {
-        [self setTitle:@"Backgrounder"];
+        [self setTitle:@"Kirikae"];
         [[self navigationItem] setBackButtonTitle:@"Back"];
     }
     return self;
@@ -212,7 +212,7 @@
     } else {
         // Credits
         NSString *link = [NSString stringWithFormat:@"mailto:%s@%s?subject=%s",
-            "gaizin", "gmail.com", "[Backgrounder]"];
+            "gaizin", "gmail.com", "[Kirikae]"];
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:link]];
 #endif
     }

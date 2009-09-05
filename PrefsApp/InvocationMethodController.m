@@ -1,13 +1,13 @@
 /**
- * Name: Backgrounder
+ * Name: Kirikae
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
- * Description: allow applications to run in the background
+ * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
  * Last-modified: 2009-08-26 00:49:29
  */
 
 /**
- * Copyright (C) 2008-2009  Lance Fetters (aka. ashikase)
+ * Copyright (C) 2009  Lance Fetters (aka. ashikase)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@
 
     if (indexPath.section == 0) {
         title = @"Hold Home Button";
-        description = @"Press and hold the home button until the Backgrounder pop-up appears.";
+        description = @"Press and hold the home button until the Kirikae pop-up appears.";
         imageName = @"invoke_hold.png";
     } else {
         title = @"Double-tap Home Button";

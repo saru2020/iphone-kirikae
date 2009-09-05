@@ -1,13 +1,13 @@
 /**
- * Name: Backgrounder
+ * Name: Kirikae
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
- * Description: allow applications to run in the background
+ * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
  * Last-modified: 2009-08-26 00:48:24
  */
 
 /**
- * Copyright (C) 2008-2009  Lance Fetters (aka. ashikase)
+ * Copyright (C) 2009  Lance Fetters (aka. ashikase)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 
 
 // General
-#define APP_TITLE "Backgrounder"
+#define APP_TITLE "Kirikae"
 #define FIRST_RUN_MSG "WARNING: Any changes made to preferences will cause SpringBoard to restart upon exit."
 
 // Documentation
