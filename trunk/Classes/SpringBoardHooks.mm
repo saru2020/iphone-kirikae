@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 01:32:28
+ * Last-modified: 2009-09-06 16:17:33
  */
 
 /**
@@ -402,7 +402,7 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
         if (app) {
             if ([identifier isEqualToString:@"com.apple.mobilephone"]
                     || [identifier isEqualToString:@"com.apple.mobilemail"]
-                    || [identifier isEqualToString:@"com.apple.safari"]
+                    || [identifier isEqualToString:@"com.apple.mobilesafari"]
                     || [identifier hasPrefix:@"com.apple.mobileipod"]
                     || [identifier isEqualToString:@"com.googlecode.mobileterminal"]) {
                 // Is an application with native backgrounding capability
