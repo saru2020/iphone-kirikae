@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:23:43
+ * Last-modified: 2009-09-09 00:21:16
  */
 
 /**
@@ -62,10 +62,12 @@ static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
     if (self) {
         [self setBackgroundColor:[UIColor colorWithWhite:0.30 alpha:1]];
 
-        //TaskListController *tl = [[TaskListController alloc] init];
-        TaskListController *&tl = MSHookIvar<TaskListController *>(self, "taskListController");
-        tl = [[TaskListController alloc] initWithNibName:nil bundle:NULL];
-        [self addSubview:tl.view];
+        UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
+        tbCont = [[UITabBarController alloc] init];
+        TaskListController *tlCont = [[TaskListController alloc] initWithNibName:nil bundle:NULL];
+        tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, nil];
+        [tlCont release];
+        [self addSubview:tbCont.view];
 
         // Set the initial position of the view as off-screen
         [self setOrigin:CGPointMake(0, size.height)];
@@ -75,9 +77,10 @@ static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
 
 static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
 {
-    TaskListController *&tl = MSHookIvar<TaskListController *>(self, "taskListController");
-    [tl setCurrentApp:[[self alert] currentApp]];
-    [tl setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
+    UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
+    TaskListController *tlCont = [tbCont.viewControllers objectAtIndex:0];
+    [tlCont setCurrentApp:[[self alert] currentApp]];
+    [tlCont setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
 }
 
 static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
@@ -192,7 +195,7 @@ void initTaskMenuPopup()
     Class $BGAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
     unsigned int size, align;
     NSGetSizeAndAlignment("@", &size, &align);
-    class_addIvar($BGAlertDisplay, "taskListController", size, align, "@");
+    class_addIvar($BGAlertDisplay, "tabBarController", size, align, "@");
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($BGAlertDisplay, "currentStatusBarMode", size, align, "i");
     class_addIvar($BGAlertDisplay, "currentStatusBarOrientation", size, align, "i");

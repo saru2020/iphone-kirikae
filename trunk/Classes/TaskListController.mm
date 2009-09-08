@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:21:52
+ * Last-modified: 2009-09-09 00:22:05
  */
 
 /**
@@ -47,6 +47,7 @@
 #import <SpringBoard/SBIconModel.h>
 #import <UIKit/UINavigationBarBackground.h>
 #import <UIKit/UITableViewCellDeleteConfirmationControl.h>
+#import <UIKit/UIViewController-UITabBarControllerItem.h>
 
 #import "Common.h"
 #import "SpringBoardHooks.h"
@@ -78,12 +79,23 @@
 @synthesize currentApp;
 @synthesize otherApps;
 
+- (id)initWithNibName:(NSString *)nibName bundle:(NSBundle *)bundle
+{
+    self = [super initWithNibName:nibName bundle:bundle];
+    if (self) {
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:nil tag:0];
+        [self setTabBarItem:item];
+        [item release];
+    }
+    return self;
+}
+
 - (void)loadView
 {
     UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
     CGSize size = view.frame.size;
-    const float statusBarHeight = 20.0f;
+    const float statusBarHeight = 0;
 
     // Create a top navigation bar
     UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@"Active Applications"];
