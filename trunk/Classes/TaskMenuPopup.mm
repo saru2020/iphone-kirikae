@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:21:16
+ * Last-modified: 2009-09-09 00:27:54
  */
 
 /**
@@ -148,19 +148,16 @@ static id $BGAlert$initWithCurrentApp$otherApps$(SBAlert *self, SEL sel, NSStrin
     objc_super $super = {self, objc_getClass("SBAlert")};
     self = objc_msgSendSuper(&$super, @selector(init));
     if (self) {
-        object_setInstanceVariable(self, "currentApp", reinterpret_cast<void *>([currentApp retain])); 
-        object_setInstanceVariable(self, "otherApps", reinterpret_cast<void *>([otherApps retain])); 
+        MSHookIvar<NSString *>(self, "currentApp") = [currentApp retain];
+        MSHookIvar<NSArray *>(self, "otherApps") = [otherApps retain];
     }
     return self;
 }
 
 static void $BGAlert$dealloc(SBAlert *self, SEL sel)
 {
-    id currentApp = nil, otherApps = nil;
-    object_getInstanceVariable(self, "currentApp", reinterpret_cast<void **>(&currentApp));
-    object_getInstanceVariable(self, "otherApps", reinterpret_cast<void **>(&otherApps));
-    [currentApp release];
-    [otherApps release];
+    [MSHookIvar<NSString *>(self, "currentApp") release];
+    [MSHookIvar<NSArray *>(self, "otherApps") release];
 
     objc_super $super = {self, objc_getClass("SBAlert")};
     self = objc_msgSendSuper(&$super, @selector(dealloc));
@@ -168,16 +165,12 @@ static void $BGAlert$dealloc(SBAlert *self, SEL sel)
 
 static NSString * $BGAlert$currentApp(SBAlert *self, SEL sel)
 {
-    NSString *currentApp = nil;
-    object_getInstanceVariable(self, "currentApp", reinterpret_cast<void **>(&currentApp));
-    return currentApp;
+    return MSHookIvar<NSString *>(self, "currentApp");
 }
 
 static NSArray * $BGAlert$otherApps(SBAlert *self, SEL sel)
 {
-    NSArray *otherApps = nil;
-    object_getInstanceVariable(self, "otherApps", reinterpret_cast<void **>(&otherApps));
-    return otherApps;
+    return MSHookIvar<NSArray *>(self, "otherApps");
 }
 
 static id $BGAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size)
