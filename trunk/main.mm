@@ -3,7 +3,7 @@
  * Type: iPhoneOS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 13:17:18
+ * Last-modified: 2009-09-09 00:35:42
  */
 
 /**
@@ -39,10 +39,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Foundation/Foundation.h>
 
 extern void initSpringBoardHooks();
-
 
 extern "C" void KirikaeInitialize()
 {

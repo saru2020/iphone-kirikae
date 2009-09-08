@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-07 00:29:31
+ * Last-modified: 2009-09-09 00:38:07
  */
 
 /**
@@ -43,6 +43,9 @@
 #include <signal.h>
 #include <substrate.h>
 
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
 #define APP_ID "jp.ashikase.kirikae"
 
 #define HOOK(class, name, type, args...) \
@@ -54,3 +57,5 @@
 
 #define CALL_ORIG(class, name, args...) \
     _ ## class ## $ ## name(self, sel, ## args)
+
+/* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

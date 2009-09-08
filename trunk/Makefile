@@ -7,7 +7,7 @@ MS_PATH = /files/Platforms/iPhone/Projects/Others/saurik/mobilesubstrate
 LDID = /opt/iPhone/ldid
 
 CXX = arm-apple-darwin9-g++
-CXXFLAGS = -g0 -O2 -Wall -Werror -Wno-write-strings
+CXXFLAGS = -g0 -O2 -Wall -Werror -Wno-write-strings -include common.h
 LD = $(CXX)
 LDFLAGS = -march=armv6 \
 		  -mcpu=arm1176jzf-s \

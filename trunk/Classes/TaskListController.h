@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:22:14
+ * Last-modified: 2009-09-09 00:36:24
  */
 
 /**
@@ -39,12 +39,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#import <UIKit/UIKit.h>
-
-@class NSArray;
-@class NSMutableArray;
-@class NSString;
 
 @interface TaskListController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 {

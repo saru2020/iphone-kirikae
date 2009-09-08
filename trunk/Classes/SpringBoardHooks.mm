@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:24:00
+ * Last-modified: 2009-09-09 00:37:03
  */
 
 /**
@@ -43,8 +43,6 @@
 #import "SpringBoardHooks.h"
 
 #import <CoreFoundation/CoreFoundation.h>
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import <QuartzCore/CABase.h>
 
 #import <SpringBoard/SBApplication.h>
@@ -59,7 +57,6 @@
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SpringBoard.h>
 
-#import "Common.h"
 #import "TaskMenuPopup.h"
 
 struct GSEvent;
