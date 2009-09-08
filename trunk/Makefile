@@ -1,4 +1,5 @@
 NAME = Kirikae
+APP_ID = jp.ashikase.kirikae
 
 # These paths must be changed to match the compilation environment
 TOOLCHAIN = /opt/iPhone/sdk/iPhoneOS3.0.jb
@@ -7,7 +8,7 @@ MS_PATH = /files/Platforms/iPhone/Projects/Others/saurik/mobilesubstrate
 LDID = /opt/iPhone/ldid
 
 CXX = arm-apple-darwin9-g++
-CXXFLAGS = -g0 -O2 -Wall -Werror -Wno-write-strings -include common.h
+CXXFLAGS = -g0 -O2 -Wall -Werror -Wno-write-strings -include common.h -DAPP_ID=\"$(APP_ID)\"
 LD = $(CXX)
 LDFLAGS = -march=armv6 \
 		  -mcpu=arm1176jzf-s \

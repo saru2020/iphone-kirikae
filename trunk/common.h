@@ -1,9 +1,8 @@
 /**
- * Name: Kirikae
- * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
- * Description: a task manager/switcher for iPhoneOS
+ * Name: Common
+ * Description: a common header for iPhone OS SpringBoard extensions (MobileSubstrate-based)
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:38:07
+ * Last-modified: 2009-09-09 00:44:43
  */
 
 /**
@@ -45,8 +44,6 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
-#define APP_ID "jp.ashikase.kirikae"
 
 #define HOOK(class, name, type, args...) \
     static type (*_ ## class ## $ ## name)(class *self, SEL sel, ## args); \
