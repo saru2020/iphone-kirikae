@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 16:17:33
+ * Last-modified: 2009-09-07 00:32:41
  */
 
 /**
@@ -523,36 +523,35 @@ void initSpringBoardHooks()
     loadPreferences();
 
     Class $SBDisplayStack(objc_getClass("SBDisplayStack"));
-    MSHookMessage($SBDisplayStack, @selector(init), &$SBDisplayStack$init, &_SBDisplayStack$init);
-    MSHookMessage($SBDisplayStack, @selector(dealloc), &$SBDisplayStack$dealloc, &_SBDisplayStack$dealloc);
+    LOAD_HOOK($SBDisplayStack, @selector(init), SBDisplayStack$init);
+    LOAD_HOOK($SBDisplayStack, @selector(dealloc), SBDisplayStack$dealloc);
 
 #if 0
     Class $SBStatusBarController(objc_getClass("SBStatusBarController"));
-    MSHookMessage($SBStatusBarController, @selector(setStatusBarMode:orientation:duration:fenceID:animation:),
-        &$SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$,
-        &_SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$);
+    LOAD_HOOK($SBStatusBarController, @selector(setStatusBarMode:orientation:duration:fenceID:animation:),
+        SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$);
 
     if (!animationsEnabled) {
         Class $SBUIController(objc_getClass("SBUIController"));
-        MSHookMessage($SBUIController, @selector(animateLaunchApplication:), &$SBUIController$animateLaunchApplication$, &_SBUIController$animateLaunchApplication$);
+        LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
     }
 #endif
 
     Class $SpringBoard(objc_getClass("SpringBoard"));
-    MSHookMessage($SpringBoard, @selector(applicationDidFinishLaunching:), &$SpringBoard$applicationDidFinishLaunching$, &_SpringBoard$applicationDidFinishLaunching$);
-    MSHookMessage($SpringBoard, @selector(dealloc), &$SpringBoard$dealloc, &_SpringBoard$dealloc);
+    LOAD_HOOK($SpringBoard, @selector(applicationDidFinishLaunching:), SpringBoard$applicationDidFinishLaunching$);
+    LOAD_HOOK($SpringBoard, @selector(dealloc), SpringBoard$dealloc);
 
     if (invocationMethod == HOME_DOUBLE_TAP) {
-        MSHookMessage($SpringBoard, @selector(handleMenuDoubleTap), &$SpringBoard$handleMenuDoubleTap, &_SpringBoard$handleMenuDoubleTap);
+        LOAD_HOOK($SpringBoard, @selector(handleMenuDoubleTap), SpringBoard$handleMenuDoubleTap);
     } else {
-        MSHookMessage($SpringBoard, @selector(menuButtonDown:), &$SpringBoard$menuButtonDown$, &_SpringBoard$menuButtonDown$);
-        MSHookMessage($SpringBoard, @selector(menuButtonUp:), &$SpringBoard$menuButtonUp$, &_SpringBoard$menuButtonUp$);
+        LOAD_HOOK($SpringBoard, @selector(menuButtonDown:), SpringBoard$menuButtonDown$);
+        LOAD_HOOK($SpringBoard, @selector(menuButtonUp:), SpringBoard$menuButtonUp$);
     }
 
     if (!animationsEnabled)
-        MSHookMessage($SpringBoard, @selector(frontDisplayDidChange), &$SpringBoard$frontDisplayDidChange, &_SpringBoard$frontDisplayDidChange);
+        LOAD_HOOK($SpringBoard, @selector(frontDisplayDidChange), SpringBoard$frontDisplayDidChange);
 
-    MSHookMessage($SpringBoard, @selector(_handleMenuButtonEvent), &$SpringBoard$_handleMenuButtonEvent, &_SpringBoard$_handleMenuButtonEvent);
+    LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
 
     class_addMethod($SpringBoard, @selector(invokeKirikae), (IMP)&$SpringBoard$invokeKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
@@ -560,13 +559,13 @@ void initSpringBoardHooks()
     class_addMethod($SpringBoard, @selector(quitAppWithDisplayIdentifier:), (IMP)&$SpringBoard$quitAppWithDisplayIdentifier$, "v@:@");
 
     Class $SBApplication(objc_getClass("SBApplication"));
-    MSHookMessage($SBApplication, @selector(launchSucceeded:), &$SBApplication$launchSucceeded$, &_SBApplication$launchSucceeded$);
-    MSHookMessage($SBApplication, @selector(deactivate), &$SBApplication$deactivate, &_SBApplication$deactivate);
-    MSHookMessage($SBApplication, @selector(exitedAbnormally), &$SBApplication$exitedAbnormally, &_SBApplication$exitedAbnormally);
-    MSHookMessage($SBApplication, @selector(exitedCommon), &$SBApplication$exitedCommon, &_SBApplication$exitedCommon);
-    MSHookMessage($SBApplication, @selector(_relaunchAfterAbnormalExit:), &$SBApplication$_relaunchAfterAbnormalExit$, &_SBApplication$_relaunchAfterAbnormalExit$);
+    LOAD_HOOK($SBApplication, @selector(launchSucceeded:), SBApplication$launchSucceeded$);
+    LOAD_HOOK($SBApplication, @selector(deactivate), SBApplication$deactivate);
+    LOAD_HOOK($SBApplication, @selector(exitedAbnormally), SBApplication$exitedAbnormally);
+    LOAD_HOOK($SBApplication, @selector(exitedCommon), SBApplication$exitedCommon);
+    LOAD_HOOK($SBApplication, @selector(_relaunchAfterAbnormalExit:), SBApplication$_relaunchAfterAbnormalExit$);
 #if 0
-    MSHookMessage($SBApplication, @selector(pathForDefaultImage:), &$SBApplication$pathForDefaultImage$, &_SBApplication$pathForDefaultImage$);
+    LOAD_HOOK($SBApplication, @selector(pathForDefaultImage:), SBApplication$pathForDefaultImage$);
 #endif
 }
 

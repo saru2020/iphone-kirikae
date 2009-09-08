@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 13:35:50
+ * Last-modified: 2009-09-07 00:29:31
  */
 
 /**
@@ -48,6 +48,9 @@
 #define HOOK(class, name, type, args...) \
     static type (*_ ## class ## $ ## name)(class *self, SEL sel, ## args); \
     static type $ ## class ## $ ## name(class *self, SEL sel, ## args)
+
+#define LOAD_HOOK(class, sel, imp) \
+    MSHookMessage(class, sel, MSHake(imp))
 
 #define CALL_ORIG(class, name, args...) \
     _ ## class ## $ ## name(self, sel, ## args)
