@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:18:20
+ * Last-modified: 2009-09-08 23:21:52
  */
 
 /**
@@ -61,16 +61,7 @@
 
 - (NSString *)titleForDeleteConfirmationButton:(id)cell
 {
-    NSString *title = nil;
-    switch ([cell tag]) {
-        case 2:
-            // Is SpringBoard
-            title = @"Respring";
-            break;
-        default:
-            title = @"Quit";
-    }
-    return title;
+    return ([cell tag] == 1) ? @"Respring" : @"Quit";
 }
 
 @end
@@ -86,7 +77,6 @@
 
 @synthesize currentApp;
 @synthesize otherApps;
-@synthesize blacklistedApps;
 
 - (void)loadView
 {
@@ -150,7 +140,6 @@
 {
     [currentApp release];
     [otherApps release];
-    [blacklistedApps release];
 
     [super dealloc];
 }
@@ -208,7 +197,7 @@
         image = [UIImage imageWithContentsOfFile:@"/System/Library/CoreServices/SpringBoard.app/applelogo.png"];
         image = [image _imageScaledToSize:CGSizeMake(59, 60) interpolationQuality:0];
         // Take opportunity to mark that this cell represents SpringBoard
-        [cell setTag:2];
+        [cell setTag:1];
     } else {
         // Is an application
         image = [icon icon];
@@ -222,10 +211,6 @@
         }
     }
     [cell setImage:image];
-
-    // Mark whether this application is blacklisted
-    if ([blacklistedApps containsObject:identifier])
-        [cell setTag:1];
 
     return cell;
 }

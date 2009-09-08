@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 22:34:08
+ * Last-modified: 2009-09-08 23:24:11
  */
 
 /**
@@ -65,13 +65,11 @@
 {
     NSString *currentApp;
     NSArray *otherApps;
-    NSArray *blacklistedApps;
 }
 
-- (id)initWithCurrentApp:(NSString *)currentApp otherApps:(NSArray *)otherApps blacklistedApps:(NSArray *)blacklistedApps;
+- (id)initWithCurrentApp:(NSString *)currentApp otherApps:(NSArray *)otherApps;
 - (NSString *)currentApp;
 - (NSArray *)otherApps;
-- (NSArray *)blacklistedApps;
 
 @end
 

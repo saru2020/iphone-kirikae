@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-07 00:32:41
+ * Last-modified: 2009-09-08 23:24:00
  */
 
 /**
@@ -70,7 +70,6 @@ struct GSEvent;
 static int invocationMethod = HOME_DOUBLE_TAP;
 
 static NSMutableArray *activeApps = nil;
-static NSArray *blacklistedApps = nil;
 
 //static NSMutableDictionary *statusBarStates = nil;
 //static NSString *deactivatingApp = nil;
@@ -310,7 +309,7 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
         identifier = @"com.apple.springboard";
     }
 
-    alert = [[objc_getClass("KirikaeAlert") alloc] initWithCurrentApp:identifier otherApps:array blacklistedApps:blacklistedApps];
+    alert = [[objc_getClass("KirikaeAlert") alloc] initWithCurrentApp:identifier otherApps:array];
     [(SBAlert *)alert activate];
 }
 

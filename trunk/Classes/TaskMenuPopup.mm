@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-08 23:12:31
+ * Last-modified: 2009-09-08 23:23:43
  */
 
 /**
@@ -78,7 +78,6 @@ static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, 
     TaskListController *&tl = MSHookIvar<TaskListController *>(self, "taskListController");
     [tl setCurrentApp:[[self alert] currentApp]];
     [tl setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
-    [tl setBlacklistedApps:[[self alert] blacklistedApps]];
 }
 
 static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
@@ -141,27 +140,24 @@ static void $BGAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay 
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-static id $BGAlert$initWithCurrentApp$otherApps$blacklistedApps$(SBAlert *self, SEL sel, NSString *currentApp, NSArray *otherApps, NSArray *blacklistedApps)
+static id $BGAlert$initWithCurrentApp$otherApps$(SBAlert *self, SEL sel, NSString *currentApp, NSArray *otherApps)
 {
     objc_super $super = {self, objc_getClass("SBAlert")};
     self = objc_msgSendSuper(&$super, @selector(init));
     if (self) {
         object_setInstanceVariable(self, "currentApp", reinterpret_cast<void *>([currentApp retain])); 
         object_setInstanceVariable(self, "otherApps", reinterpret_cast<void *>([otherApps retain])); 
-        object_setInstanceVariable(self, "blacklistedApps", reinterpret_cast<void *>([blacklistedApps retain])); 
     }
     return self;
 }
 
 static void $BGAlert$dealloc(SBAlert *self, SEL sel)
 {
-    id currentApp = nil, otherApps = nil, blacklistedApps = nil;
+    id currentApp = nil, otherApps = nil;
     object_getInstanceVariable(self, "currentApp", reinterpret_cast<void **>(&currentApp));
     object_getInstanceVariable(self, "otherApps", reinterpret_cast<void **>(&otherApps));
-    object_getInstanceVariable(self, "blacklistedApps", reinterpret_cast<void **>(&blacklistedApps));
     [currentApp release];
     [otherApps release];
-    [blacklistedApps release];
 
     objc_super $super = {self, objc_getClass("SBAlert")};
     self = objc_msgSendSuper(&$super, @selector(dealloc));
@@ -179,13 +175,6 @@ static NSArray * $BGAlert$otherApps(SBAlert *self, SEL sel)
     NSArray *otherApps = nil;
     object_getInstanceVariable(self, "otherApps", reinterpret_cast<void **>(&otherApps));
     return otherApps;
-}
-
-static NSArray * $BGAlert$blacklistedApps(SBAlert *self, SEL sel)
-{
-    NSArray *blacklistedApps = nil;
-    object_getInstanceVariable(self, "blacklistedApps", reinterpret_cast<void **>(&blacklistedApps));
-    return blacklistedApps;
 }
 
 static id $BGAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size)
@@ -225,17 +214,14 @@ void initTaskMenuPopup()
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($BGAlert, "currentApp", size, align, "@");
     class_addIvar($BGAlert, "otherApps", size, align, "@");
-    class_addIvar($BGAlert, "blacklistedApps", size, align, "@");
-    class_addMethod($BGAlert, @selector(initWithCurrentApp:otherApps:blacklistedApps:),
-            (IMP)&$BGAlert$initWithCurrentApp$otherApps$blacklistedApps$, "@@:@@@");
+    class_addMethod($BGAlert, @selector(initWithCurrentApp:otherApps:),
+            (IMP)&$BGAlert$initWithCurrentApp$otherApps$, "@@:@@");
     class_addMethod($BGAlert, @selector(dealloc),
             (IMP)&$BGAlert$dealloc, "v@:");
     class_addMethod($BGAlert, @selector(currentApp),
             (IMP)&$BGAlert$currentApp, "@@:");
     class_addMethod($BGAlert, @selector(otherApps),
             (IMP)&$BGAlert$otherApps, "@@:");
-    class_addMethod($BGAlert, @selector(blacklistedApps),
-            (IMP)&$BGAlert$blacklistedApps, "@@:");
     class_addMethod($BGAlert, @selector(alertDisplayViewWithSize:),
             (IMP)&$BGAlert$alertDisplayViewWithSize$, "@@:{CGSize=ff}");
     objc_registerClassPair($BGAlert);
