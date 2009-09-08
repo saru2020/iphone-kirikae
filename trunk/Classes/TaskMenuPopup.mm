@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 02:42:01
+ * Last-modified: 2009-09-08 22:45:58
  */
 
 /**
@@ -138,7 +138,7 @@ HOOK(UITableView, titleForDeleteConfirmationButton$, NSString *, id cell)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-@interface TaskList : UIView <UITableViewDelegate, UITableViewDataSource>
+@interface TaskListController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 {
     NSString *currentApp;
     NSMutableArray *otherApps;
@@ -151,67 +151,68 @@ HOOK(UITableView, titleForDeleteConfirmationButton$, NSString *, id cell)
 
 @end
 
-@implementation TaskList
+@implementation TaskListController
 
 @synthesize currentApp;
 @synthesize otherApps;
 @synthesize blacklistedApps;
 
-- (id)initWithFrame:(CGRect)frame
+- (void)loadView
 {
-    self = [super initWithFrame:frame];
-    if (self) {
-        CGSize size = frame.size;
-        const float statusBarHeight = 20.0f;
+    UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
-        // Create a top navigation bar
-        UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@"Active Applications"];
-        UINavigationBar *navBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, statusBarHeight, size.width, 44)];
-        [navBar setTintColor:[UIColor colorWithWhite:0.23 alpha:1]];
-        [navBar pushNavigationItem:navItem];
-        //[navBar showButtonsWithLeftTitle:nil rightTitle:@"Edit"];
-        [navItem release];
-        [self addSubview:navBar];
-        [navBar release];
+    CGSize size = view.frame.size;
+    const float statusBarHeight = 20.0f;
 
-        // Create a table, which acts as the main body of the popup
-        UITableView *table = [[UITableView alloc] initWithFrame:
-            CGRectMake(0, statusBarHeight + 44, size.width, size.height - statusBarHeight - 44 - 44)
-            style:0];
-        [table setDataSource:self];
-        [table setDelegate:self];
-        [table setRowHeight:68];
-        [self addSubview:table];
-        [table release];
+    // Create a top navigation bar
+    UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@"Active Applications"];
+    UINavigationBar *navBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, statusBarHeight, size.width, 44)];
+    [navBar setTintColor:[UIColor colorWithWhite:0.23 alpha:1]];
+    [navBar pushNavigationItem:navItem];
+    //[navBar showButtonsWithLeftTitle:nil rightTitle:@"Edit"];
+    [navItem release];
+    [view addSubview:navBar];
+    [navBar release];
 
-        // Create a bottom bar which contains instructional information
-        UINavigationBarBackground *footer = [[objc_getClass("UINavigationBarBackground") alloc]
-            initWithFrame:CGRectMake(0, size.height - 44, size.width, 44)
-            withBarStyle:0
-            withTintColor:[UIColor colorWithWhite:0.23 alpha:1]
-            isTranslucent:NO];
-        [self addSubview:footer];
-        [footer release];
+    // Create a table, which acts as the main body of the popup
+    UITableView *table = [[UITableView alloc] initWithFrame:
+        CGRectMake(0, statusBarHeight + 44, size.width, size.height - statusBarHeight - 44 - 44)
+        style:0];
+    [table setDataSource:self];
+    [table setDelegate:self];
+    [table setRowHeight:68];
+    [view addSubview:table];
+    [table release];
 
-        // Instructional item one
-        UILabel *footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 44, size.width, 22)];
-        [footerText setText:@"Tap an application to switch"];
-        [footerText setTextAlignment:1];
-        [footerText setTextColor:[UIColor whiteColor]];
-        [footerText setBackgroundColor:[UIColor clearColor]];
-        [self addSubview:footerText];
-        [footerText release];
+    // Create a bottom bar which contains instructional information
+    UINavigationBarBackground *footer = [[objc_getClass("UINavigationBarBackground") alloc]
+        initWithFrame:CGRectMake(0, size.height - 44, size.width, 44)
+        withBarStyle:0
+        withTintColor:[UIColor colorWithWhite:0.23 alpha:1]
+        isTranslucent:NO];
+    [view addSubview:footer];
+    [footer release];
 
-        // Instructional item two
-        footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 22, size.width, 22)];
-        [footerText setText:@"Tap the Home Button to cancel"];
-        [footerText setTextAlignment:1];
-        [footerText setTextColor:[UIColor whiteColor]];
-        [footerText setBackgroundColor:[UIColor clearColor]];
-        [self addSubview:footerText];
-        [footerText release];
-    }
-    return self;
+    // Instructional item one
+    UILabel *footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 44, size.width, 22)];
+    [footerText setText:@"Tap an application to switch"];
+    [footerText setTextAlignment:1];
+    [footerText setTextColor:[UIColor whiteColor]];
+    [footerText setBackgroundColor:[UIColor clearColor]];
+    [view addSubview:footerText];
+    [footerText release];
+
+    // Instructional item two
+    footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 22, size.width, 22)];
+    [footerText setText:@"Tap the Home Button to cancel"];
+    [footerText setTextAlignment:1];
+    [footerText setTextColor:[UIColor whiteColor]];
+    [footerText setBackgroundColor:[UIColor clearColor]];
+    [view addSubview:footerText];
+    [footerText release];
+
+    self.view = view;
+    [view release];
 }
 
 - (void)dealloc
@@ -352,9 +353,10 @@ static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
     if (self) {
         [self setBackgroundColor:[UIColor colorWithWhite:0.30 alpha:1]];
 
-        TaskList *tl = [[TaskList alloc] initWithFrame:rect];
-        [self addSubview:tl];
-        [tl release];
+        //TaskListController *tl = [[TaskListController alloc] init];
+        TaskListController *&tl = MSHookIvar<TaskListController *>(self, "taskListController");
+        tl = [[TaskListController alloc] initWithNibName:nil bundle:NULL];
+        [self addSubview:tl.view];
 
         // Set the initial position of the view as off-screen
         [self setOrigin:CGPointMake(0, size.height)];
@@ -364,7 +366,7 @@ static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
 
 static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
 {
-    TaskList *tl = [[self subviews] objectAtIndex:0];
+    TaskListController *&tl = MSHookIvar<TaskListController *>(self, "taskListController");
     [tl setCurrentApp:[[self alert] currentApp]];
     [tl setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
     [tl setBlacklistedApps:[[self alert] blacklistedApps]];
@@ -497,6 +499,8 @@ void initTaskMenuPopup()
     Class $SBAlertDisplay(objc_getClass("SBAlertDisplay"));
     Class $BGAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
     unsigned int size, align;
+    NSGetSizeAndAlignment("@", &size, &align);
+    class_addIvar($BGAlertDisplay, "taskListController", size, align, "@");
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($BGAlertDisplay, "currentStatusBarMode", size, align, "i");
     class_addIvar($BGAlertDisplay, "currentStatusBarOrientation", size, align, "i");

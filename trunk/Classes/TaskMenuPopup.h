@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-30 15:57:20
+ * Last-modified: 2009-09-08 22:34:08
  */
 
 /**
@@ -45,9 +45,12 @@
 
 @class NSArray;
 @class NSString;
+@class TaskListController;
 
 @interface KirikaeAlertDisplay : SBAlertDisplay
 {
+    TaskListController *taskListController;
+
     int currentStatusBarMode;
     int currentStatusBarOrientation;
 }
