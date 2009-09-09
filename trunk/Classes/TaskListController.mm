@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:37:09
+ * Last-modified: 2009-09-09 01:23:36
  */
 
 /**
@@ -96,6 +96,7 @@
     CGSize size = view.frame.size;
     const float statusBarHeight = 0;
 
+#if 0
     // Create a top navigation bar
     UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@"Active Applications"];
     UINavigationBar *navBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, statusBarHeight, size.width, 44)];
@@ -105,10 +106,11 @@
     [navItem release];
     [view addSubview:navBar];
     [navBar release];
+#endif
 
     // Create a table, which acts as the main body of the popup
     UITableView *table = [[UITableView alloc] initWithFrame:
-        CGRectMake(0, statusBarHeight + 44, size.width, size.height - statusBarHeight - 44 - 44)
+        CGRectMake(0, statusBarHeight, size.width, size.height - statusBarHeight - 44)
         style:0];
     [table setDataSource:self];
     [table setDelegate:self];
@@ -116,6 +118,7 @@
     [view addSubview:table];
     [table release];
 
+#if 0
     // Create a bottom bar which contains instructional information
     UINavigationBarBackground *footer = [[objc_getClass("UINavigationBarBackground") alloc]
         initWithFrame:CGRectMake(0, size.height - 44, size.width, 44)
@@ -142,6 +145,7 @@
     [footerText setBackgroundColor:[UIColor clearColor]];
     [view addSubview:footerText];
     [footerText release];
+#endif
 
     self.view = view;
     [view release];
