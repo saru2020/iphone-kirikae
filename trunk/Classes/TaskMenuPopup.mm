@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:53:22
+ * Last-modified: 2009-09-09 23:00:15
  */
 
 /**
@@ -42,8 +42,10 @@
 
 #import "TaskMenuPopup.h"
 
+#import <UIKit/UIViewController-UITabBarControllerItem.h>
 //#import <SpringBoard/SBStatusBarController.h>
 
+#import "FavoritesController.h"
 #import "SpringBoardHooks.h"
 #import "TaskListController.h"
 
@@ -59,9 +61,11 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
 
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
-        TaskListController *tlCont = [[TaskListController alloc] initWithNibName:nil bundle:NULL];
-        tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, nil];
+        TaskListController *tlCont = [[TaskListController alloc] initWithNibName:nil bundle:nil];
+        FavoritesController *favCont = [[FavoritesController alloc] initWithNibName:nil bundle:nil];
+        tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, favCont, nil];
         [tlCont release];
+        [favCont release];
         [self addSubview:tbCont.view];
 
         // Set the initial position of the view as off-screen
