@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:36:57
+ * Last-modified: 2009-09-09 00:53:22
  */
 
 /**
@@ -48,7 +48,7 @@
 #import "TaskListController.h"
 
 
-static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize size)
+static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize size)
 {
     CGRect rect = CGRectMake(0, 0, size.width, size.height);
 
@@ -70,7 +70,7 @@ static id $BGAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
     return self;
 }
 
-static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
+static void $KKAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
 {
     UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
     TaskListController *tlCont = [tbCont.viewControllers objectAtIndex:0];
@@ -78,7 +78,7 @@ static void $BGAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, 
     [tlCont setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
 }
 
-static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
+static void $KKAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
 {
 #if 0
     // Task list displays a black status bar; save current status-bar settings
@@ -102,7 +102,7 @@ static void $BGAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL 
     //       implementation does nothing
 }
 
-static void $BGAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
+static void $KKAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
 {
 #if 0
     int &currentStatusBarMode = MSHookIvar<int>(self, "currentStatusBarMode");
@@ -125,7 +125,7 @@ static void $BGAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
     [UIView commitAnimations];
 }
 
-static void $BGAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay *self, SEL sel,
+static void $KKAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay *self, SEL sel,
     NSString *animationID, NSNumber *finished, void *context)
 {
     // Continue dismissal by calling super's dismiss method
@@ -138,7 +138,7 @@ static void $BGAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay 
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-static id $BGAlert$initWithCurrentApp$otherApps$(SBAlert *self, SEL sel, NSString *currentApp, NSArray *otherApps)
+static id $KKAlert$initWithCurrentApp$otherApps$(SBAlert *self, SEL sel, NSString *currentApp, NSArray *otherApps)
 {
     objc_super $super = {self, objc_getClass("SBAlert")};
     self = objc_msgSendSuper(&$super, @selector(init));
@@ -149,7 +149,7 @@ static id $BGAlert$initWithCurrentApp$otherApps$(SBAlert *self, SEL sel, NSStrin
     return self;
 }
 
-static void $BGAlert$dealloc(SBAlert *self, SEL sel)
+static void $KKAlert$dealloc(SBAlert *self, SEL sel)
 {
     [MSHookIvar<NSString *>(self, "currentApp") release];
     [MSHookIvar<NSArray *>(self, "otherApps") release];
@@ -158,17 +158,17 @@ static void $BGAlert$dealloc(SBAlert *self, SEL sel)
     self = objc_msgSendSuper(&$super, @selector(dealloc));
 }
 
-static NSString * $BGAlert$currentApp(SBAlert *self, SEL sel)
+static NSString * $KKAlert$currentApp(SBAlert *self, SEL sel)
 {
     return MSHookIvar<NSString *>(self, "currentApp");
 }
 
-static NSArray * $BGAlert$otherApps(SBAlert *self, SEL sel)
+static NSArray * $KKAlert$otherApps(SBAlert *self, SEL sel)
 {
     return MSHookIvar<NSArray *>(self, "otherApps");
 }
 
-static id $BGAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size)
+static id $KKAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size)
 {
     return [[[objc_getClass("KirikaeAlertDisplay") alloc] initWithSize:size] autorelease];
 }
@@ -180,42 +180,42 @@ void initTaskMenuPopup()
 {
     // Create custom alert-display class
     Class $SBAlertDisplay(objc_getClass("SBAlertDisplay"));
-    Class $BGAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
+    Class $KKAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
     unsigned int size, align;
     NSGetSizeAndAlignment("@", &size, &align);
-    class_addIvar($BGAlertDisplay, "tabBarController", size, align, "@");
+    class_addIvar($KKAlertDisplay, "tabBarController", size, align, "@");
     NSGetSizeAndAlignment("i", &size, &align);
-    class_addIvar($BGAlertDisplay, "currentStatusBarMode", size, align, "i");
-    class_addIvar($BGAlertDisplay, "currentStatusBarOrientation", size, align, "i");
-    class_addMethod($BGAlertDisplay, @selector(initWithSize:),
-            (IMP)&$BGAlertDisplay$initWithSize$, "@@:{CGSize=ff}");
-    class_addMethod($BGAlertDisplay, @selector(alertDisplayWillBecomeVisible),
-            (IMP)&$BGAlertDisplay$alertDisplayWillBecomeVisible, "v@:");
-    class_addMethod($BGAlertDisplay, @selector(alertDisplayBecameVisible),
-            (IMP)&$BGAlertDisplay$alertDisplayBecameVisible, "v@:");
-    class_addMethod($BGAlertDisplay, @selector(dismiss),
-            (IMP)&$BGAlertDisplay$dismiss, "v@:");
-    class_addMethod($BGAlertDisplay, @selector(alertDidAnimateOut:finished:context:),
-            (IMP)&$BGAlertDisplay$alertDidAnimateOut$finished$context$, "v@:@@^v");
-    objc_registerClassPair($BGAlertDisplay);
+    class_addIvar($KKAlertDisplay, "currentStatusBarMode", size, align, "i");
+    class_addIvar($KKAlertDisplay, "currentStatusBarOrientation", size, align, "i");
+    class_addMethod($KKAlertDisplay, @selector(initWithSize:),
+            (IMP)&$KKAlertDisplay$initWithSize$, "@@:{CGSize=ff}");
+    class_addMethod($KKAlertDisplay, @selector(alertDisplayWillBecomeVisible),
+            (IMP)&$KKAlertDisplay$alertDisplayWillBecomeVisible, "v@:");
+    class_addMethod($KKAlertDisplay, @selector(alertDisplayBecameVisible),
+            (IMP)&$KKAlertDisplay$alertDisplayBecameVisible, "v@:");
+    class_addMethod($KKAlertDisplay, @selector(dismiss),
+            (IMP)&$KKAlertDisplay$dismiss, "v@:");
+    class_addMethod($KKAlertDisplay, @selector(alertDidAnimateOut:finished:context:),
+            (IMP)&$KKAlertDisplay$alertDidAnimateOut$finished$context$, "v@:@@^v");
+    objc_registerClassPair($KKAlertDisplay);
 
     // Create custom alert class
     Class $SBAlert(objc_getClass("SBAlert"));
-    Class $BGAlert = objc_allocateClassPair($SBAlert, "KirikaeAlert", 0);
+    Class $KKAlert = objc_allocateClassPair($SBAlert, "KirikaeAlert", 0);
     NSGetSizeAndAlignment("@", &size, &align);
-    class_addIvar($BGAlert, "currentApp", size, align, "@");
-    class_addIvar($BGAlert, "otherApps", size, align, "@");
-    class_addMethod($BGAlert, @selector(initWithCurrentApp:otherApps:),
-            (IMP)&$BGAlert$initWithCurrentApp$otherApps$, "@@:@@");
-    class_addMethod($BGAlert, @selector(dealloc),
-            (IMP)&$BGAlert$dealloc, "v@:");
-    class_addMethod($BGAlert, @selector(currentApp),
-            (IMP)&$BGAlert$currentApp, "@@:");
-    class_addMethod($BGAlert, @selector(otherApps),
-            (IMP)&$BGAlert$otherApps, "@@:");
-    class_addMethod($BGAlert, @selector(alertDisplayViewWithSize:),
-            (IMP)&$BGAlert$alertDisplayViewWithSize$, "@@:{CGSize=ff}");
-    objc_registerClassPair($BGAlert);
+    class_addIvar($KKAlert, "currentApp", size, align, "@");
+    class_addIvar($KKAlert, "otherApps", size, align, "@");
+    class_addMethod($KKAlert, @selector(initWithCurrentApp:otherApps:),
+            (IMP)&$KKAlert$initWithCurrentApp$otherApps$, "@@:@@");
+    class_addMethod($KKAlert, @selector(dealloc),
+            (IMP)&$KKAlert$dealloc, "v@:");
+    class_addMethod($KKAlert, @selector(currentApp),
+            (IMP)&$KKAlert$currentApp, "@@:");
+    class_addMethod($KKAlert, @selector(otherApps),
+            (IMP)&$KKAlert$otherApps, "@@:");
+    class_addMethod($KKAlert, @selector(alertDisplayViewWithSize:),
+            (IMP)&$KKAlert$alertDisplayViewWithSize$, "@@:{CGSize=ff}");
+    objc_registerClassPair($KKAlert);
 }
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
