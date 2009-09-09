@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 01:23:36
+ * Last-modified: 2009-09-09 23:07:38
  */
 
 /**
@@ -257,17 +257,11 @@
 {
     SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
 
-    if (indexPath.section == 0) {
+    if (indexPath.section == 0)
         [springBoard dismissKirikae];
-    } else {
-        if (![currentApp isEqualToString:@"com.apple.springboard"])
-            if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)])
-                // Enable backgrounding for current application
-                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:currentApp];
-
+    else
         // Switch to selected application
         [springBoard switchToAppWithDisplayIdentifier:[otherApps objectAtIndex:indexPath.row]];
-    }
 }
 
 @end

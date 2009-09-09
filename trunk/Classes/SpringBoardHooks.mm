@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:37:03
+ * Last-modified: 2009-09-09 23:01:52
  */
 
 /**
@@ -366,6 +366,10 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
                 }
 
                 // Deactivate the current application
+
+                // If Backgrounder is installed, enable backgrounding for current application
+                if ([self respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)])
+                    [self setBackgroundingEnabled:YES forDisplayIdentifier:fromIdent];
 
                 // NOTE: Must set animation flag for deactivation, otherwise
                 //       application window does not disappear (reason yet unknown)
