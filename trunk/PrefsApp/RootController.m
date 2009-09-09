@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 01:38:04
+ * Last-modified: 2009-09-09 10:11:32
  */
 
 /**
@@ -52,6 +52,7 @@
 
 #import "Constants.h"
 #import "DocumentationController.h"
+#import "FavoritesController.h"
 #import "Preferences.h"
 
 
@@ -91,13 +92,13 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    static NSString *headers[] = {@"Preferences", @"Documentation", nil, nil};
+    static NSString *headers[] = {nil, @"Documentation", nil, nil};
     return headers[section];
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {1, 4, 2};
+    static int rows[] = {2, 4, 2};
     return rows[section];
 }
 
@@ -111,7 +112,7 @@
 
     UITableViewCell *cell = nil;
 
-    if (indexPath.section == 0) {
+    if (indexPath.section == 0 && indexPath.row == 0) {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
         if (cell == nil) {
@@ -200,7 +201,10 @@
             }
         }
     } else {
-        static NSString *cellTitles[] = {@"How to Use", @"Release Notes", @"Known Issues"};
+        static NSString *cellTitles[][3] = {
+            {nil, @"Favorites", nil},
+            {@"How to Use", @"Release Notes", @"Known Issues"}
+        };
 
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -210,7 +214,7 @@
             [cell setSelectionStyle:2]; // Gray
             [cell setAccessoryType:1]; // Simple arrow
         }
-        [cell setText:cellTitles[indexPath.row]];
+        [cell setText:cellTitles[indexPath.section][indexPath.row]];
     }
 
     return cell;
@@ -227,7 +231,9 @@
 {
     UIViewController *vc = nil;
 
-    if (indexPath.section == 1) {
+    if (indexPath.section == 0) {
+        vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
+    } else if (indexPath.section == 1) {
         // Documentation
         static NSString *fileNames[] = { @"usage.html", @"release_notes.html", @"known_issues.html" };
         static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };

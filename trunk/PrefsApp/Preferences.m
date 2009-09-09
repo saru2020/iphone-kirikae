@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 01:27:00
+ * Last-modified: 2009-09-09 10:01:37
  */
 
 /**
@@ -49,6 +49,7 @@
 
 @synthesize firstRun;
 @synthesize animationsEnabled;
+@synthesize favorites;
 
 #pragma mark - Methods
 
@@ -95,6 +96,7 @@
 
     [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
+    [dict setObject:[favorites copy] forKey:@"favorites"];
 
     return dict;
 }
@@ -123,6 +125,7 @@
 
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
+    [dict setObject:[NSArray array] forKey:@"favorites"];
 
     [defaults registerDefaults:dict];
 }
@@ -133,6 +136,7 @@
     
     firstRun = [defaults boolForKey:@"firstRun"];
     animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
+    favorites = [[defaults arrayForKey:@"favorites"] retain];
 }
 
 - (void)writeToDisk

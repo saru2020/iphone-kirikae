@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 09:59:28
+ * Last-modified: 2009-09-09 09:55:06
  */
 
 /**
@@ -40,37 +40,23 @@
  */
 
 
-#import <Foundation/NSObject.h>
+#import <UIKit/UIKit.h>
 
 
-@class NSArray;
-@class NSDictionary;
-@class NSString;
+@class NSMutableArray;
+@class RootController;
 
-@interface Preferences : NSObject
+@interface FavoritesController : UITableViewController
 {
-    NSDictionary *initialValues;
-    NSDictionary *onDiskValues;
+    UIProgressHUD *busyIndicator;
 
-    BOOL firstRun;
-    BOOL animationsEnabled;
-    NSArray *favorites;
+    // Reference to root view controller for accessing cached info
+    RootController *rootController;
+
+    // Variables to track changes made on this page
+    NSMutableArray *favorites;
+    BOOL isModified;
 }
-
-@property(nonatomic) BOOL firstRun;
-@property(nonatomic) BOOL animationsEnabled;
-@property(nonatomic, retain) NSArray *favorites;
-
-+ (Preferences *)sharedInstance;
-
-- (NSDictionary *)dictionaryRepresentation;
-
-- (BOOL)isModified;
-- (BOOL)needsRespring;
-
-- (void)registerDefaults;
-- (void)readFromDisk;
-- (void)writeToDisk;
 
 @end
 
