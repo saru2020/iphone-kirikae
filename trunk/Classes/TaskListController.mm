@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:21:06
+ * Last-modified: 2009-09-11 01:28:01
  */
 
 /**
@@ -98,7 +98,7 @@
     [super dealloc];
 }
 
-- (void)laodView
+- (void)loadView
 {
     [super loadView];
     [self.tableView setRowHeight:68.0f];

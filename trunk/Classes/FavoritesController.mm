@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:21:48
+ * Last-modified: 2009-09-11 01:27:50
  */
 
 /**
@@ -81,10 +81,58 @@
     [super dealloc];
 }
 
-- (void)laodView
+- (void)loadView
 {
     [super loadView];
-    [self.tableView setRowHeight:68.0f];
+
+    if ([favorites count] == 0) {
+        // No favorites
+        [self.tableView setHidden:YES];
+
+        // Create a notice to inform use how to add favorites
+        // FIXME: Try to find a simpler/cleaner way to implement this
+        //        ... or, consider making this dialog into a separate class
+        UIView *view = [[UIView alloc] initWithFrame:CGRectZero];
+        self.view = view;
+        [view release];
+
+        view = [[UIView alloc] initWithFrame:CGRectMake(40.0f, 110.0f, 240.0f, 180.0f)];
+        [view setBackgroundColor:[UIColor colorWithWhite:0.13f alpha:1.0f]];
+        [view.layer setCornerRadius:10.0f];
+
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 10.0f, view.bounds.size.width - 20.0f, 21.0f)];
+        label.text = @"No Favorites";
+        label.font = [UIFont boldSystemFontOfSize:17.0f];
+        label.textAlignment = UITextAlignmentCenter;
+        label.textColor = [UIColor whiteColor];
+        label.backgroundColor = [UIColor clearColor];
+        [view addSubview:label];
+        [label release];
+
+        UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(10.0f, 31.0f, view.bounds.size.width - 20.0f, 105.0f)];
+        textView.text = @"Applications can be added to the list of favorites via the Kirikae preferences application.";
+        textView.font = [UIFont systemFontOfSize:16.0f];
+        textView.textAlignment = UITextAlignmentCenter;
+        textView.textColor = [UIColor whiteColor];
+        textView.backgroundColor = [UIColor clearColor];
+        [textView setScrollEnabled:NO];
+        [view addSubview:textView];
+        [textView release];
+
+        UIButton *btn = [UIButton buttonWithType:1];
+        btn.frame = CGRectMake(20.0f, view.bounds.size.height - 47.0f, view.bounds.size.width - 40.0f, 37.0f);
+        btn.backgroundColor = [UIColor clearColor];
+        [btn setTitle:@"Open Preferences..." forState:UIControlStateNormal];
+        [btn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [btn addTarget:self action:@selector(openPreferences:) forControlEvents:UIControlEventTouchUpInside];
+        [view addSubview:btn];
+
+        [self.view addSubview:view];
+        [view release];
+    } else {
+        // Adjust row height
+        [self.tableView setRowHeight:68.0f];
+    }
 }
 
 #pragma mark - UITableViewDataSource
@@ -155,6 +203,15 @@
     // Switch to selected application
     SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
     [springBoard switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
+}
+
+#pragma mark - Actions
+
+- (void)openPreferences:(id)sender
+{
+    // Switch to the Kirikae preferences application
+    SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
+    [springBoard switchToAppWithDisplayIdentifier:@APP_ID];
 }
 
 @end
