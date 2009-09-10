@@ -2,11 +2,11 @@
  * Name: Common
  * Description: a common header for iPhone OS SpringBoard extensions (MobileSubstrate-based)
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:44:43
+ * Last-modified: 2009-09-10 21:07:39
  */
 
 /**
- * Copyright (C) 2009  Lance Fetters (aka. ashikase)
+ * Copyright (C) 2008-2009  Lance Fetters (aka. ashikase)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
