@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-10 20:29:06
+ * Last-modified: 2009-09-11 01:21:48
  */
 
 /**
@@ -55,9 +55,9 @@
 
 @implementation FavoritesController
 
-- (id)initWithNibName:(NSString *)nibName bundle:(NSBundle *)bundle
+- (id)initWithStyle:(int)style
 {
-    self = [super initWithNibName:nibName bundle:bundle];
+    self = [super initWithStyle:style];
     if (self) {
         // Setup tab bar button
         UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:1 tag:1]; // UITabBarSystemItemFavorites
@@ -75,31 +75,16 @@
     return self;
 }
 
-- (void)loadView
-{
-    UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-
-    CGSize size = view.frame.size;
-    const float statusBarHeight = 0;
-
-    // Create a table, which acts as the main body of the popup
-    UITableView *table = [[UITableView alloc] initWithFrame:
-        CGRectMake(0, statusBarHeight, size.width, size.height - statusBarHeight - 44.0f)
-        style:0];
-    [table setDataSource:self];
-    [table setDelegate:self];
-    [table setRowHeight:68];
-    [view addSubview:table];
-    [table release];
-
-    self.view = view;
-    [view release];
-}
-
 - (void)dealloc
 {
     [favorites release];
     [super dealloc];
+}
+
+- (void)laodView
+{
+    [super loadView];
+    [self.tableView setRowHeight:68.0f];
 }
 
 #pragma mark - UITableViewDataSource

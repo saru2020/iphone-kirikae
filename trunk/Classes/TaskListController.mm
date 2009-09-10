@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-10 20:29:46
+ * Last-modified: 2009-09-11 01:21:06
  */
 
 /**
@@ -78,36 +78,16 @@
 @synthesize currentApp;
 @synthesize otherApps;
 
-- (id)initWithNibName:(NSString *)nibName bundle:(NSBundle *)bundle
+- (id)initWithStyle:(int)style
 {
-    self = [super initWithNibName:nibName bundle:bundle];
+    self = [super initWithStyle:style];
     if (self) {
+        // Setup tab bar button
         UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
         [self setTabBarItem:item];
         [item release];
     }
     return self;
-}
-
-- (void)loadView
-{
-    UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-
-    CGSize size = view.frame.size;
-    const float statusBarHeight = 0;
-
-    // Create a table, which acts as the main body of the popup
-    UITableView *table = [[UITableView alloc] initWithFrame:
-        CGRectMake(0, statusBarHeight, size.width, size.height - statusBarHeight - 44.0f)
-        style:0];
-    [table setDataSource:self];
-    [table setDelegate:self];
-    [table setRowHeight:68];
-    [view addSubview:table];
-    [table release];
-
-    self.view = view;
-    [view release];
 }
 
 - (void)dealloc
@@ -116,6 +96,12 @@
     [otherApps release];
 
     [super dealloc];
+}
+
+- (void)laodView
+{
+    [super loadView];
+    [self.tableView setRowHeight:68.0f];
 }
 
 #pragma mark - UITableViewDataSource
@@ -135,7 +121,7 @@
     return (section == 0) ? 1 : [otherApps count];
 }
 
-- (float)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+- (float)tableView:(UITableView *)tableView_ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
     SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];

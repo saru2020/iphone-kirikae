@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 23:00:15
+ * Last-modified: 2009-09-11 01:22:48
  */
 
 /**
@@ -61,8 +61,8 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
 
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
-        TaskListController *tlCont = [[TaskListController alloc] initWithNibName:nil bundle:nil];
-        FavoritesController *favCont = [[FavoritesController alloc] initWithNibName:nil bundle:nil];
+        TaskListController *tlCont = [[TaskListController alloc] initWithStyle:0];
+        FavoritesController *favCont = [[FavoritesController alloc] initWithStyle:0];
         tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, favCont, nil];
         [tlCont release];
         [favCont release];
