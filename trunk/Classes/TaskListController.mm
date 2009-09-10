@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-10 20:21:26
+ * Last-modified: 2009-09-10 20:27:45
  */
 
 /**
@@ -96,56 +96,15 @@
     CGSize size = view.frame.size;
     const float statusBarHeight = 0;
 
-#if 0
-    // Create a top navigation bar
-    UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@"Active Applications"];
-    UINavigationBar *navBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, statusBarHeight, size.width, 44)];
-    [navBar setTintColor:[UIColor colorWithWhite:0.23 alpha:1]];
-    [navBar pushNavigationItem:navItem];
-    //[navBar showButtonsWithLeftTitle:nil rightTitle:@"Edit"];
-    [navItem release];
-    [view addSubview:navBar];
-    [navBar release];
-#endif
-
     // Create a table, which acts as the main body of the popup
     UITableView *table = [[UITableView alloc] initWithFrame:
-        CGRectMake(0, statusBarHeight, size.width, size.height - statusBarHeight - 44)
+        CGRectMake(0, statusBarHeight + 44, size.width, size.height - statusBarHeight - 44 - 44)
         style:0];
     [table setDataSource:self];
     [table setDelegate:self];
     [table setRowHeight:68];
     [view addSubview:table];
     [table release];
-
-#if 0
-    // Create a bottom bar which contains instructional information
-    UINavigationBarBackground *footer = [[objc_getClass("UINavigationBarBackground") alloc]
-        initWithFrame:CGRectMake(0, size.height - 44, size.width, 44)
-        withBarStyle:0
-        withTintColor:[UIColor colorWithWhite:0.23 alpha:1]
-        isTranslucent:NO];
-    [view addSubview:footer];
-    [footer release];
-
-    // Instructional item one
-    UILabel *footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 44, size.width, 22)];
-    [footerText setText:@"Tap an application to switch"];
-    [footerText setTextAlignment:1];
-    [footerText setTextColor:[UIColor whiteColor]];
-    [footerText setBackgroundColor:[UIColor clearColor]];
-    [view addSubview:footerText];
-    [footerText release];
-
-    // Instructional item two
-    footerText = [[UILabel alloc] initWithFrame:CGRectMake(0, size.height - 22, size.width, 22)];
-    [footerText setText:@"Tap the Home Button to cancel"];
-    [footerText setTextAlignment:1];
-    [footerText setTextColor:[UIColor whiteColor]];
-    [footerText setBackgroundColor:[UIColor clearColor]];
-    [view addSubview:footerText];
-    [footerText release];
-#endif
 
     self.view = view;
     [view release];
