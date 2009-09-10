@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-10 20:27:36
+ * Last-modified: 2009-09-10 20:29:06
  */
 
 /**
@@ -84,7 +84,7 @@
 
     // Create a table, which acts as the main body of the popup
     UITableView *table = [[UITableView alloc] initWithFrame:
-        CGRectMake(0, statusBarHeight + 44.0f, size.width, size.height - statusBarHeight - 44.0f - 44.0f)
+        CGRectMake(0, statusBarHeight, size.width, size.height - statusBarHeight - 44.0f)
         style:0];
     [table setDataSource:self];
     [table setDelegate:self];
