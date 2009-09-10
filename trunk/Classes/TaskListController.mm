@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 23:28:10
+ * Last-modified: 2009-09-10 20:21:26
  */
 
 /**
@@ -82,7 +82,7 @@
 {
     self = [super initWithNibName:nibName bundle:bundle];
     if (self) {
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageWithContentsOfFile:@"/Applications/Kirikae.app/active.png"] tag:0];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
         [self setTabBarItem:item];
         [item release];
     }
