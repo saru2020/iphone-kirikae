@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 10:12:43
+ * Last-modified: 2009-09-11 13:32:23
  */
 
 /**
@@ -196,8 +196,11 @@ static NSArray *applicationDisplayIdentifiers()
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    if (isModified)
-        [[Preferences sharedInstance] setFavorites:favorites];
+    if (isModified) {
+        // Sort list of favorites by display name and save to preferences file
+        NSArray *sortedArray = [favorites sortedArrayUsingFunction:compareDisplayNames context:NULL];
+        [[Preferences sharedInstance] setFavorites:sortedArray];
+    }
 }
 
 #pragma mark - UITableViewDataSource
