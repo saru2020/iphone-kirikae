@@ -1,13 +1,14 @@
 Package: jp.ashikase.kirikae
 Name: Kirikae
-Version: svn.r20
+Version: svn.r43
 Architecture: iphoneos-arm
-Description: A task manager/switcher
+Description: Backgrounder-compatible task switcher/launcher.
 Homepage: http://iphone-kirikae.googlecode.com/
 Depiction: http://moreinfo.thebigboss.org/moreinfo/depiction.php?file=kirikaeData
 Maintainer: BigBoss <bigboss@thebigboss.org>
 Author: Lance Fetters (ashikase) <gaizin@gmail.com>
 Section: System
 Depends: mobilesubstrate, firmware (>=3.0)
+Recommends: backgrounder
 dev: ashikase
 Sponsor: thebigboss.org <http://thebigboss.org>
