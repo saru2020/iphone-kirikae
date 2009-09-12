@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 14:37:43
+ * Last-modified: 2009-09-12 16:36:59
  */
 
 /**
@@ -207,7 +207,7 @@
 
         // Set the cell's badge image (if applicable)
         SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
-        if (&badge != NULL) {
+        if (badge) {
             UIGraphicsBeginImageContext([badge frame].size);
             [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
             [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];

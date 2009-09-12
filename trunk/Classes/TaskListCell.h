@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:36:29
+ * Last-modified: 2009-09-12 16:25:49
  */
 
 /**
@@ -42,11 +42,10 @@
 
 @interface TaskListCell : UITableViewCell
 {
-    UIImage *badge;
     UIImageView *badgeView;
 }
 
-@property(nonatomic, retain) UIImage *badge;
+- (void)setBadge:(UIImage *)image;
 
 @end
 

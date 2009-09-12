@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:37:06
+ * Last-modified: 2009-09-12 16:36:06
  */
 
 /**
@@ -45,8 +45,6 @@
 
 @implementation TaskListCell
 
-@synthesize badge;
-
 - (id)initWithFrame:(CGRect)frame reuseIdentifier:(NSString *)reuseIdentifier
 {
     self = [super initWithFrame:frame reuseIdentifier:reuseIdentifier];
@@ -59,25 +57,32 @@
 
 - (void)dealloc
 {
-    [badge release];
     [badgeView release];
-
     [super dealloc];
+}
+
+- (void)setBadge:(UIImage *)badge
+{
+    [badgeView setImage:badge];
+    badgeView.bounds = CGRectMake(0, 0, badge.size.width, badge.size.height);
 }
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
 
-    if (badge) {
-        // Determine position of upper-right corner of icon image
-        UIImageView *imageView = MSHookIvar<UIImageView *>(self, "_imageView");
-        CGRect imageRect = [imageView frame];
-        CGPoint corner = CGPointMake(imageRect.origin.x + imageRect.size.width - 1, imageRect.origin.y);
+    if (badgeView.image) {
+        UIImageView *imageView = [self imageView];
+        CGRect rect = [imageView frame];
 
-        [badgeView setImage:badge];
-        [badgeView setOrigin:CGPointMake(corner.x - badge.size.width + 11.0f, corner.y - 8.0f)];
+        // Position badge at upper-right corner of icon image
+        CGPoint corner = CGPointMake(rect.origin.x + rect.size.width - 1, rect.origin.y);
+        badgeView.origin = CGPointMake(corner.x - [badgeView.image size].width + 11.0f, corner.y - 8.0f);
         [self.contentView bringSubviewToFront:badgeView];
+
+        // Adjusting height of cell (for badge) causes left margin of cell to increase
+        rect.origin.x -= 4.0f;
+        [imageView setFrame:rect];
     }
 }
 
