@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 13:32:23
+ * Last-modified: 2009-09-12 14:34:25
  */
 
 /**
@@ -118,10 +118,24 @@ static NSArray *applicationDisplayIdentifiers()
             if (identifier &&
                 ![identifier hasPrefix:@"jp.ashikase.springjumps."] &&
                 ![identifier hasPrefix:@"com.bigboss.categories."] &&
+                ![identifier hasPrefix:@"com.apple.mobileslideshow"] &&
+                ![identifier hasPrefix:@"com.apple.mobileipod"] &&
                 ![identifier isEqualToString:@"com.iptm.bigboss.sbsettings"] &&
                 ![identifier isEqualToString:@"com.apple.webapp"])
             [identifiers addObject:identifier];
         }
+    }
+
+    // Finally, add identifiers for apps known to have multiple roles
+    [identifiers addObject:[NSString stringWithString:@"com.apple.mobileslideshow-Camera"]];
+    [identifiers addObject:[NSString stringWithString:@"com.apple.mobileslideshow-Photos"]];
+    if ([[[UIDevice currentDevice] model] hasPrefix:@"iPhone"]) {
+        // iPhone
+        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-MediaPlayer"]];
+    } else {
+        // iPod Touch
+        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-AudioPlayer"]];
+        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-VideoPlayer"]];
     }
 
     return identifiers;

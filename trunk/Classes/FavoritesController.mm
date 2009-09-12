@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:27:50
+ * Last-modified: 2009-09-12 14:37:43
  */
 
 /**
@@ -43,6 +43,8 @@
 #import "FavoritesController.h"
 
 #import <QuartzCore/CALayer.h>
+#import <SpringBoard/SBApplication.h>
+#import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBIconModel.h>
 #import <UIKit/UINavigationBarBackground.h>
@@ -144,7 +146,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    return  @"Favorites";
+    return @"Favorites";
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
@@ -155,9 +157,19 @@
 - (float)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSString *identifier = [favorites objectAtIndex:indexPath.row];
-    SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
-    SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
-    return (badge ? 76.0f : 68.0f);
+
+    // Get the icon for this application
+    SBIconModel *iconModel = [objc_getClass("SBIconModel") sharedInstance];
+    SBApplicationIcon *icon = [iconModel iconForDisplayIdentifier:identifier];
+    if (!icon) {
+        // Application may have multiple roles; try again with default role
+        SBApplicationController *appCont = [objc_getClass("SBApplicationController") sharedInstance];
+        SBApplication *app = [appCont applicationWithDisplayIdentifier:identifier];
+        icon = [iconModel iconForDisplayIdentifier:[NSString stringWithFormat:@"%@-%@", identifier, [app roleIdentifier]]];
+    }
+
+    // Return appropriate height depending on whether or not icon has a badge
+    return (icon && MSHookIvar<SBIconBadge *>(icon, "_badge") != nil) ? 76.0f : 68.0f;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -176,21 +188,34 @@
     NSString *identifier = [favorites objectAtIndex:indexPath.row];
 
     // Get the application icon object
-    SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
+    SBIconModel *iconModel = [objc_getClass("SBIconModel") sharedInstance];
+    SBApplicationIcon *icon = [iconModel iconForDisplayIdentifier:identifier];
+    if (!icon) {
+        // Application may have multiple roles; try again with default role
+        // FIXME: This check is being done twice (also in height check)
+        SBApplicationController *appCont = [objc_getClass("SBApplicationController") sharedInstance];
+        SBApplication *app = [appCont applicationWithDisplayIdentifier:identifier];
+        icon = [iconModel iconForDisplayIdentifier:[NSString stringWithFormat:@"%@-%@", identifier, [app roleIdentifier]]];
+    }
 
-    // Set the cell's text to the name of the application
-    [cell setText:[icon displayName]];
+    if (icon) {
+        // Set the cell's text to the name of the application
+        [cell setText:[icon displayName]];
 
-    // Set the cell's image to the application's icon image
-    [cell setImage:[icon icon]];
+        // Set the cell's image to the application's icon image
+        [cell setImage:[icon icon]];
 
-    // Set the cell's badge image (if applicable)
-    SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
-    if (badge) {
-        UIGraphicsBeginImageContext([badge frame].size);
-        [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
-        [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];
-        UIGraphicsEndImageContext();
+        // Set the cell's badge image (if applicable)
+        SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
+        if (&badge != NULL) {
+            UIGraphicsBeginImageContext([badge frame].size);
+            [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
+            [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];
+            UIGraphicsEndImageContext();
+        }
+    } else {
+        // FIXME: Was unable to retrieve icon; invalid identifier?
+        [cell setText:[NSString stringWithFormat:@"Error: %@", identifier]];
     }
 
     return cell;
