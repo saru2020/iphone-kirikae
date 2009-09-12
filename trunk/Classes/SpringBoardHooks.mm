@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 23:01:52
+ * Last-modified: 2009-09-12 20:22:27
  */
 
 /**
@@ -286,6 +286,11 @@ HOOK(SpringBoard, dealloc, void)
 
 static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
 {
+    if (alert)
+        // Kirikae is already visible
+        // NOTE: This check is needed when called by external invokers
+        return;
+
     if (invocationMethod == HOME_SHORT_PRESS)
         invocationTimerDidFire = YES;
 
