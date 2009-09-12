@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:48:24
+ * Last-modified: 2009-09-12 17:10:22
  */
 
 /**
@@ -46,9 +46,9 @@
 
 // Documentation
 #define DOC_BUNDLE_PATH "doc"
-#define DOC_CACHE_PATH "/var/mobile/Library/Caches/jp.ashikase.backgrounder/doc"
+#define DOC_CACHE_PATH "/var/mobile/Library/Caches/jp.ashikase.kirikae/doc"
 
-#define DEVSITE_URL "http://iphone-backgrounder.googlecode.com"
+#define DEVSITE_URL "http://iphone-kirikae.googlecode.com"
 #define DOC_URL DEVSITE_URL"svn/trunk/NonMirrored/doc"
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
