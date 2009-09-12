@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:28:01
+ * Last-modified: 2009-09-12 16:46:29
  */
 
 /**
@@ -46,28 +46,12 @@
 #import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBIconModel.h>
 #import <UIKit/UINavigationBarBackground.h>
-#import <UIKit/UITableViewCellDeleteConfirmationControl.h>
 #import <UIKit/UIViewController-UITabBarControllerItem.h>
 
 #import "SpringBoardHooks.h"
 #import "TaskListCell.h"
 
 
-@interface UITableView (CustomConfirmationButton) 
-- (NSString *)titleForDeleteConfirmationButton:(id)cell;
-@end
-
-@implementation UITableView (CustomConfirmationButton) 
-
-- (NSString *)titleForDeleteConfirmationButton:(id)cell
-{
-    return ([cell tag] == 1) ? @"Respring" : @"Quit";
-}
-
-@end
-
-//______________________________________________________________________________
-//______________________________________________________________________________
 
 @interface UINavigationBarBackground (ThreeO)
 - (id)initWithFrame:(CGRect)frame withBarStyle:(int)style withTintColor:(UIColor *)color isTranslucent:(BOOL)translucent;
@@ -156,8 +140,6 @@
         // Is SpringBoard
         image = [UIImage imageWithContentsOfFile:@"/System/Library/CoreServices/SpringBoard.app/applelogo.png"];
         image = [image _imageScaledToSize:CGSizeMake(59, 60) interpolationQuality:0];
-        // Take opportunity to mark that this cell represents SpringBoard
-        [cell setTag:1];
     } else {
         // Is an application
         image = [icon icon];
@@ -207,6 +189,12 @@
     else
         // Switch to selected application
         [springBoard switchToAppWithDisplayIdentifier:[otherApps objectAtIndex:indexPath.row]];
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    TaskListCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    return ([[cell text] isEqualToString:@"SpringBoard"]) ? @"Respring" : @"Quit";
 }
 
 @end
