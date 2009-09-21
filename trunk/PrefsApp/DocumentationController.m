@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:49:31
+ * Last-modified: 2009-09-20 13:24:43
  */
 
 /**
@@ -48,6 +48,8 @@
 
 
 @implementation DocumentationController
+
+@synthesize templateFileName;
 
 - (id)initWithContentsOfFile:(NSString *)fileName_ title:(NSString *)title
 {
@@ -150,6 +152,19 @@ static NSString * contentsOfFile(NSString *path, NSString *name)
             if (content == nil)
                 // Set an error message
                 content = @"<div style=\"text-align:center;\">(404: File not found)</div>";
+        }
+    }
+
+    if (templateFileName) {
+        NSString *template = contentsOfFile(filePath, templateFileName);
+        if (template) {
+            // Escape double-quotes and new-lines
+            // FIXME: If content is HTML, not always necessary (will affect attributes)
+            content = [content stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+            content = [content stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"];
+
+            // Add content string to template
+            content = [template stringByReplacingOccurrencesOfString:@"<PLACEHOLDER>" withString:content];
         }
     }
 

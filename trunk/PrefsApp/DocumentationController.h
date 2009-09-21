@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:48:25
+ * Last-modified: 2009-09-20 12:23:34
  */
 
 /**
@@ -48,8 +48,11 @@
 @interface DocumentationController : UIViewController 
 {
     NSString *fileName;
+    NSString *templateFileName;
     UIWebView *webView;
 }
+
+@property(nonatomic, copy) NSString *templateFileName;
 
 - (id)initWithContentsOfFile:(NSString *)fileName title:(NSString *)title;
 
