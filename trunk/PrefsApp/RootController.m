@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-20 12:33:48
+ * Last-modified: 2009-09-20 13:28:48
  */
 
 /**
@@ -51,7 +51,7 @@
 #import <UIKit/UIViewController-UINavigationControllerItem.h>
 
 #import "Constants.h"
-#import "DocumentationController.h"
+#import "HtmlDocController.h"
 #import "FavoritesController.h"
 #import "Preferences.h"
 
@@ -242,10 +242,10 @@
             // Project Homepage
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@DEVSITE_URL]];
         else
-            vc = [[[DocumentationController alloc]
+            vc = [[[HtmlDocController alloc]
                 initWithContentsOfFile:fileNames[indexPath.row] title:titles[indexPath.row]]
                 autorelease];
-            [(DocumentationController *)vc setTemplateFileName:@"template.html"];
+            [(HtmlDocController *)vc setTemplateFileName:@"template.html"];
     } else {
         // Donation
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=gaizin%40gmail%2ecom&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest"]];

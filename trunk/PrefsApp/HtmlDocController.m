@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-20 13:24:43
+ * Last-modified: 2009-09-20 13:28:31
  */
 
 /**
@@ -40,14 +40,14 @@
  */
 
 
-#import "DocumentationController.h"
+#import "HtmlDocController.h"
 
 #import <UIKit/UIViewController-UINavigationControllerItem.h>
 
 #import "Constants.h"
 
 
-@implementation DocumentationController
+@implementation HtmlDocController
 
 @synthesize templateFileName;
 

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 14:34:25
+ * Last-modified: 2009-09-20 13:29:01
  */
 
 /**
@@ -55,7 +55,7 @@
 #import <UIKit/UISwitch.h>
 #import <UIKit/UIViewController-UINavigationControllerItem.h>
 
-#import "DocumentationController.h"
+#import "HtmlDocController.h"
 #import "Preferences.h"
 #import "RootController.h"
 
@@ -290,7 +290,7 @@ static NSArray *applicationDisplayIdentifiers()
 - (void)helpButtonTapped
 {
     // Create and show help page
-    [[self navigationController] pushViewController:[[[DocumentationController alloc]
+    [[self navigationController] pushViewController:[[[HtmlDocController alloc]
         initWithContentsOfFile:@HELP_FILE title:@"Explanation"] autorelease] animated:YES];
 }
 
