@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-20 23:45:29
+ * Last-modified: 2009-09-21 17:28:01
  */
 
 /**
@@ -48,8 +48,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import <UIKit/UIViewController-UINavigationControllerItem.h>
-
 #import "Constants.h"
 #import "HtmlDocController.h"
 #import "FavoritesController.h"
@@ -61,12 +59,13 @@
 @synthesize displayIdentifiers;
 
 
-- (id)initWithStyle:(int)style
+- (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
-        [self setTitle:@"Kirikae"];
-        [[self navigationItem] setBackButtonTitle:@"Back"];
+        self.title = @"Kirikae";
+        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Back"
+            style:UIBarButtonItemStyleBordered target:nil action:nil];
     }
     return self;
 }

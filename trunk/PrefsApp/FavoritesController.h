@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 09:55:06
+ * Last-modified: 2009-09-21 16:05:03
  */
 
 /**
@@ -45,6 +45,7 @@
 
 @class NSMutableArray;
 @class RootController;
+@class UIProgressHUD;
 
 @interface FavoritesController : UITableViewController
 {

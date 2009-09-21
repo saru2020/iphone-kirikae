@@ -3,7 +3,7 @@
 EXE=KirikaePrefs
 APP=Kirikae
 PREFS_NAME="jp.ashikase.kirikae.*"
-TOOLCHAIN=/opt/iPhone/sdk/iPhoneOS3.0.jb
+TOOLCHAIN=/opt/iPhone/sdk/3.0/dumped
 DEBUG=
 
 usage()

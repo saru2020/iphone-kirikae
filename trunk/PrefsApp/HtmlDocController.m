@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-20 13:28:31
+ * Last-modified: 2009-09-21 17:28:22
  */
 
 /**
@@ -42,8 +42,6 @@
 
 #import "HtmlDocController.h"
 
-#import <UIKit/UIViewController-UINavigationControllerItem.h>
-
 #import "Constants.h"
 
 
@@ -55,15 +53,8 @@
 {
     self = [super initWithNibName:nil bundle:nil];
     if (self) {
+        self.title = title;
         fileName = [fileName_ copy];
-
-        [self setTitle:title];
-#if 0
-        [[self navigationItem] setRightBarButtonItem:
-             [[UIBarButtonItem alloc] initWithTitle:@"Refresh" style:5
-                target:self
-                action:@selector(loadRemoteFile)]];
-#endif
     }
     return self;
 }
@@ -110,7 +101,7 @@
 }
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request
-    navigationType:(int)navigationType
+    navigationType:(UIWebViewNavigationType)navigationType
 {
     BOOL ret = YES;
 
