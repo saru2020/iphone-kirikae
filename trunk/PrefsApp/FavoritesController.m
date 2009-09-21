@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 17:24:13
+ * Last-modified: 2009-09-21 17:41:35
  */
 
 /**
@@ -51,6 +51,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import "ApplicationCell.h"
 #import "HtmlDocController.h"
 #import "Preferences.h"
 #import "RootController.h"
@@ -246,7 +247,7 @@ static NSArray *applicationDisplayIdentifiers()
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
         // Cell does not exist, create a new one
-        cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
+        cell = [[[ApplicationCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
         [cell setSelectionStyle:0];
 
         UISwitch *toggle = [[UISwitch alloc] init];
@@ -265,8 +266,6 @@ static NSArray *applicationDisplayIdentifiers()
     NSString *iconPath = SBSCopyIconImagePathForDisplayIdentifier(identifier);
     if (iconPath != nil) {
         icon = [UIImage imageWithContentsOfFile:iconPath];
-        // FIXME:
-        //icon = [icon _imageScaledToSize:CGSizeMake(35, 36) interpolationQuality:0];
         [iconPath release];
     }
     [cell setImage:icon];
