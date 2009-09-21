@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 13:38:46
+ * Last-modified: 2009-09-21 15:33:21
  */
 
 /**
@@ -188,7 +188,7 @@ static id $KKAlert$alertDisplayViewWithSize$(SBAlert *self, SEL sel, CGSize size
 void initTaskMenuPopup()
 {
     // Create custom alert-display class
-    Class $SBAlertDisplay(objc_getClass("SBAlertDisplay"));
+    Class $SBAlertDisplay = objc_getClass("SBAlertDisplay");
     Class $KKAlertDisplay = objc_allocateClassPair($SBAlertDisplay, "KirikaeAlertDisplay", 0);
     unsigned int size, align;
     NSGetSizeAndAlignment("@", &size, &align);
@@ -209,7 +209,7 @@ void initTaskMenuPopup()
     objc_registerClassPair($KKAlertDisplay);
 
     // Create custom alert class
-    Class $SBAlert(objc_getClass("SBAlert"));
+    Class $SBAlert = objc_getClass("SBAlert");
     Class $KKAlert = objc_allocateClassPair($SBAlert, "KirikaeAlert", 0);
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($KKAlert, "currentApp", size, align, "@");

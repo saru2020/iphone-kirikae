@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 15:22:08
+ * Last-modified: 2009-09-21 15:32:20
  */
 
 /**
@@ -566,22 +566,22 @@ void initSpringBoardHooks()
 {
     loadPreferences();
 
-    Class $SBDisplayStack(objc_getClass("SBDisplayStack"));
+    Class $SBDisplayStack = objc_getClass("SBDisplayStack");
     LOAD_HOOK($SBDisplayStack, @selector(init), SBDisplayStack$init);
     LOAD_HOOK($SBDisplayStack, @selector(dealloc), SBDisplayStack$dealloc);
 
 #if 0
-    Class $SBStatusBarController(objc_getClass("SBStatusBarController"));
+    Class $SBStatusBarController = objc_getClass("SBStatusBarController");
     LOAD_HOOK($SBStatusBarController, @selector(setStatusBarMode:orientation:duration:fenceID:animation:),
         SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$);
 
     if (!animationsEnabled) {
-        Class $SBUIController(objc_getClass("SBUIController"));
+        Class $SBUIController = objc_getClass("SBUIController");
         LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
     }
 #endif
 
-    Class $SpringBoard(objc_getClass("SpringBoard"));
+    Class $SpringBoard = objc_getClass("SpringBoard");
     LOAD_HOOK($SpringBoard, @selector(applicationDidFinishLaunching:), SpringBoard$applicationDidFinishLaunching$);
     LOAD_HOOK($SpringBoard, @selector(dealloc), SpringBoard$dealloc);
     LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
@@ -592,7 +592,7 @@ void initSpringBoardHooks()
     class_addMethod($SpringBoard, @selector(switchToAppWithDisplayIdentifier:), (IMP)&$SpringBoard$switchToAppWithDisplayIdentifier$, "v@:@");
     class_addMethod($SpringBoard, @selector(quitAppWithDisplayIdentifier:), (IMP)&$SpringBoard$quitAppWithDisplayIdentifier$, "v@:@");
 
-    Class $SBApplication(objc_getClass("SBApplication"));
+    Class $SBApplication = objc_getClass("SBApplication");
     LOAD_HOOK($SBApplication, @selector(launchSucceeded:), SBApplication$launchSucceeded$);
     LOAD_HOOK($SBApplication, @selector(deactivate), SBApplication$deactivate);
     LOAD_HOOK($SBApplication, @selector(exitedAbnormally), SBApplication$exitedAbnormally);

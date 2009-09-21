@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 14:06:40
+ * Last-modified: 2009-09-21 15:33:33
  */
 
 /**
@@ -156,7 +156,7 @@
         // Get the display identifier of the application for this cell
         NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
 
-        Class $SpringBoard(objc_getClass("SpringBoard"));
+        Class $SpringBoard = objc_getClass("SpringBoard");
         SpringBoard *springBoard = (SpringBoard *)[$SpringBoard sharedApplication];
         [springBoard quitAppWithDisplayIdentifier:identifier];
 
