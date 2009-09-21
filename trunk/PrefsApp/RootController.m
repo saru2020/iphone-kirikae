@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 18:10:46
+ * Last-modified: 2009-09-21 20:38:06
  */
 
 /**
@@ -77,6 +77,36 @@
     [super dealloc];
 }
 
+- (void)viewDidLoad
+{
+    // Create and add footer view
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 234.0f)];
+
+    // Donation button
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button addTarget:self action:@selector(openDonationLink) forControlEvents:UIControlEventTouchUpInside];
+    UIImage *image = [UIImage imageNamed:@"donate.png"];
+    [button setImage:image forState:UIControlStateNormal];
+    button.frame = CGRectMake((320.0f - image.size.width) / 2.0f, view.bounds.size.height - image.size.height, image.size.width, image.size.height);
+    [view addSubview:button];
+
+    // Author label
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+    [label setText:@"by Lance Fetters (ashikase)"];
+    [label setTextColor:[UIColor colorWithRed:0.3f green:0.34f blue:0.42f alpha:1.0f]];
+    [label setShadowColor:[UIColor whiteColor]];
+    [label setShadowOffset:CGSizeMake(1, 1)];
+    [label setBackgroundColor:[UIColor clearColor]];
+    [label setFont:[UIFont systemFontOfSize:16.0f]];
+    CGSize size = [label.text sizeWithFont:label.font];
+    [label setFrame:CGRectMake((320.0f - size.width) / 2.0f, view.bounds.size.height - image.size.height - size.height - 2.0f, size.width, size.height)];
+    [view addSubview:label];
+    [label release];
+
+    self.tableView.tableFooterView = view;
+    [view release];
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
     // Reset the table by deselecting the current selection
@@ -87,19 +117,17 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 3;
+	return 2;
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {2, 1, 2};
+    static int rows[] = {2, 1};
     return rows[section];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *reuseIdDonate = @"DonateCell";
-    static NSString *reuseIdName = @"NameCell";
     static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *reuseIdToggle = @"ToggleCell";
 
@@ -119,59 +147,6 @@
             [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:4096]; // ValueChanged
             [cell setAccessoryView:toggle];
             [toggle release];
-        }
-    } else if (indexPath.section == 2) {
-        if (indexPath.row == 0) {
-            // Credits cell
-            // Try to retrieve from the table view a now-unused cell with the given identifier
-            cell = [tableView dequeueReusableCellWithIdentifier:reuseIdName];
-            if (cell == nil) {
-                // Cell does not exist, create a new one
-                cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdName] autorelease];
-                [cell setSelectionStyle:0]; // None
-
-                // Make cell background transparent
-                UIView *bgView = [[UIView alloc] initWithFrame:CGRectZero];
-                [bgView setBackgroundColor:[UIColor clearColor]];
-                [cell setBackgroundView:bgView];
-                [bgView release];
-
-                // Must create own label to allow transparency
-                UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
-                [label setText:@"by Lance Fetters (ashikase)"];
-                [label setTextColor:[UIColor colorWithRed:0.3f green:0.34f blue:0.42f alpha:1.0f]];
-                [label setShadowColor:[UIColor whiteColor]];
-                [label setShadowOffset:CGSizeMake(1, 1)];
-                [label setBackgroundColor:[UIColor clearColor]];
-                [label setFont:[UIFont systemFontOfSize:16.0f]];
-                CGSize size = [label.text sizeWithFont:label.font];
-                [label setFrame:CGRectMake((300.0f - size.width) / 2.0f, 0, size.width, size.height)];
-
-                [[cell contentView] addSubview:label];
-                [label release];
-            }
-        } else {
-            // Donation button cell
-            // Try to retrieve from the table view a now-unused cell with the given identifier
-            cell = [tableView dequeueReusableCellWithIdentifier:reuseIdDonate];
-            if (cell == nil) {
-                // Cell does not exist, create a new one
-                cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdDonate] autorelease];
-                [cell setSelectionStyle:0]; // None
-
-                // Make cell background transparent
-                UIView *bgView = [[UIView alloc] initWithFrame:CGRectZero];
-                [bgView setBackgroundColor:[UIColor clearColor]];
-                [cell setBackgroundView:bgView];
-                [bgView release];
-
-                // Add image
-                UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"donate.png"]];
-                CGSize size = [imageView frame].size;
-                [imageView setFrame:CGRectMake((300.0f - size.width) / 2.0f, 0, size.width, size.height)];
-                [[cell contentView] addSubview:imageView];
-                [imageView release];
-            }
         }
     } else {
         static NSString *cellTitles[][3] = {
@@ -210,9 +185,6 @@
     } else if (indexPath.section == 1) {
         // Documentation
         vc = [[[DocumentationController alloc] initWithStyle:1] autorelease];
-    } else {
-        // Donation
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=gaizin%40gmail%2ecom&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest"]];
     }
 
     if (vc)
@@ -224,6 +196,13 @@
 - (void)switchToggled:(UISwitch *)control
 {
     [[Preferences sharedInstance] setAnimationsEnabled:[control isOn]];
+}
+
+#pragma mark - UIButton delegate
+
+- (void)openDonationLink
+{
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=gaizin%40gmail%2ecom&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest"]];
 }
 
 @end
