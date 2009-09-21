@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 13:39:54
+ * Last-modified: 2009-09-21 13:45:34
  */
 
 /**
@@ -78,7 +78,7 @@
 - (void)loadView
 {
     [super loadView];
-    [self.tableView setRowHeight:68.0f];
+    [self.tableView setRowHeight:60.0f];
 }
 
 #pragma mark - UITableViewDataSource
@@ -103,7 +103,7 @@
     NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
     SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
     SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
-    return (badge ? 76.0f : 68.0f);
+    return (badge ? 68.0f : 60.0f);
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -131,9 +131,7 @@
     UIImage *image = nil;
     if ([identifier isEqualToString:@"com.apple.springboard"]) {
         // Is SpringBoard
-        image = [UIImage imageWithContentsOfFile:@"/System/Library/CoreServices/SpringBoard.app/applelogo.png"];
-        // FIXME:
-        //image = [image _imageScaledToSize:CGSizeMake(59, 60) interpolationQuality:0];
+        image = [UIImage imageNamed:@"applelogo.png"];
     } else {
         // Is an application
         image = [icon icon];

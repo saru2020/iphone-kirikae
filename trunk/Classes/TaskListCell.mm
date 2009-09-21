@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 13:36:47
+ * Last-modified: 2009-09-21 13:46:51
  */
 
 /**
@@ -64,16 +64,19 @@
 - (void)setBadge:(UIImage *)badge
 {
     [badgeView setImage:badge];
-    badgeView.bounds = CGRectMake(0, 0, badge.size.width, badge.size.height);
+    badgeView.bounds = CGRectMake(0, 0, badge.size.width - 2, badge.size.height - 2);
 }
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
 
-    if (badgeView.image) {
     UIImageView *imageView = [self imageView];
-        CGRect rect = [imageView frame];
+    CGRect rect = CGRectMake(3.0f, 3.0f, 52.0f, 53.0f);
+
+    if (badgeView.image) {
+        // Adjust cell margin to make room for badge
+        rect.origin.y = 7.0f;
 
         // Position badge at upper-right corner of icon image
         CGPoint imageCorner = CGPointMake(rect.origin.x + rect.size.width - 1, rect.origin.y);
@@ -81,11 +84,11 @@
         CGPoint badgeCorner = CGPointMake(imageCorner.x - badgeSize.width + 11.0f, imageCorner.y - 8.0f);
         badgeView.frame = CGRectMake(badgeCorner.x, badgeCorner.y, badgeSize.width, badgeSize.height);
         [self.contentView bringSubviewToFront:badgeView];
-
-        // Adjusting height of cell (for badge) causes left margin of cell to increase
-        rect.origin.x -= 4.0f;
-    [imageView setFrame:rect];
     }
+
+    // Resize icon image
+    [imageView setFrame:rect];
+    imageView.contentMode = UIViewContentModeScaleAspectFit;
 }
 
 @end

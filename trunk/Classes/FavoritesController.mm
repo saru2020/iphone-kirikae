@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 13:34:10
+ * Last-modified: 2009-09-21 13:48:47
  */
 
 /**
@@ -130,7 +130,7 @@
         [view release];
     } else {
         // Adjust row height
-        [self.tableView setRowHeight:68.0f];
+        [self.tableView setRowHeight:60.0f];
     }
 }
 
@@ -166,7 +166,7 @@
     }
 
     // Return appropriate height depending on whether or not icon has a badge
-    return (icon && MSHookIvar<SBIconBadge *>(icon, "_badge") != nil) ? 76.0f : 68.0f;
+    return (icon && MSHookIvar<SBIconBadge *>(icon, "_badge") != nil) ? 68.0f : 60.0f;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
