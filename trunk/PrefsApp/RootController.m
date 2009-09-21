@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 17:28:01
+ * Last-modified: 2009-09-21 18:10:46
  */
 
 /**
@@ -49,6 +49,7 @@
 #import <Foundation/Foundation.h>
 
 #import "Constants.h"
+#import "DocumentationController.h"
 #import "HtmlDocController.h"
 #import "FavoritesController.h"
 #import "Preferences.h"
@@ -89,15 +90,9 @@
 	return 3;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
-{
-    static NSString *headers[] = {nil, @"Documentation", nil, nil};
-    return headers[section];
-}
-
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {2, 4, 2};
+    static int rows[] = {2, 1, 2};
     return rows[section];
 }
 
@@ -105,7 +100,6 @@
 {
     static NSString *reuseIdDonate = @"DonateCell";
     static NSString *reuseIdName = @"NameCell";
-    static NSString *reuseIdSafari = @"SafariCell";
     static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *reuseIdToggle = @"ToggleCell";
 
@@ -126,26 +120,6 @@
             [cell setAccessoryView:toggle];
             [toggle release];
         }
-    } else if (indexPath.section == 1 && indexPath.row == 3) {
-        // Try to retrieve from the table view a now-unused cell with the given identifier
-        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSafari];
-        if (cell == nil) {
-            // Cell does not exist, create a new one
-            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdSafari] autorelease];
-            [cell setSelectionStyle:2]; // Gray
-
-            UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
-            [label setText:@"(via Safari)"];
-            [label setTextColor:[UIColor colorWithRed:0.2f green:0.31f blue:0.52f alpha:1.0f]];
-            [label setFont:[UIFont systemFontOfSize:16.0f]];
-            CGSize size = [label.text sizeWithFont:label.font];
-            [label setFrame:CGRectMake(0, 0, size.width, size.height)];
-
-            [cell setAccessoryView:label];
-            [label release];
-        }
-
-        [cell setText:@"Project Homepage"];
     } else if (indexPath.section == 2) {
         if (indexPath.row == 0) {
             // Credits cell
@@ -202,7 +176,7 @@
     } else {
         static NSString *cellTitles[][3] = {
             {nil, @"Favorites", nil},
-            {@"How to Use", @"Release Notes", @"Known Issues"}
+            {@"Documentation", nil, nil}
         };
 
         // Try to retrieve from the table view a now-unused cell with the given identifier
@@ -231,20 +205,11 @@
     UIViewController *vc = nil;
 
     if (indexPath.section == 0) {
+        // Favorites
         vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
     } else if (indexPath.section == 1) {
         // Documentation
-        static NSString *fileNames[] = { @"usage.mdwn", @"release_notes.mdwn", @"known_issues.mdwn" };
-        static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };
-
-        if (indexPath.row == 3)
-            // Project Homepage
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@DEVSITE_URL]];
-        else
-            vc = [[[HtmlDocController alloc]
-                initWithContentsOfFile:fileNames[indexPath.row] title:titles[indexPath.row]]
-                autorelease];
-            [(HtmlDocController *)vc setTemplateFileName:@"template.html"];
+        vc = [[[DocumentationController alloc] initWithStyle:1] autorelease];
     } else {
         // Donation
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=gaizin%40gmail%2ecom&lc=US&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest"]];
