@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 16:36:59
+ * Last-modified: 2009-09-21 13:34:10
  */
 
 /**
@@ -47,9 +47,6 @@
 #import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBIconModel.h>
-#import <UIKit/UINavigationBarBackground.h>
-#import <UIKit/UITableViewCellDeleteConfirmationControl.h>
-#import <UIKit/UIViewController-UITabBarControllerItem.h>
 
 #import "SpringBoardHooks.h"
 #import "TaskListCell.h"
@@ -57,12 +54,12 @@
 
 @implementation FavoritesController
 
-- (id)initWithStyle:(int)style
+- (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
         // Setup tab bar button
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:1 tag:1]; // UITabBarSystemItemFavorites
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemFavorites tag:1];
         [self setTabBarItem:item];
         [item release];
 
@@ -121,7 +118,7 @@
         [view addSubview:textView];
         [textView release];
 
-        UIButton *btn = [UIButton buttonWithType:1];
+        UIButton *btn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         btn.frame = CGRectMake(20.0f, view.bounds.size.height - 47.0f, view.bounds.size.width - 40.0f, 37.0f);
         btn.backgroundColor = [UIColor clearColor];
         [btn setTitle:@"Open Preferences..." forState:UIControlStateNormal];
@@ -177,11 +174,11 @@
     static NSString *reuseIdentifier = @"TaskMenuCell";
 
     // Try to retrieve from the table view a now-unused cell with the given identifier
-    TaskListCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    TaskListCell *cell = (TaskListCell *)[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
         // Cell does not exist, create a new one
         cell = [[[TaskListCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
-        [cell setSelectionStyle:2];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
     }
 
     // Get the display identifier of the application for this cell
@@ -226,7 +223,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Switch to selected application
-    SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
+    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
     [springBoard switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
 }
 
@@ -235,7 +232,7 @@
 - (void)openPreferences:(id)sender
 {
     // Switch to the Kirikae preferences application
-    SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
+    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
     [springBoard switchToAppWithDisplayIdentifier:@APP_ID];
 }
 

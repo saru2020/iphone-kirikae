@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:22:48
+ * Last-modified: 2009-09-21 13:38:46
  */
 
 /**
@@ -42,7 +42,6 @@
 
 #import "TaskMenuPopup.h"
 
-#import <UIKit/UIViewController-UITabBarControllerItem.h>
 //#import <SpringBoard/SBStatusBarController.h>
 
 #import "FavoritesController.h"
@@ -61,15 +60,17 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
 
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
-        TaskListController *tlCont = [[TaskListController alloc] initWithStyle:0];
-        FavoritesController *favCont = [[FavoritesController alloc] initWithStyle:0];
+        TaskListController *tlCont = [[TaskListController alloc] initWithStyle:UITableViewStylePlain];
+        FavoritesController *favCont = [[FavoritesController alloc] initWithStyle:UITableViewStylePlain];
         tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, favCont, nil];
         [tlCont release];
         [favCont release];
         [self addSubview:tbCont.view];
 
         // Set the initial position of the view as off-screen
-        [self setOrigin:CGPointMake(0, size.height)];
+        CGRect frame = [[UIScreen mainScreen] bounds];
+        frame.origin.y += frame.size.height;
+        self.frame = frame;
     }
     return self;
 }
@@ -78,8 +79,8 @@ static void $KKAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, 
 {
     UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
     TaskListController *tlCont = [tbCont.viewControllers objectAtIndex:0];
-    [tlCont setCurrentApp:[[self alert] currentApp]];
-    [tlCont setOtherApps:[NSMutableArray arrayWithArray:[[self alert] otherApps]]];
+    [tlCont setCurrentApp:[(KirikaeAlert *)[self alert] currentApp]];
+    [tlCont setOtherApps:[NSMutableArray arrayWithArray:[(KirikaeAlert *)[self alert] otherApps]]];
 }
 
 static void $KKAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
@@ -121,11 +122,15 @@ static void $KKAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
 
     // FIXME: The proper method for animating an SBAlertDisplay is currently
     //        unknown; for now, the following method seems to work well enough
+
+    CGRect frame = [[UIScreen mainScreen] bounds];
+    frame.origin.y += frame.size.height;
+
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDidStopSelector:
         @selector(alertDidAnimateOut:finished:context:)];
-    [self setOrigin:CGPointMake(0, [self bounds].size.height)];
+    self.frame = frame;
     [UIView commitAnimations];
 }
 

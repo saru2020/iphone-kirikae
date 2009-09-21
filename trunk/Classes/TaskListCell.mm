@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 16:36:06
+ * Last-modified: 2009-09-21 13:36:47
  */
 
 /**
@@ -72,17 +72,19 @@
     [super layoutSubviews];
 
     if (badgeView.image) {
-        UIImageView *imageView = [self imageView];
+    UIImageView *imageView = [self imageView];
         CGRect rect = [imageView frame];
 
         // Position badge at upper-right corner of icon image
-        CGPoint corner = CGPointMake(rect.origin.x + rect.size.width - 1, rect.origin.y);
-        badgeView.origin = CGPointMake(corner.x - [badgeView.image size].width + 11.0f, corner.y - 8.0f);
+        CGPoint imageCorner = CGPointMake(rect.origin.x + rect.size.width - 1, rect.origin.y);
+        CGSize badgeSize = badgeView.bounds.size;
+        CGPoint badgeCorner = CGPointMake(imageCorner.x - badgeSize.width + 11.0f, imageCorner.y - 8.0f);
+        badgeView.frame = CGRectMake(badgeCorner.x, badgeCorner.y, badgeSize.width, badgeSize.height);
         [self.contentView bringSubviewToFront:badgeView];
 
         // Adjusting height of cell (for badge) causes left margin of cell to increase
         rect.origin.x -= 4.0f;
-        [imageView setFrame:rect];
+    [imageView setFrame:rect];
     }
 }
 

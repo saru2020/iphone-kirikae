@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 16:46:29
+ * Last-modified: 2009-09-21 13:39:54
  */
 
 /**
@@ -45,24 +45,17 @@
 #import <QuartzCore/CALayer.h>
 #import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBIconModel.h>
-#import <UIKit/UINavigationBarBackground.h>
-#import <UIKit/UIViewController-UITabBarControllerItem.h>
 
 #import "SpringBoardHooks.h"
 #import "TaskListCell.h"
 
-
-
-@interface UINavigationBarBackground (ThreeO)
-- (id)initWithFrame:(CGRect)frame withBarStyle:(int)style withTintColor:(UIColor *)color isTranslucent:(BOOL)translucent;
-@end
 
 @implementation TaskListController
 
 @synthesize currentApp;
 @synthesize otherApps;
 
-- (id)initWithStyle:(int)style
+- (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
@@ -118,11 +111,11 @@
     static NSString *reuseIdentifier = @"TaskMenuCell";
 
     // Try to retrieve from the table view a now-unused cell with the given identifier
-    TaskListCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    TaskListCell *cell = (TaskListCell *)[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
         // Cell does not exist, create a new one
         cell = [[[TaskListCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
-        [cell setSelectionStyle:2];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
     }
 
     // Get the display identifier of the application for this cell
@@ -139,7 +132,8 @@
     if ([identifier isEqualToString:@"com.apple.springboard"]) {
         // Is SpringBoard
         image = [UIImage imageWithContentsOfFile:@"/System/Library/CoreServices/SpringBoard.app/applelogo.png"];
-        image = [image _imageScaledToSize:CGSizeMake(59, 60) interpolationQuality:0];
+        // FIXME:
+        //image = [image _imageScaledToSize:CGSizeMake(59, 60) interpolationQuality:0];
     } else {
         // Is an application
         image = [icon icon];
@@ -165,7 +159,7 @@
         NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
 
         Class $SpringBoard(objc_getClass("SpringBoard"));
-        SpringBoard *springBoard = [$SpringBoard sharedApplication];
+        SpringBoard *springBoard = (SpringBoard *)[$SpringBoard sharedApplication];
         [springBoard quitAppWithDisplayIdentifier:identifier];
 
         if (indexPath.section == 0) {
@@ -182,7 +176,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    SpringBoard *springBoard = [objc_getClass("SpringBoard") sharedApplication];
+    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
 
     if (indexPath.section == 0)
         [springBoard dismissKirikae];
@@ -193,7 +187,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    TaskListCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    TaskListCell *cell = (TaskListCell *)[tableView cellForRowAtIndexPath:indexPath];
     return ([[cell text] isEqualToString:@"SpringBoard"]) ? @"Respring" : @"Quit";
 }
 
