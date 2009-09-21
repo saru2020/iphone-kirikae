@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 18:12:29
+ * Last-modified: 2009-09-21 23:10:05
  */
 
 /**
@@ -77,7 +77,7 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 1;
+	return 2;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
@@ -87,7 +87,8 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return 4;
+    static int rows[] = {3, 1};
+    return rows[section];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -97,26 +98,16 @@
 
     UITableViewCell *cell = nil;
 
-    if (indexPath.row == 3) {
+    if (indexPath.section == 1) {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSafari];
         if (cell == nil) {
             // Cell does not exist, create a new one
-            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdSafari] autorelease];
-            [cell setSelectionStyle:2]; // Gray
-
-            UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
-            [label setText:@"(via Safari)"];
-            [label setTextColor:[UIColor colorWithRed:0.2f green:0.31f blue:0.52f alpha:1.0f]];
-            [label setFont:[UIFont systemFontOfSize:16.0f]];
-            CGSize size = [label.text sizeWithFont:label.font];
-            [label setFrame:CGRectMake(0, 0, size.width, size.height)];
-
-            [cell setAccessoryView:label];
-            [label release];
+            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdSafari] autorelease];
+            cell.selectionStyle = UITableViewCellSelectionStyleGray;
+            cell.textLabel.text = @"Project Homepage";
+            cell.detailTextLabel.text = @"(via Safari)";
         }
-
-        [cell setText:@"Project Homepage"];
     } else {
         static NSString *cellTitles[] = {@"How to Use", @"Release Notes", @"Known Issues"};
 
@@ -125,8 +116,8 @@
         if (cell == nil) {
             // Cell does not exist, create a new one
             cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdSimple] autorelease];
-            [cell setSelectionStyle:2]; // Gray
-            [cell setAccessoryType:1]; // Simple arrow
+            cell.selectionStyle = UITableViewCellSelectionStyleGray;
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
         [cell setText:cellTitles[indexPath.row]];
     }
@@ -141,11 +132,11 @@
     static NSString *fileNames[] = { @"usage.mdwn", @"release_notes.mdwn", @"known_issues.mdwn" };
     static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };
 
-    if (indexPath.row == 3) {
+    if (indexPath.section == 1) {
         // Project Homepage
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@DEVSITE_URL]];
     } else {
-    UIViewController *vc = [[[HtmlDocController alloc]
+        UIViewController *vc = [[[HtmlDocController alloc]
             initWithContentsOfFile:fileNames[indexPath.row] title:titles[indexPath.row]]
             autorelease];
         [(HtmlDocController *)vc setTemplateFileName:@"template.html"];
