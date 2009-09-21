@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 17:41:35
+ * Last-modified: 2009-09-21 18:05:26
  */
 
 /**
@@ -248,12 +248,7 @@ static NSArray *applicationDisplayIdentifiers()
     if (cell == nil) {
         // Cell does not exist, create a new one
         cell = [[[ApplicationCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdentifier] autorelease];
-        [cell setSelectionStyle:0];
-
-        UISwitch *toggle = [[UISwitch alloc] init];
-        [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:4096]; // ValueChanged
-        [cell setAccessoryView:toggle];
-        [toggle release];
+        cell.selectionStyle = UITableViewCellSelectionStyleGray;
     }
 
     NSString *identifier = [[rootController displayIdentifiers] objectAtIndex:indexPath.row];
@@ -270,23 +265,30 @@ static NSArray *applicationDisplayIdentifiers()
     }
     [cell setImage:icon];
 
-    UISwitch *toggle = (UISwitch *)[cell accessoryView];
-    [toggle setOn:[favorites containsObject:identifier]];
+    cell.accessoryType = [favorites containsObject:identifier] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
 
     return cell;
 }
 
-#pragma mark - Switch delegate
+#pragma mark - UITableViewCellDelegate
 
-- (void)switchToggled:(UISwitch *)control
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[control superview]];
     NSString *identifier = [[rootController displayIdentifiers] objectAtIndex:indexPath.row];
-    if ([control isOn])
+
+    // Update the list of favorites and toggle the cell's checkmark
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    if (cell.accessoryType == UITableViewCellAccessoryNone) {
         [favorites addObject:identifier];
-    else
+        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+    } else {
         [favorites removeObject:identifier];
+        cell.accessoryType = UITableViewCellAccessoryNone;
+    }
     isModified = YES;
+
+    // Reset the table by deselecting the current selection
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 #pragma mark - Navigation bar delegates
