@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 20:38:06
+ * Last-modified: 2009-09-21 20:45:25
  */
 
 /**
@@ -169,11 +169,6 @@
 }
 
 #pragma mark - UITableViewCellDelegate
-
-- (float)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return (indexPath.section == 2 && indexPath.row == 0) ? 22.0f : 44.0f;
-}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
