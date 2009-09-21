@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-14 22:41:40
+ * Last-modified: 2009-09-21 14:00:24
  */
 
 /**
@@ -55,6 +55,7 @@
 #import <SpringBoard/SBDisplayStack.h>
 #import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBUIController.h>
+#import <SpringBoard/SBVoiceControlAlert.h>
 #import <SpringBoard/SpringBoard.h>
 
 #import "TaskMenuPopup.h"
@@ -527,6 +528,21 @@ HOOK(SBApplication, pathForDefaultImage$, id, char *def)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+// NOTE: Only hooked when invocationMethod == HOME_SHORT_PRESS
+HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, BOOL)
+{
+    BOOL flag = CALL_ORIG(SBVoiceControlAlert, shouldEnterVoiceControl);
+    if (flag) {
+        // Voice Control will appear; dismiss Kirikae
+        SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+        [springBoard dismissKirikae];
+    }
+    return flag;
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
 void initSpringBoardHooks()
 {
     loadPreferences();
@@ -556,11 +572,10 @@ void initSpringBoardHooks()
         LOAD_HOOK($SpringBoard, @selector(menuButtonDown:), SpringBoard$menuButtonDown$);
         LOAD_HOOK($SpringBoard, @selector(menuButtonUp:), SpringBoard$menuButtonUp$);
     }
+    LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
 
     if (!animationsEnabled)
         LOAD_HOOK($SpringBoard, @selector(frontDisplayDidChange), SpringBoard$frontDisplayDidChange);
-
-    LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
 
     class_addMethod($SpringBoard, @selector(invokeKirikae), (IMP)&$SpringBoard$invokeKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
@@ -576,6 +591,11 @@ void initSpringBoardHooks()
 #if 0
     LOAD_HOOK($SBApplication, @selector(pathForDefaultImage:), SBApplication$pathForDefaultImage$);
 #endif
+
+    if (invocationMethod == HOME_SHORT_PRESS) {
+        Class $SBVoiceControlAlert = objc_getMetaClass("SBVoiceControlAlert");
+        LOAD_HOOK($SBVoiceControlAlert, @selector(shouldEnterVoiceControl), SBVoiceControlAlert$shouldEnterVoiceControl);
+    }
 }
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
