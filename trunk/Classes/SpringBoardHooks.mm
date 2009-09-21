@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 14:00:24
+ * Last-modified: 2009-09-21 14:45:35
  */
 
 /**
@@ -53,6 +53,7 @@
 #import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBIconModel.h>
 #import <SpringBoard/SBDisplayStack.h>
+#import <SpringBoard/SBPowerDownController.h>
 #import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SBVoiceControlAlert.h>
@@ -65,7 +66,8 @@ struct GSEvent;
 
 #define HOME_SHORT_PRESS 0
 #define HOME_DOUBLE_TAP 1
-static int invocationMethod = HOME_DOUBLE_TAP;
+#define POWER_SHORT_PRESS 2
+static int invocationMethod = HOME_SHORT_PRESS;
 
 static NSMutableArray *activeApps = nil;
 
@@ -543,6 +545,18 @@ HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, BOOL)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+// NOTE: Only hooked when invocationMethod == POWER_SHORT_PRESS
+HOOK(SBPowerDownController, activate, void)
+{
+    // Power-off screen will appear; dismiss Kirikae
+    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+    [springBoard dismissKirikae];
+    CALL_ORIG(SBPowerDownController, activate);
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
 void initSpringBoardHooks()
 {
     loadPreferences();
@@ -595,6 +609,10 @@ void initSpringBoardHooks()
     if (invocationMethod == HOME_SHORT_PRESS) {
         Class $SBVoiceControlAlert = objc_getMetaClass("SBVoiceControlAlert");
         LOAD_HOOK($SBVoiceControlAlert, @selector(shouldEnterVoiceControl), SBVoiceControlAlert$shouldEnterVoiceControl);
+    }
+    else if (invocationMethod == POWER_SHORT_PRESS) {
+        Class $SBPowerDownController = objc_getClass("SBPowerDownController");
+        LOAD_HOOK($SBPowerDownController, @selector(activate), SBPowerDownController$activate);
     }
 }
 
