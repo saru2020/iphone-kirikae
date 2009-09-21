@@ -1,0 +1,24 @@
+> # Version svn.rXX
+> - - -
+> * Fixed: unable to quit current application if
+    previously backgrounded.
+
+- - -
+
+> # Version svn.r49
+> - - -
+> * Fixed: favoriting multi-role apps (e.g. Camera, iPod) caused SpringBoard to crash.
+> * Fixed: "Quit" table cell text was appearing in other apps.
+> * Fixed: badge icons were not being displayed.
+
+- - -
+
+> # Version svn.r43
+> - - -
+> * Added ability to launch applications (favorites)
+
+- - -
+
+> # Version svn.r20
+> - - -
+> * Initial release

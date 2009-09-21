@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-20 13:28:48
+ * Last-modified: 2009-09-20 23:45:29
  */
 
 /**
@@ -235,7 +235,7 @@
         vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
     } else if (indexPath.section == 1) {
         // Documentation
-        static NSString *fileNames[] = { @"usage.html", @"release_notes.mdwn", @"known_issues.html" };
+        static NSString *fileNames[] = { @"usage.mdwn", @"release_notes.mdwn", @"known_issues.mdwn" };
         static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };
 
         if (indexPath.row == 3)
