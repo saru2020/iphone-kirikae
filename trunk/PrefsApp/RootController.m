@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 20:45:25
+ * Last-modified: 2009-09-21 22:02:28
  */
 
 /**
@@ -48,7 +48,9 @@
 
 #import <Foundation/Foundation.h>
 
+#import "AppearanceController.h"
 #import "Constants.h"
+#import "ControlController.h"
 #import "DocumentationController.h"
 #import "HtmlDocController.h"
 #import "FavoritesController.h"
@@ -80,7 +82,7 @@
 - (void)viewDidLoad
 {
     // Create and add footer view
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 234.0f)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 190.0f)];
 
     // Donation button
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -122,48 +124,27 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {2, 1};
+    static int rows[] = {3, 1};
     return rows[section];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdSimple = @"SimpleCell";
-    static NSString *reuseIdToggle = @"ToggleCell";
+    static NSString *cellTitles[][3] = {
+        {@"Appearance", @"Control", @"Favorites"},
+        {@"Documentation", nil, nil}
+    };
 
-    UITableViewCell *cell = nil;
-
-    if (indexPath.section == 0 && indexPath.row == 0) {
-        // Try to retrieve from the table view a now-unused cell with the given identifier
-        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
-        if (cell == nil) {
-            // Cell does not exist, create a new one
-            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
-            [cell setSelectionStyle:0];
-
-            UISwitch *toggle = [[UISwitch alloc] init];
-            [cell setText:@"Animate switching"];
-            [toggle setOn:[[Preferences sharedInstance] animationsEnabled]];
-            [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:4096]; // ValueChanged
-            [cell setAccessoryView:toggle];
-            [toggle release];
-        }
-    } else {
-        static NSString *cellTitles[][3] = {
-            {nil, @"Favorites", nil},
-            {@"Documentation", nil, nil}
-        };
-
-        // Try to retrieve from the table view a now-unused cell with the given identifier
-        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
-        if (cell == nil) {
-            // Cell does not exist, create a new one
-            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdSimple] autorelease];
-            [cell setSelectionStyle:2]; // Gray
-            [cell setAccessoryType:1]; // Simple arrow
-        }
-        [cell setText:cellTitles[indexPath.section][indexPath.row]];
+    // Try to retrieve from the table view a now-unused cell with the given identifier
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
+    if (cell == nil) {
+        // Cell does not exist, create a new one
+        cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdSimple] autorelease];
+        cell.selectionStyle = UITableViewCellSelectionStyleGray;
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
+    cell.textLabel.text = cellTitles[indexPath.section][indexPath.row];
 
     return cell;
 }
@@ -175,22 +156,28 @@
     UIViewController *vc = nil;
 
     if (indexPath.section == 0) {
-        // Favorites
-        vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
-    } else if (indexPath.section == 1) {
+        switch (indexPath.row) {
+            case 0:
+                // Appearance
+                vc = [[[AppearanceController alloc] initWithStyle:1] autorelease];
+                break;
+            case 1:
+                // Control
+                vc = [[[ControlController alloc] initWithStyle:1] autorelease];
+                break;
+            case 2:
+            default:
+                // Favorites
+                vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
+                break;
+        }
+    } else {
         // Documentation
         vc = [[[DocumentationController alloc] initWithStyle:1] autorelease];
     }
 
     if (vc)
         [[self navigationController] pushViewController:vc animated:YES];
-}
-
-#pragma mark - Switch delegate
-
-- (void)switchToggled:(UISwitch *)control
-{
-    [[Preferences sharedInstance] setAnimationsEnabled:[control isOn]];
 }
 
 #pragma mark - UIButton delegate

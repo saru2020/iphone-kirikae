@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 22:04:32
+ * Last-modified: 2009-09-21 20:45:09
  */
 
 /**
@@ -40,39 +40,67 @@
  */
 
 
-#import <Foundation/NSObject.h>
+#import "AppearanceController.h"
+
+#import <CoreGraphics/CGGeometry.h>
+
+#import <Foundation/Foundation.h>
+
+#import "Constants.h"
+#import "Preferences.h"
 
 
-@class NSArray;
-@class NSDictionary;
-@class NSString;
+@implementation AppearanceController
 
-@interface Preferences : NSObject
+- (id)initWithStyle:(UITableViewStyle)style
 {
-    NSDictionary *initialValues;
-    NSDictionary *onDiskValues;
-
-    BOOL firstRun;
-    BOOL animationsEnabled;
-    unsigned int invocationMethod;
-    NSArray *favorites;
+    self = [super initWithStyle:style];
+    if (self) {
+        self.title = @"Appearance";
+    }
+    return self;
 }
 
-@property(nonatomic) BOOL firstRun;
-@property(nonatomic) BOOL animationsEnabled;
-@property(nonatomic) unsigned int invocationMethod;
-@property(nonatomic, retain) NSArray *favorites;
+#pragma mark - UITableViewDataSource
 
-+ (Preferences *)sharedInstance;
+- (int)numberOfSectionsInTableView:(UITableView *)tableView
+{
+	return 1;
+}
 
-- (NSDictionary *)dictionaryRepresentation;
+- (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
+{
+    return 1;
+}
 
-- (BOOL)isModified;
-- (BOOL)needsRespring;
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *reuseIdToggle = @"ToggleCell";
 
-- (void)registerDefaults;
-- (void)readFromDisk;
-- (void)writeToDisk;
+    // Try to retrieve from the table view a now-unused cell with the given identifier
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
+    if (cell == nil) {
+        // Cell does not exist, create a new one
+        cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        cell.textLabel.text = @"Animate switching";
+
+        UISwitch *toggle = [[UISwitch alloc] init];
+        toggle.on = [[Preferences sharedInstance] animationsEnabled];
+        [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:UIControlEventValueChanged];
+        cell.accessoryView = toggle;
+        [toggle release];
+    }
+
+    return cell;
+}
+
+#pragma mark - Switch delegate
+
+- (void)switchToggled:(UISwitch *)control
+{
+    [[Preferences sharedInstance] setAnimationsEnabled:[control isOn]];
+}
 
 @end
 

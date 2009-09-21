@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 10:01:37
+ * Last-modified: 2009-09-21 22:29:22
  */
 
 /**
@@ -45,10 +45,14 @@
 #import <Foundation/Foundation.h>
 
 
+// Allowed values
+static NSArray *allowedInvocationMethods = nil;
+
 @implementation Preferences
 
 @synthesize firstRun;
 @synthesize animationsEnabled;
+@synthesize invocationMethod;
 @synthesize favorites;
 
 #pragma mark - Methods
@@ -65,6 +69,9 @@
 {
     self = [super init];
     if (self) {
+        allowedInvocationMethods = [[NSArray alloc] initWithObjects:
+            @"homeSingleTap", @"homeDoubleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
+
         // Setup default values
         [self registerDefaults];
 
@@ -84,6 +91,7 @@
 {
     [onDiskValues release];
     [initialValues release];
+    [allowedInvocationMethods release];
 
     [super dealloc];
 }
@@ -96,6 +104,16 @@
 
     [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
+
+    NSString *string = nil;
+    @try {
+        string = [allowedInvocationMethods objectAtIndex:invocationMethod];
+        [dict setObject:[string copy] forKey:@"invocationMethod"];
+    }
+    @catch (NSException *exception) {
+        // Ignore the exception (assumed to be NSRangeException)
+    }
+
     [dict setObject:[favorites copy] forKey:@"favorites"];
 
     return dict;
@@ -125,6 +143,7 @@
 
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
+    [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
 
     [defaults registerDefaults:dict];
@@ -136,6 +155,11 @@
     
     firstRun = [defaults boolForKey:@"firstRun"];
     animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
+
+    NSString *string = [defaults stringForKey:@"invocationMethod"];
+    unsigned int index = [allowedInvocationMethods indexOfObject:string];
+    invocationMethod = (index == NSNotFound) ? 0 : index;
+
     favorites = [[defaults arrayForKey:@"favorites"] retain];
 }
 
