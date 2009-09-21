@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 15:32:20
+ * Last-modified: 2009-09-22 02:15:03
  */
 
 /**
@@ -63,6 +63,9 @@
 
 struct GSEvent;
 
+//static BOOL animateStatusBar = YES;
+static BOOL animationsEnabled = YES;
+
 typedef enum {
     KKInvocationMethodNone,
     KKInvocationMethodMenuSingleTap,
@@ -81,26 +84,29 @@ static NSMutableArray *activeApps = nil;
 
 static NSString *killedApp = nil;
 
-//static BOOL animateStatusBar = YES;
-static BOOL animationsEnabled = YES;
-
 //______________________________________________________________________________
 //______________________________________________________________________________
 
 static void loadPreferences()
 {
-    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
-    if (propList) {
-        // NOTE: Defaults to KKInvocationMethodMenuShortHold
-        if ([(NSString *)propList isEqualToString:@"homeDoubleTap"])
-            invocationMethod = KKInvocationMethodMenuDoubleTap;
-        CFRelease(propList);
-    }
-
-    propList = CFPreferencesCopyAppValue(CFSTR("animationsEnabled"), CFSTR(APP_ID));
+    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("animationsEnabled"), CFSTR(APP_ID));
     if (propList) {
         if (CFGetTypeID(propList) == CFBooleanGetTypeID())
             animationsEnabled = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+        CFRelease(propList);
+    }
+
+    propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
+    if (propList) {
+        // NOTE: Defaults to KKInvocationMethodMenuDoubleTap
+        if ([(NSString *)propList isEqualToString:@"homeSingleTap"])
+            invocationMethod = KKInvocationMethodMenuSingleTap;
+        else if ([(NSString *)propList isEqualToString:@"homeShortHold"])
+            invocationMethod = KKInvocationMethodMenuShortHold;
+        else if ([(NSString *)propList isEqualToString:@"powerShortHold"])
+            invocationMethod = KKInvocationMethodLockShortHold;
+        else if ([(NSString *)propList isEqualToString:@"none"])
+            invocationMethod = KKInvocationMethodNone;
         CFRelease(propList);
     }
 }
@@ -185,6 +191,22 @@ static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
 static id alert = nil;
 
+static void startInvocationTimer()
+{
+    // FIXME: If already invoked, should not set timer... right? (needs thought)
+    if (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]) {
+        // Not locked
+        if (!alert) {
+            // Task menu is not visible; setup toggle-delay timer
+            SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+            invocationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.7f
+                target:springBoard selector:@selector(invokeKirikae)
+                userInfo:nil repeats:NO] retain];
+        }
+        invocationTimerDidFire = NO;
+    }
+}
+
 static void cancelInvocationTimer()
 {
     // Disable and release timer (may be nil)
@@ -196,17 +218,7 @@ static void cancelInvocationTimer()
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
 HOOK(SpringBoard, menuButtonDown$, void, GSEvent *event)
 {
-    // FIXME: If already invoked, should not set timer... right? (needs thought)
-    if (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]) {
-        // Not locked
-        if (!alert)
-            // Task menu is not visible; setup toggle-delay timer
-            invocationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.7f
-                target:self selector:@selector(invokeKirikae)
-                userInfo:nil repeats:NO] retain];
-        invocationTimerDidFire = NO;
-    }
-
+    startInvocationTimer();
     CALL_ORIG(SpringBoard, menuButtonDown$, event);
 }
 
@@ -219,19 +231,35 @@ HOOK(SpringBoard, menuButtonUp$, void, GSEvent *event)
     CALL_ORIG(SpringBoard, menuButtonUp$, event);
 }
 
+// NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
+HOOK(SpringBoard, lockButtonDown$, void, GSEvent *event)
+{
+    startInvocationTimer();
+    CALL_ORIG(SpringBoard, lockButtonDown$, event);
+}
+
+// NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
+HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
+{
+    if (invocationTimerDidFire) {
+        [self _unsetLockButtonBearTrap];
+        [self _setLockButtonTimer:nil];
+    } else {
+        cancelInvocationTimer();
+        CALL_ORIG(SpringBoard, lockButtonUp$, event);
+    }
+}
+
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
 HOOK(SpringBoard, handleMenuDoubleTap, void)
 {
-    if (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]) {
-        // Not locked
-        if (alert == nil) {
-            // Popup not active; invoke and return
-            [self invokeKirikae];
-            return;
-        } else {
-            // Popup is active; dismiss and perform normal behaviour
-            [self dismissKirikae];
-        }
+    if (alert == nil) {
+        // Popup not active; invoke and return
+        [self invokeKirikae];
+        return;
+    } else {
+        // Popup is active; dismiss and perform normal behaviour
+        [self dismissKirikae];
     }
 
     CALL_ORIG(SpringBoard, handleMenuDoubleTap);
@@ -239,20 +267,26 @@ HOOK(SpringBoard, handleMenuDoubleTap, void)
 
 HOOK(SpringBoard, _handleMenuButtonEvent, void)
 {
-    // Handle single tap
     if (alert) {
         // Task menu is visible
         // FIXME: with short hold, the task menu may have just been invoked...
-        if (invocationTimerDidFire == NO)
+        if (invocationMethod != KKInvocationMethodMenuShortHold || invocationTimerDidFire == NO)
             // Hide and destroy the task menu
             [self dismissKirikae];
 
         // NOTE: _handleMenuButtonEvent is responsible for resetting the home tap count
-        Ivar ivar = class_getInstanceVariable([self class], "_menuButtonClickCount");
-        unsigned int *_menuButtonClickCount = (unsigned int *)((char *)self + ivar_getOffset(ivar));
-        *_menuButtonClickCount = 0x8000;
+        unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
+        _menuButtonClickCount = 0x8000;
     } else {
-        CALL_ORIG(SpringBoard, _handleMenuButtonEvent);
+        if (invocationMethod == KKInvocationMethodMenuSingleTap) {
+            [self invokeKirikae];
+
+            // NOTE: _handleMenuButtonEvent is responsible for resetting the home tap count
+            unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
+            _menuButtonClickCount = 0x8000;
+        } else {
+            CALL_ORIG(SpringBoard, _handleMenuButtonEvent);
+        }
     }
 }
 
@@ -299,8 +333,13 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
         // NOTE: This check is needed when called by external invokers
         return;
 
-    if (invocationMethod == KKInvocationMethodMenuShortHold)
-        invocationTimerDidFire = YES;
+    if ([[objc_getClass("SBAwayController") sharedAwayController] isLocked]
+            || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront])
+        // Lock screen or power-off screen is visible
+        return;
+
+    // NOTE: Only used by KKInvocationMethodMenuShortHold and KKInvocationMethodLockShortHold
+    invocationTimerDidFire = YES;
 
     id app = [SBWActiveDisplayStack topApplication];
     NSString *identifier = [app displayIdentifier];
@@ -612,8 +651,11 @@ void initSpringBoardHooks()
             LOAD_HOOK(objc_getMetaClass("SBVoiceControlAlert"), @selector(shouldEnterVoiceControl), SBVoiceControlAlert$shouldEnterVoiceControl);
             break;
         case KKInvocationMethodLockShortHold:
+            LOAD_HOOK($SpringBoard, @selector(lockButtonDown:), SpringBoard$lockButtonDown$);
+            LOAD_HOOK($SpringBoard, @selector(lockButtonUp:), SpringBoard$lockButtonUp$);
             LOAD_HOOK(objc_getClass("SBPowerDownController"), @selector(activate), SBPowerDownController$activate);
             break;
+        case KKInvocationMethodNone:
         default:
             break;
     }
