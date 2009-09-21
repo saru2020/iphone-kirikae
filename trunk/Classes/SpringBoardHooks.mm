@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-12 20:22:27
+ * Last-modified: 2009-09-14 22:41:40
  */
 
 /**
@@ -424,13 +424,17 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
                     // Disable backgrounding for the application
                     [self setBackgroundingEnabled:NO forDisplayIdentifier:identifier];
 
-                if ([SBWActiveDisplayStack containsDisplay:app])
+                if ([SBWActiveDisplayStack containsDisplay:app]) {
                     // Application is current app
                     // NOTE: Must set animation flag for deactivation, otherwise
                     //       application window does not disappear (reason yet unknown)
                     [app setDeactivationSetting:0x2 flag:YES]; // animate
                     if (!animationsEnabled)
                         [app setDeactivationSetting:0x8 value:[NSNumber numberWithDouble:1]]; // animationStart
+
+                    // Remove from active display stack
+                    [SBWActiveDisplayStack popDisplay:app];
+                }
 
                 // Deactivate the application
                 [SBWSuspendingDisplayStack pushDisplay:app];
