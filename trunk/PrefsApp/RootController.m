@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 23:02:56
+ * Last-modified: 2009-09-21 23:03:28
  */
 
 /**
@@ -82,7 +82,7 @@
 - (void)viewDidLoad
 {
     // Create and add footer view
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 190.0f)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 188.0f)];
 
     // Donation button
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
