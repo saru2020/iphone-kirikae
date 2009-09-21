@@ -1,0 +1,19 @@
+> # Todo
+> ## (These *might* be implemented)
+> - - -
+> * Move preferences to Settings.app.
+> * Make a proper icon.
+> * Display process info (processor/memory usage).
+> * Add color options.
+> * Add option to show unthemed icons.
+> * Add option to remember last-viewed tab.
+> * Add abilityto manually sort favorites.
+> * Add alternate view style (grid).
+
+- - -
+
+> # Rejected Requests
+> ## (These will not be implemented)
+> - - -
+> * Add controls for iPod/Pandora/Other application.
+>     * This is beyond the purpose of Kirikae, and would only lead to further such requests, causing code bloat and maintenance nightmares.

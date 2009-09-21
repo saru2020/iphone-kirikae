@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 23:10:05
+ * Last-modified: 2009-09-21 23:20:20
  */
 
 /**
@@ -87,7 +87,7 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {3, 1};
+    static int rows[] = {4, 1};
     return rows[section];
 }
 
@@ -109,7 +109,7 @@
             cell.detailTextLabel.text = @"(via Safari)";
         }
     } else {
-        static NSString *cellTitles[] = {@"How to Use", @"Release Notes", @"Known Issues"};
+        static NSString *cellTitles[] = {@"How to Use", @"Release Notes", @"Todo", @"Known Issues"};
 
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -129,15 +129,15 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *fileNames[] = { @"usage.mdwn", @"release_notes.mdwn", @"known_issues.mdwn" };
-    static NSString *titles[] = { @"How to Use", @"Release Notes", @"Known Issues" };
+    static NSString *fileNames[] = {@"usage.mdwn", @"release_notes.mdwn", @"todo.mdwn", @"known_issues.mdwn"};
 
     if (indexPath.section == 1) {
         // Project Homepage
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@DEVSITE_URL]];
     } else {
+        UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
         UIViewController *vc = [[[HtmlDocController alloc]
-            initWithContentsOfFile:fileNames[indexPath.row] title:titles[indexPath.row]]
+            initWithContentsOfFile:fileNames[indexPath.row] title:cell.textLabel.text]
             autorelease];
         [(HtmlDocController *)vc setTemplateFileName:@"template.html"];
         [[self navigationController] pushViewController:vc animated:YES];

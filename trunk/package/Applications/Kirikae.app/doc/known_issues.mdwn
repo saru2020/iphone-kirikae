@@ -2,11 +2,3 @@
 > - - -
 > * Switching between Camera and Photos (and possibly Audio and Video player on iPod Touch) does not work properly; this is due to the fact that they are the same application.
 > * See the googlecode project page for the latest issue reports.
-
-- - -
- 
-> # Todo
-> - - -
-> * Add option to display list by holding Home.
-> * Move preferences to Settings.app.
-> * Make a proper icon.

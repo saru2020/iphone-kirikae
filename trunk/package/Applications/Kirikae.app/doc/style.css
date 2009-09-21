@@ -10,19 +10,26 @@ body > hr {
 blockquote {
     margin: 0 0 10px 0;
     padding: 0;
-    background: #ffffff;
-    border: 1px solid #999999;
+    background: #fff;
+    border: 1px solid #999;
     -webkit-border-radius: 10px;
 }
 
 blockquote > h1 {
     text-align: center;
-    margin: 12px 0;
+    margin: 12px 0 0 0;
     font-size: medium;
 }
 
+blockquote > h2 {
+    text-align: center;
+    margin: 0;
+    font-size: small;
+    color: #999;
+}
+
 blockquote > hr {
-    border-top: 1px dashed #999999;
+    border-top: 1px dashed #999;
 }
 
 ul {
