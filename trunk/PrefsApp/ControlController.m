@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 22:27:05
+ * Last-modified: 2009-09-24 23:36:24
  */
 
 /**
@@ -85,7 +85,7 @@
     static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *cellTitles[] = {@"Home Button", @"Home Button", @"Home Button", @"Power Button", @"None"};
     static NSString *cellSubtitles[] = {
-        @"Single Tap", @"Double Tap",
+        @"Double Tap", @"Single Tap",
         @"Press and hold until Kirikae appears", @"Press and hold until Kirikae appears",
         @"For use with external toggle"
     };

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 22:29:22
+ * Last-modified: 2009-09-24 23:36:46
  */
 
 /**
@@ -70,7 +70,7 @@ static NSArray *allowedInvocationMethods = nil;
     self = [super init];
     if (self) {
         allowedInvocationMethods = [[NSArray alloc] initWithObjects:
-            @"homeSingleTap", @"homeDoubleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
+            @"homeDoubleTap", @"homeSingleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
 
         // Setup default values
         [self registerDefaults];
