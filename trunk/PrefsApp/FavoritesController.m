@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 18:05:26
+ * Last-modified: 2009-09-22 13:42:56
  */
 
 /**
@@ -129,7 +129,6 @@ static NSArray *applicationDisplayIdentifiers()
             //        a given folder contains.
             if (identifier &&
                 ![identifier hasPrefix:@"jp.ashikase.springjumps."] &&
-                ![identifier hasPrefix:@"com.bigboss.categories."] &&
                 ![identifier hasPrefix:@"com.apple.mobileslideshow"] &&
                 ![identifier hasPrefix:@"com.apple.mobileipod"] &&
                 ![identifier isEqualToString:@"com.iptm.bigboss.sbsettings"] &&
