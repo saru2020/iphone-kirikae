@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 23:20:20
+ * Last-modified: 2009-09-22 13:55:28
  */
 
 /**
@@ -50,7 +50,6 @@
 
 #import "Constants.h"
 #import "HtmlDocController.h"
-#import "FavoritesController.h"
 #import "Preferences.h"
 
 
