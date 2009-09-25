@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-22 03:29:06
+ * Last-modified: 2009-09-22 12:44:04
  */
 
 /**
@@ -202,6 +202,8 @@ static void startInvocationTimer()
 {
     // FIXME: If already invoked, should not set timer... right? (needs thought)
     if (canInvoke()) {
+        invocationTimerDidFire = NO;
+
         if (!alert) {
             // Task menu is not visible; setup toggle-delay timer
             SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
@@ -209,7 +211,6 @@ static void startInvocationTimer()
                 target:springBoard selector:@selector(invokeKirikae)
                 userInfo:nil repeats:NO] retain];
         }
-        invocationTimerDidFire = NO;
     }
 }
 
@@ -248,6 +249,7 @@ HOOK(SpringBoard, lockButtonDown$, void, GSEvent *event)
 HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
 {
     if (invocationTimerDidFire) {
+        // Reset the lock button state
         [self _unsetLockButtonBearTrap];
         [self _setLockButtonTimer:nil];
     } else {
