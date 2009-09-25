@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-22 02:15:03
+ * Last-modified: 2009-09-22 03:29:06
  */
 
 /**
@@ -191,11 +191,17 @@ static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
 static id alert = nil;
 
+static BOOL canInvoke()
+{
+    // Should not invoke if either lock screen or power-off screen is active
+    return (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]
+            && ![[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
+}
+
 static void startInvocationTimer()
 {
     // FIXME: If already invoked, should not set timer... right? (needs thought)
-    if (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]) {
-        // Not locked
+    if (canInvoke()) {
         if (!alert) {
             // Task menu is not visible; setup toggle-delay timer
             SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
@@ -333,8 +339,7 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
         // NOTE: This check is needed when called by external invokers
         return;
 
-    if ([[objc_getClass("SBAwayController") sharedAwayController] isLocked]
-            || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront])
+    if (!canInvoke())
         // Lock screen or power-off screen is visible
         return;
 
