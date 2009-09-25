@@ -1,7 +1,7 @@
 > # To switch to another running application:
 > - - -
-> 1. Double-tap the home button to display Kirikae.</li>
-> 1. Tap the application that you wish to switch to.</li>
+> 1. Invoke Kirikae using the method chosen in preferences (default is double-tap home button).
+> 1. Tap the application that you wish to switch to.
 >    * If you have Backgrounder installed, the current app will be backgrounded; otherwise it will quit.
 >    * The selected application will then become active.
 
@@ -9,6 +9,6 @@
 
 > # To quit an active/backgrounded application:
 > - - -
-> 1. Double-tap the home button to display Kirikae.
+> 1. Invoke Kirikae using the method chosen in preferences (default is double-tap home button).
 > 1. Swipe the application that you wish to quit.
 > 1. Tap the quit button that appears.

@@ -17,3 +17,7 @@
 > - - -
 > * Add controls for iPod/Pandora/Other application.
 >     * This is beyond the purpose of Kirikae, and would only lead to further such requests, causing code bloat and maintenance nightmares.
+> * Support for triple-tapping to invoke.
+>     * Some people have said that even double-tapping is difficult to use. The simple fact is that SpringBoard does not provide built-in support for triple-tap (it does for double-tap).
+> * Support for swiping/touching the screen to invoke.
+>     * The only practical space to use would be the status-bar, which is already used by other popular extensions. Anything outside of the status-bar would interfere with the current application.
