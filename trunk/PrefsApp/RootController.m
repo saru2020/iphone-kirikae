@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 23:03:28
+ * Last-modified: 2009-09-22 15:06:28
  */
 
 /**
@@ -156,7 +156,7 @@
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
         cell.textLabel.text = @"Documentation";
-        cell.detailTextLabel.text = @"Usage, Notes, Issues, etc.";
+        cell.detailTextLabel.text = @"Usage, Issues, Todo, etc.";
     }
 
     return cell;
