@@ -1,7 +1,10 @@
-> # Version svn.rXX
+> # Version svn.r81
 > - - -
+> * Can now invoke using home single/double-tap and home/power hold.
+> * Slightly decreased size of cells/icons.
 > * Fixed: unable to quit current application if
     previously backgrounded.
+> * Fixed: Allow Categories folders in favorites
 
 - - -
 
