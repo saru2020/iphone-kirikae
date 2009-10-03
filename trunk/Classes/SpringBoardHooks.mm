@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-27 22:24:10
+ * Last-modified: 2009-09-27 22:23:43
  */
 
 /**
@@ -256,6 +256,12 @@ HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
         cancelInvocationTimer();
         CALL_ORIG(SpringBoard, lockButtonUp$, event);
     }
+}
+
+// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
+HOOK(SpringBoard, allowMenuDoubleTap, BOOL)
+{
+    return YES;
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
@@ -655,6 +661,7 @@ void initSpringBoardHooks()
 
     switch (invocationMethod) {
         case KKInvocationMethodMenuDoubleTap:
+            LOAD_HOOK($SpringBoard, @selector(allowMenuDoubleTap), SpringBoard$allowMenuDoubleTap);
             LOAD_HOOK($SpringBoard, @selector(handleMenuDoubleTap), SpringBoard$handleMenuDoubleTap);
             break;
         case KKInvocationMethodMenuShortHold:
