@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-27 22:23:43
+ * Last-modified: 2009-09-27 22:39:19
  */
 
 /**
@@ -264,18 +264,19 @@ HOOK(SpringBoard, allowMenuDoubleTap, BOOL)
     return YES;
 }
 
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
 HOOK(SpringBoard, handleMenuDoubleTap, void)
 {
-    if (alert == nil) {
-        if (canInvoke()) {
-            // Popup not active; invoke and return
+    if (alert) {
+        // Popup is active; dismiss and perform normal behaviour
+        [self dismissKirikae];
+    } else {
+        // Popup not active
+        if (invocationMethod == KKInvocationMethodMenuDoubleTap && canInvoke()) {
+            // Invoke and return
             [self invokeKirikae];
             return;
         }
-    } else {
-        // Popup is active; dismiss and perform normal behaviour
-        [self dismissKirikae];
+        // Fall-through
     }
 
     CALL_ORIG(SpringBoard, handleMenuDoubleTap);
@@ -641,6 +642,7 @@ void initSpringBoardHooks()
     Class $SpringBoard = objc_getClass("SpringBoard");
     LOAD_HOOK($SpringBoard, @selector(applicationDidFinishLaunching:), SpringBoard$applicationDidFinishLaunching$);
     LOAD_HOOK($SpringBoard, @selector(dealloc), SpringBoard$dealloc);
+    LOAD_HOOK($SpringBoard, @selector(handleMenuDoubleTap), SpringBoard$handleMenuDoubleTap);
     LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
     if (!animationsEnabled)
         LOAD_HOOK($SpringBoard, @selector(frontDisplayDidChange), SpringBoard$frontDisplayDidChange);
@@ -662,7 +664,6 @@ void initSpringBoardHooks()
     switch (invocationMethod) {
         case KKInvocationMethodMenuDoubleTap:
             LOAD_HOOK($SpringBoard, @selector(allowMenuDoubleTap), SpringBoard$allowMenuDoubleTap);
-            LOAD_HOOK($SpringBoard, @selector(handleMenuDoubleTap), SpringBoard$handleMenuDoubleTap);
             break;
         case KKInvocationMethodMenuShortHold:
             LOAD_HOOK($SpringBoard, @selector(menuButtonDown:), SpringBoard$menuButtonDown$);
