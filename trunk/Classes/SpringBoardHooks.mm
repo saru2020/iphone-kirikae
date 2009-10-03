@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-22 12:44:04
+ * Last-modified: 2009-09-27 22:24:10
  */
 
 /**
@@ -194,8 +194,8 @@ static id alert = nil;
 static BOOL canInvoke()
 {
     // Should not invoke if either lock screen or power-off screen is active
-    return (![[objc_getClass("SBAwayController") sharedAwayController] isLocked]
-            && ![[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
+    return !([[objc_getClass("SBAwayController") sharedAwayController] isLocked]
+            || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
 }
 
 static void startInvocationTimer()
@@ -262,9 +262,11 @@ HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
 HOOK(SpringBoard, handleMenuDoubleTap, void)
 {
     if (alert == nil) {
-        // Popup not active; invoke and return
-        [self invokeKirikae];
-        return;
+        if (canInvoke()) {
+            // Popup not active; invoke and return
+            [self invokeKirikae];
+            return;
+        }
     } else {
         // Popup is active; dismiss and perform normal behaviour
         [self dismissKirikae];
@@ -286,7 +288,7 @@ HOOK(SpringBoard, _handleMenuButtonEvent, void)
         unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
         _menuButtonClickCount = 0x8000;
     } else {
-        if (invocationMethod == KKInvocationMethodMenuSingleTap) {
+        if (invocationMethod == KKInvocationMethodMenuSingleTap && canInvoke()) {
             [self invokeKirikae];
 
             // NOTE: _handleMenuButtonEvent is responsible for resetting the home tap count
@@ -343,6 +345,9 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
 
     if (!canInvoke())
         // Lock screen or power-off screen is visible
+        // NOTE: This is only necessary here for invocationMethod ==
+        //       KKInvocationMethodNone, as canInvoke() is already called
+        //       earlier for all other methods.
         return;
 
     // NOTE: Only used by KKInvocationMethodMenuShortHold and KKInvocationMethodLockShortHold
