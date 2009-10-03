@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-27 22:39:19
+ * Last-modified: 2009-10-03 15:43:32
  */
 
 /**
@@ -223,19 +223,14 @@ static void cancelInvocationTimer()
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
-HOOK(SpringBoard, menuButtonDown$, void, GSEvent *event)
+HOOK(SpringBoard, _setMenuButtonTimer$, void, id timer)
 {
-    startInvocationTimer();
-    CALL_ORIG(SpringBoard, menuButtonDown$, event);
-}
-
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
-HOOK(SpringBoard, menuButtonUp$, void, GSEvent *event)
-{
-    if (!invocationTimerDidFire)
+    if (timer)
+        startInvocationTimer();
+    else if (!invocationTimerDidFire)
         cancelInvocationTimer();
 
-    CALL_ORIG(SpringBoard, menuButtonUp$, event);
+    CALL_ORIG(SpringBoard, _setMenuButtonTimer$, timer);
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
@@ -666,8 +661,7 @@ void initSpringBoardHooks()
             LOAD_HOOK($SpringBoard, @selector(allowMenuDoubleTap), SpringBoard$allowMenuDoubleTap);
             break;
         case KKInvocationMethodMenuShortHold:
-            LOAD_HOOK($SpringBoard, @selector(menuButtonDown:), SpringBoard$menuButtonDown$);
-            LOAD_HOOK($SpringBoard, @selector(menuButtonUp:), SpringBoard$menuButtonUp$);
+            LOAD_HOOK($SpringBoard, @selector(_setMenuButtonTimer:), SpringBoard$_setMenuButtonTimer$);
             LOAD_HOOK(objc_getMetaClass("SBVoiceControlAlert"), @selector(shouldEnterVoiceControl), SBVoiceControlAlert$shouldEnterVoiceControl);
             break;
         case KKInvocationMethodLockShortHold:
