@@ -1,3 +1,12 @@
+> # Version svn.r86
+> - - -
+> * Fixed: Default double-tap method did not work on lock screen.
+> * Fixed: Double-tap invocation failed if "Double-click the Home Button for:" was set to "Home" (in Settings.app).
+> * Fixed: Kirikae did not hide on double-tap (when invocation method was not double-tap).
+> * Fixed: Ensure that hold button timer is reset in icon-editing mode.
+
+- - -
+
 > # Version svn.r81
 > - - -
 > * Can now invoke using home single/double-tap and home/power hold.

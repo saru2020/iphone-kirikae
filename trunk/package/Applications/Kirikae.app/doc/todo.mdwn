@@ -7,7 +7,7 @@
 > * Add color options.
 > * Add option to show unthemed icons.
 > * Add option to remember last-viewed tab.
-> * Add abilityto manually sort favorites.
+> * Add ability to manually sort favorites.
 > * Add alternate view style (grid).
 
 - - -

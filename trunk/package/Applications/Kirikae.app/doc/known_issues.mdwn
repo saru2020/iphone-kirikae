@@ -2,3 +2,4 @@
 > - - -
 > * Switching between Camera and Photos (and possibly Audio and Video player on iPod Touch) does not work properly; this is due to the fact that they are the same application.
 > * See the googlecode project page for the latest issue reports.
+> * Deleting a running application causes a crash
