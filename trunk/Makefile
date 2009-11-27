@@ -43,8 +43,7 @@ config:
 
 # Replace 'iphone' with the IP or hostname of your device
 install: $(NAME).dylib
-	ssh root@iphone rm -f /Library/MobileSubstrate/DynamicLibraries/$(NAME).dylib
-	scp $(NAME).dylib root@iphone:/Library/MobileSubstrate/DynamicLibraries/
+	rsync -z $(NAME).dylib root@iphone:/Library/MobileSubstrate/DynamicLibraries/
 	ssh root@iphone restart
 
 $(NAME).dylib: config $(OBJS) $(HDRS)
