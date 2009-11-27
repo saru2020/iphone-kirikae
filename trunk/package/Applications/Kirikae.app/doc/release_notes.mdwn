@@ -1,3 +1,9 @@
+> # Version svn.r91
+> - - -
+> * Fixed: Missing/uninstalled items no longer show as an error in the favorites list.
+
+- - -
+
 > # Version svn.r86
 > - - -
 > * Fixed: Default double-tap method did not work on lock screen.

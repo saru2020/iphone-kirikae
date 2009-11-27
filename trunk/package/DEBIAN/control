@@ -1,6 +1,6 @@
 Package: jp.ashikase.kirikae
 Name: Kirikae
-Version: svn.r86
+Version: svn.r91
 Architecture: iphoneos-arm
 Description: Backgrounder-compatible task switcher/launcher.
 Homepage: http://iphone-kirikae.googlecode.com/
