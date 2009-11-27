@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 14:06:29
+ * Last-modified: 2009-11-28 01:22:29
  */
 
 /**
@@ -63,11 +63,31 @@
         [self setTabBarItem:item];
         [item release];
 
+        // Preferences may have changed since last read; synchronize
+        CFPreferencesAppSynchronize(CFSTR(APP_ID));
+
         // Read favorites from preferences
         CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("favorites"), CFSTR(APP_ID));
         if (propList) {
-            if (CFGetTypeID(propList) == CFArrayGetTypeID())
-                favorites = [[NSArray alloc] initWithArray:(NSArray *)propList];
+            if (CFGetTypeID(propList) == CFArrayGetTypeID()) {
+                favorites = [[NSMutableArray alloc] init];
+
+                SBApplicationController *appCont = [objc_getClass("SBApplicationController") sharedInstance];
+                for (NSString *displayId in (NSArray *)propList) {
+                    // Check that favorite still exists, add to list if it does
+                    SBApplication *app = [appCont applicationWithDisplayIdentifier:displayId];
+                    if (app)
+                        // Favorite exists
+                        [favorites addObject:displayId];
+                }
+
+                if ([favorites count] != [(NSArray *)propList count]) {
+                    // Some favorites were missing; update  preferences file
+                    CFPreferencesSetAppValue(CFSTR("favorites"), favorites, CFSTR(APP_ID));
+                    CFPreferencesAppSynchronize(CFSTR(APP_ID));
+                }
+            }
+
             CFRelease(propList);
         }
     }
@@ -210,11 +230,7 @@
             [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];
             UIGraphicsEndImageContext();
         }
-    } else {
-        // FIXME: Was unable to retrieve icon; invalid identifier?
-        [cell setText:[NSString stringWithFormat:@"Error: %@", identifier]];
     }
-
     return cell;
 }
 
