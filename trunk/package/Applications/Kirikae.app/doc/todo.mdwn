@@ -1,7 +1,6 @@
 > # Todo
 > ## (These *might* be implemented)
 > - - -
-> * Add option to remember last-viewed tab.
 > * Add option to show unthemed icons.
 > * Add color options.
 > * Add ability to manually sort favorites.

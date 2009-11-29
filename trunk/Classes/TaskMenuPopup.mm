@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 15:33:21
+ * Last-modified: 2009-11-28 04:12:05
  */
 
 /**
@@ -48,6 +48,14 @@
 #import "SpringBoardHooks.h"
 #import "TaskListController.h"
 
+typedef enum {
+    KKInitialViewLastUsed,
+    KKInitialViewActive,
+    KKInitialViewFavorites
+} KKInitialView;
+
+static KKInitialView initialView = KKInitialViewActive;
+
 
 static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize size)
 {
@@ -58,11 +66,41 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
     if (self) {
         [self setBackgroundColor:[UIColor colorWithWhite:0.30 alpha:1]];
 
+        // Preferences may have changed since last read; synchronize
+        CFPreferencesAppSynchronize(CFSTR(APP_ID));
+
+        // Check preferences to determine which tab to start with
+        unsigned int initialIndex = 0;
+        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("initialView"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFStringGetTypeID()) {
+                if ([(NSString *)propList isEqualToString:@"lastUsed"])
+                    initialView = KKInitialViewLastUsed;
+                else if ([(NSString *)propList isEqualToString:@"favorites"]) {
+                    initialView = KKInitialViewFavorites;
+                    initialIndex = 1;
+                }
+                else
+                    initialView = KKInitialViewActive;
+            }
+            CFRelease(propList);
+        }
+        if (initialView == KKInitialViewLastUsed) {
+            propList = CFPreferencesCopyAppValue(CFSTR("lastUsedView"), CFSTR(APP_ID));
+            if (propList) {
+                if (CFGetTypeID(propList) == CFStringGetTypeID())
+                    initialIndex = [(NSString *)propList isEqualToString:@"favorites"] ? 1 : 0;
+                CFRelease(propList);
+            }
+        }
+
+        // Create and setup tab bar controller and view controllers
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
         TaskListController *tlCont = [[TaskListController alloc] initWithStyle:UITableViewStylePlain];
         FavoritesController *favCont = [[FavoritesController alloc] initWithStyle:UITableViewStylePlain];
         tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, favCont, nil];
+        tbCont.selectedIndex = initialIndex;
         [tlCont release];
         [favCont release];
         [self addSubview:tbCont.view];
@@ -137,6 +175,14 @@ static void $KKAlertDisplay$dismiss(SBAlertDisplay *self, SEL sel)
 static void $KKAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay *self, SEL sel,
     NSString *animationID, NSNumber *finished, void *context)
 {
+    if (initialView == KKInitialViewLastUsed) {
+        // Note which view is currently selected, save to preferences
+        UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
+        NSString *lastUsedView =  (tbCont.selectedIndex == 0) ? @"active" : @"favorites";
+        CFPreferencesSetAppValue(CFSTR("lastUsedView"), (CFStringRef)lastUsedView, CFSTR(APP_ID));
+        CFPreferencesAppSynchronize(CFSTR(APP_ID));
+    }
+
     // Continue dismissal by calling super's dismiss method
     objc_super $super = {self, objc_getClass("SBAlertDisplay")};
     objc_msgSendSuper(&$super, @selector(dismiss));

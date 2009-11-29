@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-10-29 23:38:12
+ * Last-modified: 2009-11-30 01:33:31
  */
 
 /**
@@ -52,6 +52,7 @@
 #import "Constants.h"
 #import "ControlController.h"
 #import "DocumentationController.h"
+#import "GeneralController.h"
 #import "HtmlDocController.h"
 #import "FavoritesController.h"
 #import "Preferences.h"
@@ -82,7 +83,7 @@
 - (void)viewDidLoad
 {
     // Create and add footer view
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 188.0f)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 144.0f)];
 
     // Donation button
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -124,7 +125,7 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {3, 1};
+    static int rows[] = {4, 1};
     return rows[section];
 }
 
@@ -135,7 +136,7 @@
 
     UITableViewCell *cell = nil;
     if (indexPath.section == 0) {
-        static NSString *cellTitles[] = {@"Appearance", @"Control", @"Favorites"};
+        static NSString *cellTitles[] = {@"General", @"Appearance", @"Control", @"Favorites"};
 
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -171,14 +172,18 @@
     if (indexPath.section == 0) {
         switch (indexPath.row) {
             case 0:
+                // General
+                vc = [[[GeneralController alloc] initWithStyle:1] autorelease];
+                break;
+            case 1:
                 // Appearance
                 vc = [[[AppearanceController alloc] initWithStyle:1] autorelease];
                 break;
-            case 1:
+            case 2:
                 // Control
                 vc = [[[ControlController alloc] initWithStyle:1] autorelease];
                 break;
-            case 2:
+            case 3:
             default:
                 // Favorites
                 vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];

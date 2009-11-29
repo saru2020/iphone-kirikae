@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-24 23:36:46
+ * Last-modified: 2009-11-28 04:06:09
  */
 
 /**
@@ -47,12 +47,14 @@
 
 // Allowed values
 static NSArray *allowedInvocationMethods = nil;
+static NSArray *allowedInitialViews = nil;
 
 @implementation Preferences
 
 @synthesize firstRun;
 @synthesize animationsEnabled;
 @synthesize invocationMethod;
+@synthesize initialView;
 @synthesize favorites;
 
 #pragma mark - Methods
@@ -71,6 +73,9 @@ static NSArray *allowedInvocationMethods = nil;
     if (self) {
         allowedInvocationMethods = [[NSArray alloc] initWithObjects:
             @"homeDoubleTap", @"homeSingleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
+
+        allowedInitialViews = [[NSArray alloc] initWithObjects:
+            @"active", @"favorites", @"lastUsed", nil];
 
         // Setup default values
         [self registerDefaults];
@@ -91,6 +96,7 @@ static NSArray *allowedInvocationMethods = nil;
 {
     [onDiskValues release];
     [initialValues release];
+    [allowedInitialViews release];
     [allowedInvocationMethods release];
 
     [super dealloc];
@@ -109,6 +115,14 @@ static NSArray *allowedInvocationMethods = nil;
     @try {
         string = [allowedInvocationMethods objectAtIndex:invocationMethod];
         [dict setObject:[string copy] forKey:@"invocationMethod"];
+    }
+    @catch (NSException *exception) {
+        // Ignore the exception (assumed to be NSRangeException)
+    }
+
+    @try {
+        string = [allowedInitialViews objectAtIndex:initialView];
+        [dict setObject:[string copy] forKey:@"initialView"];
     }
     @catch (NSException *exception) {
         // Ignore the exception (assumed to be NSRangeException)
@@ -144,6 +158,7 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
     [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
+    [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
 
     [defaults registerDefaults:dict];
@@ -159,6 +174,10 @@ static NSArray *allowedInvocationMethods = nil;
     NSString *string = [defaults stringForKey:@"invocationMethod"];
     unsigned int index = [allowedInvocationMethods indexOfObject:string];
     invocationMethod = (index == NSNotFound) ? 0 : index;
+
+    string = [defaults stringForKey:@"initialView"];
+    index = [allowedInitialViews indexOfObject:string];
+    initialView = (index == NSNotFound) ? 0 : index;
 
     favorites = [[defaults arrayForKey:@"favorites"] retain];
 }
