@@ -1,6 +1,7 @@
 > # Version svn.rXX
 > - - -
 > * Added: Can select which tab to start with: Active, Favorites, or Last-used.
+> * Changed: With "power hold" control method, pressing power button now dismisses Kirikae.
 
 - - -
 

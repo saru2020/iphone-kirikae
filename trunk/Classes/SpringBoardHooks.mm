@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-10-03 15:43:32
+ * Last-modified: 2009-11-30 02:08:06
  */
 
 /**
@@ -243,14 +243,19 @@ HOOK(SpringBoard, lockButtonDown$, void, GSEvent *event)
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
 HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
 {
-    if (invocationTimerDidFire) {
-        // Reset the lock button state
-        [self _unsetLockButtonBearTrap];
-        [self _setLockButtonTimer:nil];
-    } else {
+    if (!invocationTimerDidFire) {
         cancelInvocationTimer();
-        CALL_ORIG(SpringBoard, lockButtonUp$, event);
+
+        if (alert)
+            // Popup is active; dismiss
+            [self dismissKirikae];
+        else
+            return CALL_ORIG(SpringBoard, lockButtonUp$, event);
     }
+
+    // Reset the lock button state
+    [self _unsetLockButtonBearTrap];
+    [self _setLockButtonTimer:nil];
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
