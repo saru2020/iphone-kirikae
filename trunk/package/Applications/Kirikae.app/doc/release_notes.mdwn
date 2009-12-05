@@ -1,3 +1,11 @@
+> # Version svn.r105
+> - - -
+> * Added: Spotlight tab; can now access Spotlight from any application.
+> * Added: Can now configure which tabs will be shown (via preferences).
+> * Other: Slightly improved icon.
+>   * Note: The arrows used in the icon image are from Gnome (Gnome-view-refresh.svg).
+
+- - -
 > # Version svn.r95
 > - - -
 > * Added: Can select which tab to start with: Active, Favorites, or Last-used.

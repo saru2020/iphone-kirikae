@@ -6,7 +6,6 @@
 > * Add ability to manually sort favorites.
 > * Add alternate view style (grid).
 > * Display process info (processor/memory usage).
-> * Move preferences to Settings.app.
 > * Make a proper icon.
 
 - - -
@@ -14,9 +13,13 @@
 > # Rejected Requests
 > ## (These will not be implemented)
 > - - -
+> * Move preferences to Settings.app.
+>     * I had wanted to do this for all of my extensions; however my preferences require functionality that cannot be done via Settings.app's simple plist method. It would require me to research and use private API methods, methods that could change with each firmware update. This would mean more time spent on maintaining the preferences, and less time spent on improving Kirikae.
+>     * In other words, the preferences application is here to stay. If you don't like it you can hide the icon and access it via Spotlight.
 > * Add controls for iPod/Pandora/Other application.
 >     * This is beyond the purpose of Kirikae, and would only lead to further such requests, causing code bloat and maintenance nightmares.
 > * Support for triple-tapping to invoke.
 >     * Some people have said that even double-tapping is difficult to use. While SpringBoard does now provide methods for triple-tapping in the latest firmware (3.1.*), it is not available in firmware 3.0, which many still use.
 > * Support for swiping/touching the screen to invoke.
 >     * The only practical space to use would be the status-bar, which is already used by other popular extensions. Anything outside of the status-bar would interfere with the current application.
+>     * That being said, it *is* possible to call Kirikae externally, such as from an SBSettings toggle. If anyone wants to make one, the method to call is "invokeKirikae" (on the SpringBoard application instance).
