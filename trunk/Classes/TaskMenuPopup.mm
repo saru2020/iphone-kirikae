@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-28 04:12:05
+ * Last-modified: 2009-12-05 12:25:37
  */
 
 /**
@@ -87,11 +87,11 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
         }
         if (initialView == KKInitialViewLastUsed) {
             propList = CFPreferencesCopyAppValue(CFSTR("lastUsedView"), CFSTR(APP_ID));
-            if (propList) {
+        if (propList) {
                 if (CFGetTypeID(propList) == CFStringGetTypeID())
                     initialIndex = [(NSString *)propList isEqualToString:@"favorites"] ? 1 : 0;
-                CFRelease(propList);
-            }
+            CFRelease(propList);
+        }
         }
 
         // Create and setup tab bar controller and view controllers
@@ -111,6 +111,15 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
         self.frame = frame;
     }
     return self;
+}
+
+static void $KKAlertDisplay$dealloc(SBAlertDisplay *self, SEL sel)
+{
+    [MSHookIvar<NSMutableArray *>(self, "tabs") release];
+    [MSHookIvar<UITabBarController *>(self, "tabBarController") release];
+
+    objc_super $super = {self, objc_getClass("SBAlertDisplay")};
+    self = objc_msgSendSuper(&$super, @selector(dealloc));
 }
 
 static void $KKAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
@@ -244,6 +253,8 @@ void initTaskMenuPopup()
     class_addIvar($KKAlertDisplay, "currentStatusBarOrientation", size, align, "i");
     class_addMethod($KKAlertDisplay, @selector(initWithSize:),
             (IMP)&$KKAlertDisplay$initWithSize$, "@@:{CGSize=ff}");
+    class_addMethod($KKAlertDisplay, @selector(dealloc),
+            (IMP)&$KKAlertDisplay$dealloc, "v@:");
     class_addMethod($KKAlertDisplay, @selector(alertDisplayWillBecomeVisible),
             (IMP)&$KKAlertDisplay$alertDisplayWillBecomeVisible, "v@:");
     class_addMethod($KKAlertDisplay, @selector(alertDisplayBecameVisible),
