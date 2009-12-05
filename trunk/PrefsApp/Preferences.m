@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-28 04:06:09
+ * Last-modified: 2009-12-05 04:48:17
  */
 
 /**
@@ -46,15 +46,18 @@
 
 
 // Allowed values
-static NSArray *allowedInvocationMethods = nil;
 static NSArray *allowedInitialViews = nil;
+static NSArray *allowedInvocationMethods = nil;
 
 @implementation Preferences
 
 @synthesize firstRun;
 @synthesize animationsEnabled;
-@synthesize invocationMethod;
+@synthesize showActive;
+@synthesize showFavorites;
+@synthesize showSpotlight;
 @synthesize initialView;
+@synthesize invocationMethod;
 @synthesize favorites;
 
 #pragma mark - Methods
@@ -71,11 +74,11 @@ static NSArray *allowedInitialViews = nil;
 {
     self = [super init];
     if (self) {
+        allowedInitialViews = [[NSArray alloc] initWithObjects:
+            @"active", @"favorites", @"spotlight", @"lastUsed", nil];
+
         allowedInvocationMethods = [[NSArray alloc] initWithObjects:
             @"homeDoubleTap", @"homeSingleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
-
-        allowedInitialViews = [[NSArray alloc] initWithObjects:
-            @"active", @"favorites", @"lastUsed", nil];
 
         // Setup default values
         [self registerDefaults];
@@ -96,8 +99,8 @@ static NSArray *allowedInitialViews = nil;
 {
     [onDiskValues release];
     [initialValues release];
-    [allowedInitialViews release];
     [allowedInvocationMethods release];
+    [allowedInitialViews release];
 
     [super dealloc];
 }
@@ -110,19 +113,22 @@ static NSArray *allowedInitialViews = nil;
 
     [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
+    [dict setObject:[NSNumber numberWithBool:showActive] forKey:@"showActive"];
+    [dict setObject:[NSNumber numberWithBool:showFavorites] forKey:@"showFavorites"];
+    [dict setObject:[NSNumber numberWithBool:showSpotlight] forKey:@"showSpotlight"];
 
     NSString *string = nil;
     @try {
-        string = [allowedInvocationMethods objectAtIndex:invocationMethod];
-        [dict setObject:[string copy] forKey:@"invocationMethod"];
+        string = [allowedInitialViews objectAtIndex:initialView];
+        [dict setObject:[string copy] forKey:@"initialView"];
     }
     @catch (NSException *exception) {
         // Ignore the exception (assumed to be NSRangeException)
     }
 
     @try {
-        string = [allowedInitialViews objectAtIndex:initialView];
-        [dict setObject:[string copy] forKey:@"initialView"];
+        string = [allowedInvocationMethods objectAtIndex:invocationMethod];
+        [dict setObject:[string copy] forKey:@"invocationMethod"];
     }
     @catch (NSException *exception) {
         // Ignore the exception (assumed to be NSRangeException)
@@ -157,8 +163,11 @@ static NSArray *allowedInitialViews = nil;
 
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
-    [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showActive"];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showFavorites"];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showSpotlight"];
     [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
+    [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
 
     [defaults registerDefaults:dict];
@@ -170,14 +179,17 @@ static NSArray *allowedInitialViews = nil;
     
     firstRun = [defaults boolForKey:@"firstRun"];
     animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
+    showActive = [defaults boolForKey:@"showActive"];
+    showFavorites = [defaults boolForKey:@"showFavorites"];
+    showSpotlight = [defaults boolForKey:@"showSpotlight"];
 
-    NSString *string = [defaults stringForKey:@"invocationMethod"];
-    unsigned int index = [allowedInvocationMethods indexOfObject:string];
-    invocationMethod = (index == NSNotFound) ? 0 : index;
-
-    string = [defaults stringForKey:@"initialView"];
-    index = [allowedInitialViews indexOfObject:string];
+    NSString *string = [defaults stringForKey:@"initialView"];
+    unsigned int index = [allowedInitialViews indexOfObject:string];
     initialView = (index == NSNotFound) ? 0 : index;
+
+    string = [defaults stringForKey:@"invocationMethod"];
+    index = [allowedInvocationMethods indexOfObject:string];
+    invocationMethod = (index == NSNotFound) ? 0 : index;
 
     favorites = [[defaults arrayForKey:@"favorites"] retain];
 }

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-30 01:41:21
+ * Last-modified: 2009-12-05 04:55:18
  */
 
 /**
@@ -65,35 +65,80 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 1;
+	return 2;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    return @"Always start with...";
+    return (section == 0) ? @"Enabled Tabs" : @"Always start with...";
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return 3;
+    return (section == 0) ? 3 : 4;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    static NSString *reuseIdToggle = @"ToggleCell";
     static NSString *reuseIdSimple = @"SimpleCell";
 
-    // Try to retrieve from the table view a now-unused cell with the given identifier
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
-    if (cell == nil) {
-        // Cell does not exist, create a new one
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
-        cell.selectionStyle = UITableViewCellSelectionStyleGray;
-    }
+	UITableViewCell *cell = nil; 
+    if (indexPath.section == 0) {
+        static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab", @"Spotlight Tab"};
 
-    static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab", @"Last-used Tab"};
-    cell.textLabel.text = cellTitles[indexPath.row];
-    cell.accessoryType = ([[Preferences sharedInstance] initialView] == indexPath.row) ?
-        UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        // Try to retrieve from the table view a now-unused cell with the given identifier
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
+        if (cell == nil) {
+            // Cell does not exist, create a new one
+            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+            UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+            button.frame = CGRectMake(0, 0, 54.0f, 27.0f);
+            button.font = [UIFont boldSystemFontOfSize:17.0f];
+            [button setBackgroundImage:[[UIImage imageNamed:@"toggle_off.png"]
+                stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateNormal];
+            [button setBackgroundImage:[[UIImage imageNamed:@"toggle_on.png"]
+                stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateSelected];
+            [button setTitle:@"OFF" forState:UIControlStateNormal];
+            [button setTitle:@"ON" forState:UIControlStateSelected];
+            [button setTitleColor:[UIColor colorWithWhite:0.5f alpha:1.0f] forState:UIControlStateNormal];
+            [button setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+            [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
+            cell.accessoryView = button;
+        }
+        cell.text = cellTitles[indexPath.row];
+
+        UIButton *button = (UIButton *)cell.accessoryView;
+		Preferences *prefs = [Preferences sharedInstance];
+        switch (indexPath.row) {
+            case 0:
+                button.selected = prefs.showActive;
+                break;
+            case 1:
+                button.selected = prefs.showFavorites;
+                break;
+            case 2:
+                button.selected = prefs.showSpotlight;
+                break;
+            default:
+                break;
+        }
+    } else {
+        static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab", @"Spotlight Tab", @"Last-used Tab"};
+
+        // Try to retrieve from the table view a now-unused cell with the given identifier
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
+        if (cell == nil) {
+            // Cell does not exist, create a new one
+            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
+            cell.selectionStyle = UITableViewCellSelectionStyleGray;
+        }
+        cell.textLabel.text = cellTitles[indexPath.row];
+        cell.accessoryType = ([[Preferences sharedInstance] initialView] == indexPath.row) ?
+            UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+    }
 
     return cell;
 }
@@ -102,11 +147,39 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Store the selected option
-    [[Preferences sharedInstance] setInitialView:indexPath.row];
-    [tableView reloadData];
+    if (indexPath.section == 1) {
+        // Store the selected option
+        [[Preferences sharedInstance] setInitialView:indexPath.row];
+        [tableView reloadData];
+    }
 }
 
+#pragma mark - Actions
+
+//*************************************************************************************************
+// buttonToggled - Called when a toggle button is toggled on or off.
+//*************************************************************************************************
+- (void)buttonToggled:(UIButton *)button
+{
+    // Update selected state of button
+    button.selected = !button.selected;
+
+	Preferences *prefs = [Preferences sharedInstance];
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
+    switch (indexPath.row) {
+		case 0:
+			prefs.showActive = button.selected;
+			break;
+		case 1:
+			prefs.showFavorites = button.selected;
+			break;
+		case 2:
+			prefs.showSpotlight = button.selected;
+			break;
+		default:
+			break;
+	}
+}
 @end
 
 /* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
