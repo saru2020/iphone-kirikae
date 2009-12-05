@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 12:16:44
+ * Last-modified: 2009-12-05 13:03:10
  */
 
 /**
@@ -73,6 +73,13 @@ HOOK(SBSearchController, tableView$didSelectRowAtIndexPath$, void, UITableView *
         SBApplicationIcon *icon = [matchingLaunchingIcons objectAtIndex:offset];
         [springBoard switchToAppWithDisplayIdentifier:[icon displayIdentifier]];
     } else {
+        // If Backgrounder is installed, enable backgrounding for current application
+        if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)]) {
+            SBApplication *app = [springBoard topApplication];
+            if (app)
+                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:[app displayIdentifier]];
+        }
+
         // Call the original implementation to launch the selected item
         CALL_ORIG(SBSearchController, tableView$didSelectRowAtIndexPath$, tableView, indexPath);
     }

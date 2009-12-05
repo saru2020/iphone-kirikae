@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-30 02:08:06
+ * Last-modified: 2009-12-05 12:59:19
  */
 
 /**
@@ -509,6 +509,11 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
     }
 }
 
+static SBApplication * $SpringBoard$topApplication(SpringBoard *self, SEL sel)
+{
+    return [SBWActiveDisplayStack topApplication];
+}
+
 //______________________________________________________________________________
 //______________________________________________________________________________
 
@@ -650,6 +655,7 @@ void initSpringBoardHooks()
     class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(switchToAppWithDisplayIdentifier:), (IMP)&$SpringBoard$switchToAppWithDisplayIdentifier$, "v@:@");
     class_addMethod($SpringBoard, @selector(quitAppWithDisplayIdentifier:), (IMP)&$SpringBoard$quitAppWithDisplayIdentifier$, "v@:@");
+    class_addMethod($SpringBoard, @selector(topApplication), (IMP)&$SpringBoard$topApplication, "@@:");
 
     Class $SBApplication = objc_getClass("SBApplication");
     LOAD_HOOK($SBApplication, @selector(launchSucceeded:), SBApplication$launchSucceeded$);
