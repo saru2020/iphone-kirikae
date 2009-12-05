@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 12:25:37
+ * Last-modified: 2009-12-05 12:27:06
  */
 
 /**
@@ -45,16 +45,22 @@
 //#import <SpringBoard/SBStatusBarController.h>
 
 #import "FavoritesController.h"
+#import "SpotlightController.h"
 #import "SpringBoardHooks.h"
 #import "TaskListController.h"
 
 typedef enum {
-    KKInitialViewLastUsed,
     KKInitialViewActive,
-    KKInitialViewFavorites
+    KKInitialViewFavorites,
+    KKInitialViewSpotlight,
+    KKInitialViewLastUsed
 } KKInitialView;
 
 static KKInitialView initialView = KKInitialViewActive;
+
+static BOOL showActive = YES;
+static BOOL showFavorites = YES;
+static BOOL showSpotlight = NO;
 
 
 static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize size)
@@ -69,41 +75,95 @@ static id $KKAlertDisplay$initWithSize$(SBAlertDisplay *self, SEL sel, CGSize si
         // Preferences may have changed since last read; synchronize
         CFPreferencesAppSynchronize(CFSTR(APP_ID));
 
-        // Check preferences to determine which tab to start with
-        unsigned int initialIndex = 0;
-        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("initialView"), CFSTR(APP_ID));
+        // Determine whether or not to show Active tab
+        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showActive"), CFSTR(APP_ID));
         if (propList) {
-            if (CFGetTypeID(propList) == CFStringGetTypeID()) {
-                if ([(NSString *)propList isEqualToString:@"lastUsed"])
-                    initialView = KKInitialViewLastUsed;
-                else if ([(NSString *)propList isEqualToString:@"favorites"]) {
-                    initialView = KKInitialViewFavorites;
-                    initialIndex = 1;
-                }
-                else
-                    initialView = KKInitialViewActive;
-            }
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                showActive = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
             CFRelease(propList);
         }
-        if (initialView == KKInitialViewLastUsed) {
-            propList = CFPreferencesCopyAppValue(CFSTR("lastUsedView"), CFSTR(APP_ID));
+
+        // Determine whether or not to show Favorites tab
+        propList = CFPreferencesCopyAppValue(CFSTR("showFavorites"), CFSTR(APP_ID));
         if (propList) {
-                if (CFGetTypeID(propList) == CFStringGetTypeID())
-                    initialIndex = [(NSString *)propList isEqualToString:@"favorites"] ? 1 : 0;
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                showFavorites = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
             CFRelease(propList);
         }
+
+        // Determine whether or not to show Spotlight tab
+        propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                showSpotlight = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+            CFRelease(propList);
         }
 
         // Create and setup tab bar controller and view controllers
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
-        TaskListController *tlCont = [[TaskListController alloc] initWithStyle:UITableViewStylePlain];
-        FavoritesController *favCont = [[FavoritesController alloc] initWithStyle:UITableViewStylePlain];
-        tbCont.viewControllers = [NSArray arrayWithObjects:tlCont, favCont, nil];
-        tbCont.selectedIndex = initialIndex;
-        [tlCont release];
-        [favCont release];
+        NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
+        tabs = [[NSMutableArray alloc] init];
+
+        NSMutableArray *viewConts = [NSMutableArray array];
+        UIViewController *cont = nil;
+
+        // Active tab
+        if (showActive) {
+            [tabs addObject:@"active"];
+            cont = [[TaskListController alloc] initWithStyle:UITableViewStylePlain];
+            [viewConts addObject:cont];
+            [cont release];
+        }
+
+        // Favorites tab
+        if (showFavorites) {
+            [tabs addObject:@"favorites"];
+            cont = [[FavoritesController alloc] initWithStyle:UITableViewStylePlain];
+            [viewConts addObject:cont];
+            [cont release];
+        }
+
+        // Spotlight tab
+        if (showSpotlight) {
+            [tabs addObject:@"spotlight"];
+            cont = [[SpotlightController alloc] initWithNibName:nil bundle:nil];
+            [viewConts addObject:cont];
+            [cont release];
+        }
+
+        tbCont.viewControllers = viewConts;
         [self addSubview:tbCont.view];
+
+        // Check preferences to determine which tab to start with
+        unsigned int initialIndex = 0;
+        propList = CFPreferencesCopyAppValue(CFSTR("initialView"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFStringGetTypeID()) {
+                if ([(NSString *)propList isEqualToString:@"lastUsed"]) {
+                    initialView = KKInitialViewLastUsed;
+
+                    // Get name of last used view
+                    CFRelease(propList);
+                    propList = CFPreferencesCopyAppValue(CFSTR("lastUsedView"), CFSTR(APP_ID));
+                } else if ([(NSString *)propList isEqualToString:@"favorites"] && showFavorites) {
+                    initialView = KKInitialViewFavorites;
+                } else if ([(NSString *)propList isEqualToString:@"spotlight"] && showSpotlight) {
+                    initialView = KKInitialViewSpotlight;
+                } else {
+                    initialView = KKInitialViewActive;
+                }
+
+                initialIndex = [tabs indexOfObject:(NSString *)propList];
+                if (initialIndex == NSNotFound)
+                    initialIndex = 0;
+            }
+            if (propList != NULL)
+                // Necessary to check due to "lastUsed" case
+                // NOTE: CFRelease will purposely crash if passed NULL
+                CFRelease(propList);
+        }
+        tbCont.selectedIndex = initialIndex;
 
         // Set the initial position of the view as off-screen
         CGRect frame = [[UIScreen mainScreen] bounds];
@@ -124,10 +184,16 @@ static void $KKAlertDisplay$dealloc(SBAlertDisplay *self, SEL sel)
 
 static void $KKAlertDisplay$alertDisplayWillBecomeVisible(SBAlertDisplay *self, SEL sel)
 {
-    UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
-    TaskListController *tlCont = [tbCont.viewControllers objectAtIndex:0];
-    [tlCont setCurrentApp:[(KirikaeAlert *)[self alert] currentApp]];
-    [tlCont setOtherApps:[NSMutableArray arrayWithArray:[(KirikaeAlert *)[self alert] otherApps]]];
+    if (showActive) {
+        NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
+        int index = [tabs indexOfObject:@"active"];
+        if (index != NSNotFound) {
+            UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
+            TaskListController *cont = [tbCont.viewControllers objectAtIndex:index];
+            [cont setCurrentApp:[(KirikaeAlert *)[self alert] currentApp]];
+            [cont setOtherApps:[NSMutableArray arrayWithArray:[(KirikaeAlert *)[self alert] otherApps]]];
+        }
+    }
 }
 
 static void $KKAlertDisplay$alertDisplayBecameVisible(SBAlertDisplay *self, SEL sel)
@@ -187,7 +253,8 @@ static void $KKAlertDisplay$alertDidAnimateOut$finished$context$(SBAlertDisplay 
     if (initialView == KKInitialViewLastUsed) {
         // Note which view is currently selected, save to preferences
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
-        NSString *lastUsedView =  (tbCont.selectedIndex == 0) ? @"active" : @"favorites";
+        NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
+        NSString *lastUsedView = [tabs objectAtIndex:tbCont.selectedIndex];
         CFPreferencesSetAppValue(CFSTR("lastUsedView"), (CFStringRef)lastUsedView, CFSTR(APP_ID));
         CFPreferencesAppSynchronize(CFSTR(APP_ID));
     }
@@ -248,6 +315,7 @@ void initTaskMenuPopup()
     unsigned int size, align;
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($KKAlertDisplay, "tabBarController", size, align, "@");
+    class_addIvar($KKAlertDisplay, "tabs", size, align, "@");
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($KKAlertDisplay, "currentStatusBarMode", size, align, "i");
     class_addIvar($KKAlertDisplay, "currentStatusBarOrientation", size, align, "i");
