@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 04:48:17
+ * Last-modified: 2009-12-05 13:17:30
  */
 
 /**
@@ -165,7 +165,7 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showActive"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showFavorites"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showSpotlight"];
+    [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpotlight"];
     [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
     [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
