@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 16:31:56
+ * Last-modified: 2009-12-13 17:04:58
  */
 
 /**
@@ -59,7 +59,7 @@
 #import <SpringBoard/SBVoiceControlAlert.h>
 #import <SpringBoard/SpringBoard.h>
 
-#import "TaskMenuPopup.h"
+#import "Kirikae.h"
 
 struct GSEvent;
 
