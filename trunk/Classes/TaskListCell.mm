@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 00:45:33
+ * Last-modified: 2009-12-17 01:25:04
  */
 
 /**
@@ -74,7 +74,7 @@
         if ([self.accessoryView isKindOfClass:[UIButton class]])
             frame.origin.x = 281.0f;
         else if ([self.accessoryView isKindOfClass:[UIActivityIndicatorView class]])
-            frame.origin.x = useLargeRows ? 295.0f : 290.0f;
+            frame.origin.x = 290.0f;
         self.accessoryView.frame = frame;
     }
 
