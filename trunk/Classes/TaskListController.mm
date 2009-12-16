@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 01:20:08
+ * Last-modified: 2009-12-17 02:27:59
  */
 
 /**
@@ -88,6 +88,15 @@
         } else {
             rowHeight = 44.0f;
             badgePadding = 4.0f;
+        }
+
+        // Determine whether to use themed or unthemed icons
+        useThemedIcons = YES;
+        propList = CFPreferencesCopyAppValue(CFSTR("useThemedIcons"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                useThemedIcons = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+            CFRelease(propList);
         }
     }
     return self;
@@ -227,17 +236,35 @@
         image = [UIImage imageNamed:@"applelogo.png"];
     } else {
         // Is an application (either foreground or background)
-        image = [icon icon];
-
-        SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
-        if (badge) {
-            UIGraphicsBeginImageContext([badge frame].size);
-            [badge.layer renderInContext:UIGraphicsGetCurrentContext()];
-            cell.badgeImage = UIGraphicsGetImageFromCurrentImageContext();
-            UIGraphicsEndImageContext();
+        if (useThemedIcons) {
+            image = [icon icon];
+        } else {
+            SBApplication *app = [icon application];
+            NSString *bundlePath = [app path];
+            NSString *roleId = [app roleIdentifier];
+            if (roleId != nil) {
+                // NOTE: Should only be true for iPod/Video/Audio and Camera/Photos
+                image = [UIImage imageWithContentsOfFile:
+                    [NSString stringWithFormat:@"%@/icon-%@.png", bundlePath, roleId]];
+            } else {
+                // First try with uppercase filename
+                image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Icon.png"]];
+                if (image == nil)
+                    // Try again with lowercase filename
+                    image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"icon.png"]];
+            }
         }
     }
     cell.iconImage = image;
+
+    // Set the cell's badge image (if applicable)
+    SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
+    if (badge) {
+        UIGraphicsBeginImageContext(badge.frame.size);
+        [badge.layer renderInContext:UIGraphicsGetCurrentContext()];
+        cell.badgeImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+    }
 
     // Create close button to use as accessory for cell
     // NOTE: The button is aligned so that it will appear in the same spot
