@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 15:30:14
+ * Last-modified: 2009-12-13 16:31:56
  */
 
 /**
@@ -343,7 +343,7 @@ HOOK(SpringBoard, dealloc, void)
     CALL_ORIG(SpringBoard, dealloc);
 }
 
-static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
+METH(SpringBoard, invokeKirikae, void)
 {
     if (alert)
         // Kirikae is already visible
@@ -381,7 +381,7 @@ static void $SpringBoard$invokeKirikae(SpringBoard *self, SEL sel)
     [(SBAlert *)alert activate];
 }
 
-static void $SpringBoard$dismissKirikae(SpringBoard *self, SEL sel)
+METH(SpringBoard, dismissKirikae, void)
 {
     // FIXME: If feedback types other than simple and task-menu are added,
     //        this method will need to be updated
@@ -392,7 +392,7 @@ static void $SpringBoard$dismissKirikae(SpringBoard *self, SEL sel)
     alert = nil;
 }
 
-static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
+METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
 {
     SBApplication *fromApp = [SBWActiveDisplayStack topApplication];
     NSString *fromIdent = fromApp ? [fromApp displayIdentifier] : @"com.apple.springboard";
@@ -461,7 +461,7 @@ static void $SpringBoard$switchToAppWithDisplayIdentifier$(SpringBoard *self, SE
         [self dismissKirikae];
 }
 
-static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL sel, NSString *identifier)
+METH(SpringBoard, quitAppWithDisplayIdentifier$, void, NSString *identifier)
 {
     if ([identifier isEqualToString:@"com.apple.springboard"]) {
         // Is SpringBoard
@@ -509,7 +509,7 @@ static void $SpringBoard$quitAppWithDisplayIdentifier$(SpringBoard *self, SEL se
     }
 }
 
-static SBApplication * $SpringBoard$topApplication(SpringBoard *self, SEL sel)
+METH(SpringBoard, topApplication, SBApplication *)
 {
     return [SBWActiveDisplayStack topApplication];
 }
@@ -651,11 +651,11 @@ void initSpringBoardHooks()
     LOAD_HOOK(SpringBoard, _handleMenuButtonEvent, _handleMenuButtonEvent);
     if (!animationsEnabled)
         LOAD_HOOK(SpringBoard, frontDisplayDidChange, frontDisplayDidChange);
-    class_addMethod($SpringBoard, @selector(invokeKirikae), (IMP)&$SpringBoard$invokeKirikae, "v@:");
-    class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
-    class_addMethod($SpringBoard, @selector(switchToAppWithDisplayIdentifier:), (IMP)&$SpringBoard$switchToAppWithDisplayIdentifier$, "v@:@");
-    class_addMethod($SpringBoard, @selector(quitAppWithDisplayIdentifier:), (IMP)&$SpringBoard$quitAppWithDisplayIdentifier$, "v@:@");
-    class_addMethod($SpringBoard, @selector(topApplication), (IMP)&$SpringBoard$topApplication, "@@:");
+    ADD_METH(SpringBoard, invokeKirikae, invokeKirikae, "v@:");
+    ADD_METH(SpringBoard, dismissKirikae, dismissKirikae, "v@:");
+    ADD_METH(SpringBoard, switchToAppWithDisplayIdentifier:, switchToAppWithDisplayIdentifier$, "v@:@");
+    ADD_METH(SpringBoard, quitAppWithDisplayIdentifier:, quitAppWithDisplayIdentifier$, "v@:@");
+    ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
     GET_CLASS(SBApplication);
     LOAD_HOOK(SBApplication, launchSucceeded:, launchSucceeded$);
