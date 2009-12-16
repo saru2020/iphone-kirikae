@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 01:18:14
+ * Last-modified: 2009-12-16 02:22:55
  */
 
 /**
@@ -494,10 +494,11 @@ METH(SpringBoard, topApplication, SBApplication *)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-HOOK(SBApplication, launchSucceeded$, void, BOOL unknown)
+HOOK(SBApplication, activate, void)
 {
-    // Call original implementation first (to disable watchdog)
-    CALL_ORIG(SBApplication, launchSucceeded$, unknown);
+    // NOTE: This gets called on both initial launch and when resumed
+    //       from background.
+    CALL_ORIG(SBApplication, activate);
 
     // Inform Kirikae of application activation (Kirikae may be nil)
     [kirikae handleApplicationActivation:self.displayIdentifier];
@@ -645,7 +646,7 @@ void initSpringBoardHooks()
     ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
     GET_CLASS(SBApplication);
-    LOAD_HOOK(SBApplication, launchSucceeded:, launchSucceeded$);
+    LOAD_HOOK(SBApplication, activate, activate);
 #if 0
     LOAD_HOOK(SBApplication, deactivate, deactivate);
     LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
