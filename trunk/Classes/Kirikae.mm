@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 19:30:59
+ * Last-modified: 2009-12-15 20:55:31
  */
 
 /**
@@ -287,6 +287,31 @@ METH(Kirikae, alertDisplayViewWithSize$, id, CGSize size)
     return [[[objc_getClass("KirikaeDisplay") alloc] initWithSize:size] autorelease];
 }
 
+METH(Kirikae, delegate, id)
+{
+    return MSHookIvar<id>(self, "delegate");
+}
+
+METH(Kirikae, setDelegate$, void, id delegate_)
+{
+    id &delegate = MSHookIvar<id>(self, "delegate");
+    delegate = delegate_;
+}
+
+METH(Kirikae, handleApplicationActivation$, void, NSString *displayId)
+{
+    id &delegate = MSHookIvar<id>(self, "delegate");
+    if ([delegate respondsToSelector:@selector(kirikae:applicationDidActivate:)])
+        [delegate kirikae:self applicationDidActivate:displayId];
+}
+
+METH(Kirikae, handleApplicationTermination$, void, NSString *displayId)
+{
+    id &delegate = MSHookIvar<id>(self, "delegate");
+    if ([delegate respondsToSelector:@selector(kirikae:applicationDidTerminate:)])
+        [delegate kirikae:self applicationDidTerminate:displayId];
+}
+
 //______________________________________________________________________________
 //______________________________________________________________________________
 
@@ -311,7 +336,13 @@ void initKirikae()
 
     // Create custom alert class
     Class $Kirikae = objc_allocateClassPair(objc_getClass("SBAlert"), "Kirikae", 0);
+    NSGetSizeAndAlignment("@", &size, &align);
+    class_addIvar($Kirikae, "delegate", size, align, "@");
     ADD_METH(Kirikae, alertDisplayViewWithSize:, alertDisplayViewWithSize$, "@@:{CGSize=ff}");
+    ADD_METH(Kirikae, delegate, delegate, "@@:");
+    ADD_METH(Kirikae, setDelegate:, setDelegate$, "v@:@");
+    ADD_METH(Kirikae, handleApplicationActivation:,  handleApplicationActivation$, "v@:@");
+    ADD_METH(Kirikae, handleApplicationTermination:,  handleApplicationTermination$, "v@:@");
     objc_registerClassPair($Kirikae);
 }
 

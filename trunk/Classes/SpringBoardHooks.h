@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 12:56:56
+ * Last-modified: 2009-12-15 16:20:03
  */
 
 /**
@@ -43,6 +43,7 @@
 #import <SpringBoard/SpringBoard.h>
 
 
+@class Kirikae;
 @class SBApplication;
 
 // NOTE: This is needed to prevent a compiler warning
@@ -51,6 +52,7 @@
 @end
 
 @interface SpringBoard (Kirikae)
+- (Kirikae *)kirikae;
 - (void)invokeKirikae;
 - (void)dismissKirikae;
 

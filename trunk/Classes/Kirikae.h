@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 19:31:44
+ * Last-modified: 2009-12-15 20:54:56
  */
 
 /**
@@ -59,7 +59,23 @@
 
 //______________________________________________________________________________
 
+@protocol KirikaeDelegate;
+
 @interface Kirikae : SBAlert
+{
+    id<KirikaeDelegate> delegate;
+}
+
+@property(nonatomic, assign) id<KirikaeDelegate> delegate;
+
+- (void)handleApplicationActivation:(NSString *)displayId;
+- (void)handleApplicationTermination:(NSString *)displayId;
+
+@end
+
+@protocol KirikaeDelegate
+- (void)kirikae:(Kirikae *)kirikae applicationDidActivate:(NSString *)displayId;
+- (void)kirikae:(Kirikae *)kirikae applicationDidTerminate:(NSString *)displayId;
 @end
 
 //______________________________________________________________________________

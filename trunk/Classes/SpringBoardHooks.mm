@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 19:33:49
+ * Last-modified: 2009-12-15 20:58:01
  */
 
 /**
@@ -332,6 +332,11 @@ HOOK(SpringBoard, dealloc, void)
     CALL_ORIG(SpringBoard, dealloc);
 }
 
+METH(SpringBoard, kirikae, Kirikae *)
+{
+    return kirikae;
+}
+
 METH(SpringBoard, invokeKirikae, void)
 {
     if (kirikae)
@@ -489,6 +494,15 @@ METH(SpringBoard, topApplication, SBApplication *)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+HOOK(SBApplication, launchSucceeded$, void, BOOL unknown)
+{
+    // Call original implementation first (to disable watchdog)
+    CALL_ORIG(SBApplication, launchSucceeded$, unknown);
+
+    // Inform Kirikae of application activation (Kirikae may be nil)
+    [kirikae handleApplicationActivation:self.displayIdentifier];
+}
+
 #if 0
 HOOK(SBApplication, exitedAbnormally, void)
 {
@@ -497,16 +511,21 @@ HOOK(SBApplication, exitedAbnormally, void)
 
     CALL_ORIG(SBApplication, exitedAbnormally);
 }
+#endif
 
 HOOK(SBApplication, exitedCommon, void)
 {
+    // Inform Kirikae of application termination (Kirikae may be nil)
+    [kirikae handleApplicationTermination:self.displayIdentifier];
+
     // Remove status bar state data from states list
-    NSString *identifier = [self displayIdentifier];
-    [statusBarStates removeObjectForKey:identifier];
+    //NSString *identifier = self.displayIdentifier;
+    //[statusBarStates removeObjectForKey:identifier];
 
     CALL_ORIG(SBApplication, exitedCommon);
 }
 
+#if 0
 HOOK(SBApplication, deactivate, BOOL)
 {
     NSString *identifier = [self displayIdentifier];
@@ -605,6 +624,7 @@ void initSpringBoardHooks()
     LOAD_HOOK(SpringBoard, _handleMenuButtonEvent, _handleMenuButtonEvent);
     if (!animationsEnabled)
         LOAD_HOOK(SpringBoard, frontDisplayDidChange, frontDisplayDidChange);
+    ADD_METH(SpringBoard, kirikae, kirikae, "@@:");
     ADD_METH(SpringBoard, invokeKirikae, invokeKirikae, "v@:");
     ADD_METH(SpringBoard, dismissKirikae, dismissKirikae, "v@:");
     ADD_METH(SpringBoard, switchToAppWithDisplayIdentifier:, switchToAppWithDisplayIdentifier$, "v@:@");
@@ -612,11 +632,12 @@ void initSpringBoardHooks()
     ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
     GET_CLASS(SBApplication);
+    LOAD_HOOK(SBApplication, launchSucceeded:, launchSucceeded$);
 #if 0
     LOAD_HOOK(SBApplication, deactivate, deactivate);
     LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
-    LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
 #endif
+    LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
     LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
 #if 0
     LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);
