@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 14:05:07
+ * Last-modified: 2009-12-17 00:45:33
  */
 
 /**
@@ -45,50 +45,93 @@
 
 @implementation TaskListCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
-    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    if (self) {
-        badgeView = [[UIImageView alloc] initWithFrame:CGRectZero];
-        [self.contentView addSubview:badgeView];
-    }
-    return self;
-}
+@synthesize iconImage;
+@synthesize badgeImage;
 
 - (void)dealloc
 {
-    [badgeView release];
-    [super dealloc];
-}
+    [iconImage release];
+    [badgeImage release];
 
-- (void)setBadge:(UIImage *)badge
-{
-    [badgeView setImage:badge];
-    badgeView.bounds = CGRectMake(0, 0, badge.size.width - 2, badge.size.height - 2);
+    [super dealloc];
 }
 
 - (void)layoutSubviews
 {
+    BOOL useLargeRows = (self.bounds.size.height > 50.0f);
+
+    // Call original layoutSubviews implementation
     [super layoutSubviews];
 
-    UIImageView *imageView = [self imageView];
-    CGRect rect = CGRectMake(3.0f, 3.0f, 52.0f, 53.0f);
+    // Set label position
+    CGRect frame = self.textLabel.frame;
+    frame.origin.x = useLargeRows ? 68.0f : 43.0f;
+    self.textLabel.frame = frame;
 
-    if (badgeView.image) {
-        // Adjust cell margin to make room for badge
-        rect.origin.y = 7.0f;
-
-        // Position badge at upper-right corner of icon image
-        CGPoint imageCorner = CGPointMake(rect.origin.x + rect.size.width - 1, rect.origin.y);
-        CGSize badgeSize = badgeView.bounds.size;
-        CGPoint badgeCorner = CGPointMake(imageCorner.x - badgeSize.width + 11.0f, imageCorner.y - 8.0f);
-        badgeView.frame = CGRectMake(badgeCorner.x, badgeCorner.y, badgeSize.width, badgeSize.height);
-        [self.contentView bringSubviewToFront:badgeView];
+    // Set accessory view position
+    if (self.accessoryView != nil) {
+        frame = self.accessoryView.frame;
+        if ([self.accessoryView isKindOfClass:[UIButton class]])
+            frame.origin.x = 281.0f;
+        else if ([self.accessoryView isKindOfClass:[UIActivityIndicatorView class]])
+            frame.origin.x = useLargeRows ? 295.0f : 290.0f;
+        self.accessoryView.frame = frame;
     }
 
-    // Resize icon image
-    [imageView setFrame:rect];
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    // Set the size of the image canvas large enough to hold the icon image
+    // NOTE: Size of icon is assumed to always be 59x62 (SpringBoard's default).
+    //       This may cause issues if an extension changes this.
+    CGSize size = CGSizeMake(59.0f, 62.0f);
+
+    float yOffset = 0;
+    if (badgeImage != nil) {
+        // Increase the size of the canvas to make room for a badge
+        size.width += 10.0f;
+        size.height += 7.0f * 2.0f;
+        if (!useLargeRows) {
+            // Small rows use an enlarged badge to improve visibility
+            CGSize bSize = badgeImage.size;
+            size.width += bSize.width * 0.25f;
+            size.height += bSize.height * 0.5f;
+        }
+        yOffset = (size.height - 62.0f) / 2.0f;
+    }
+
+    UIGraphicsBeginImageContext(size);
+
+    // Draw the icon image
+    [iconImage drawInRect:CGRectMake(0, yOffset, 59.0f, 62.0f)];
+
+    // Draw the badge image
+    if (badgeImage) {
+        CGSize bSize = badgeImage.size;
+        float bxOffset = 0;
+        float byOffset = 0;
+        if (!useLargeRows) {
+            bxOffset = bSize.width * 0.25f;
+            byOffset = bSize.height * 0.25f;
+            bSize.width *= 1.5f;
+            bSize.height *= 1.5f;
+        }
+        [badgeImage drawInRect:CGRectMake(69.0f - bSize.width + bxOffset, 0, bSize.width, bSize.height)];
+    }
+
+    // Use the composited image for the cell
+    self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    // Set the size and position of the icon image view
+    if (useLargeRows) {
+        if (badgeImage == nil)
+            self.imageView.frame = CGRectMake(5.0f, 5.0f, 50.0f, 50.0f);
+        else
+            self.imageView.frame = CGRectMake(5.0f, 3.0f, 58.0f, 61.0f);
+    } else {
+        if (badgeImage == nil)
+            self.imageView.frame = CGRectMake(5.0f, 7.0f, 29.0f, 30.0f);
+        else
+            self.imageView.frame = CGRectMake(5.0f, 2.0f, 37.0f, 44.0f);
+    }
 }
 
 @end

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-28 01:22:29
+ * Last-modified: 2009-12-17 00:50:58
  */
 
 /**
@@ -90,6 +90,22 @@
 
             CFRelease(propList);
         }
+
+        // Determine the row height and badge padding to use
+        BOOL useLargeRows = YES;
+        propList = CFPreferencesCopyAppValue(CFSTR("useLargeRows"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                useLargeRows = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+            CFRelease(propList);
+        }
+        if (useLargeRows) {
+            rowHeight = 60.0f;
+            badgePadding = 8.0f;
+        } else {
+            rowHeight = 44.0f;
+            badgePadding = 4.0f;
+        }
     }
     return self;
 }
@@ -173,9 +189,10 @@
 
 - (float)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *identifier = [favorites objectAtIndex:indexPath.row];
+    float height = rowHeight;
 
     // Get the icon for this application
+    NSString *identifier = [favorites objectAtIndex:indexPath.row];
     SBIconModel *iconModel = [objc_getClass("SBIconModel") sharedInstance];
     SBApplicationIcon *icon = [iconModel iconForDisplayIdentifier:identifier];
     if (!icon) {
@@ -184,9 +201,11 @@
         SBApplication *app = [appCont applicationWithDisplayIdentifier:identifier];
         icon = [iconModel iconForDisplayIdentifier:[NSString stringWithFormat:@"%@-%@", identifier, [app roleIdentifier]]];
     }
+    if (MSHookIvar<SBIconBadge *>(icon, "_badge"))
+        // Make room for badge icon
+        height += badgePadding;
 
-    // Return appropriate height depending on whether or not icon has a badge
-    return (icon && MSHookIvar<SBIconBadge *>(icon, "_badge") != nil) ? 68.0f : 60.0f;
+    return height;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -220,14 +239,14 @@
         [cell setText:[icon displayName]];
 
         // Set the cell's image to the application's icon image
-        [cell setImage:[icon icon]];
+        [cell setIconImage:[icon icon]];
 
         // Set the cell's badge image (if applicable)
         SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
         if (badge) {
             UIGraphicsBeginImageContext([badge frame].size);
             [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
-            [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];
+            [cell setBadgeImage:UIGraphicsGetImageFromCurrentImageContext()];
             UIGraphicsEndImageContext();
         }
     }

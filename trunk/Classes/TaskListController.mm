@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 02:04:38
+ * Last-modified: 2009-12-17 00:42:38
  */
 
 /**
@@ -72,6 +72,22 @@
             [bundle pathForResource:@"terminate_btn" ofType:@"png"]];
         termPressedImage = [[UIImage alloc] initWithContentsOfFile:
             [bundle pathForResource:@"terminate_btn_pressed" ofType:@"png"]];
+
+        // Determine the row height and badge padding to use
+        BOOL useLargeRows = YES;
+        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("useLargeRows"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                useLargeRows = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+            CFRelease(propList);
+        }
+        if (useLargeRows) {
+            rowHeight = 60.0f;
+            badgePadding = 8.0f;
+        } else {
+            rowHeight = 44.0f;
+            badgePadding = 4.0f;
+        }
     }
     return self;
 }
@@ -171,14 +187,14 @@
 
 - (float)tableView:(UITableView *)tableView_ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    float height = 60.0f;
+    float height = rowHeight;
 
     if (indexPath.section != 0) {
         NSString *displayId = (indexPath.section == 1) ? fgAppId : [bgAppIds objectAtIndex:indexPath.row];
         SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:displayId];
         if (MSHookIvar<SBIconBadge *>(icon, "_badge"))
             // Make room for badge icon
-            height = 68.0f;
+            height += badgePadding;
     }
 
     return height;
@@ -218,17 +234,17 @@
         if (badge) {
             UIGraphicsBeginImageContext([badge frame].size);
             [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
-            [cell setBadge:UIGraphicsGetImageFromCurrentImageContext()];
+            [cell setBadgeImage:UIGraphicsGetImageFromCurrentImageContext()];
             UIGraphicsEndImageContext();
         }
     }
-    [cell setImage:image];
+    [cell setIconImage:image];
 
     // Create close button to use as accessory for cell
     // NOTE: The button is aligned so that it will appear in the same spot
     //       as the activity indicator it is replaced with when tapped.
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame = CGRectMake(0, 0, 40.0f, 60.0f);
+    button.frame = CGRectMake(0, 0, 40.0f, rowHeight);
     [button setImage:termImage forState:UIControlStateNormal];
     [button setImage:termPressedImage forState:UIControlStateHighlighted];
     [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
