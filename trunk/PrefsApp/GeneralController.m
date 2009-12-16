@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 04:55:18
+ * Last-modified: 2009-12-17 01:04:49
  */
 
 /**
@@ -156,9 +156,6 @@
 
 #pragma mark - Actions
 
-//*************************************************************************************************
-// buttonToggled - Called when a toggle button is toggled on or off.
-//*************************************************************************************************
 - (void)buttonToggled:(UIButton *)button
 {
     // Update selected state of button
@@ -180,6 +177,7 @@
 			break;
 	}
 }
+
 @end
 
 /* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
