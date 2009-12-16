@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 00:46:43
+ * Last-modified: 2009-12-16 01:01:36
  */
 
 /**
@@ -85,8 +85,8 @@
 - (void)dealloc
 {
     // NOTE: Should already be released and nullified, but just in case
-    [currentApp release];
-    [otherApps release];
+    [fgAppId release];
+    [bgAppIds release];
 
     [termImage release];
     [termPressedImage release];
@@ -96,16 +96,16 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    // Get current application
-    currentApp = [[[(SpringBoard *)UIApp topApplication] displayIdentifier] copy];
+    // Get foreground application
+    fgAppId = [[[(SpringBoard *)UIApp topApplication] displayIdentifier] copy];
 
-    // Get list of other active applications
-    otherApps = [[NSMutableArray alloc] init];
+    // Get list of background applications
+    bgAppIds = [[NSMutableArray alloc] init];
     for (SBApplication *app in [(SpringBoard *)UIApp _accessibilityRunningApplications])
-        [otherApps addObject:app.displayIdentifier];
+        [bgAppIds addObject:app.displayIdentifier];
 
-    // Do not show current application in list of other applications
-    [otherApps removeObject:currentApp];
+    // Do not show foreground application in list of background applications
+    [bgAppIds removeObject:fgAppId];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -120,11 +120,11 @@
 
 - (void)viewDidDisappear:(BOOL)animated
 {
-    [currentApp release];
-    currentApp = nil;
+    [fgAppId release];
+    fgAppId = nil;
 
-    [otherApps release];
-    otherApps = nil;
+    [bgAppIds release];
+    bgAppIds = nil;
 }
 
 #pragma mark - Private methods
@@ -138,10 +138,10 @@
             displayId = @"com.apple.springboard";
             break;
         case 1:
-            displayId = currentApp;
+            displayId = fgAppId;
             break;
         case 2:
-            displayId = [otherApps objectAtIndex:indexPath.row];
+            displayId = [bgAppIds objectAtIndex:indexPath.row];
             break;
         default:
             break;
@@ -159,8 +159,8 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    static NSString *titles[] =  {@"Home Screen", @"Current Application", @"Other Applications"};
-    return (section == 1 && currentApp == nil) ? nil : titles[section];
+    static NSString *titles[] =  {@"Home Screen", @"Foreground Application", @"Background Applications"};
+    return (section == 1 && fgAppId == nil) ? nil : titles[section];
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
@@ -168,8 +168,8 @@
     int rows = 0;
 
     if (section == 2)
-        rows = [otherApps count];
-    else if (section == 0 || currentApp != nil)
+        rows = [bgAppIds count];
+    else if (section == 0 || fgAppId != nil)
         rows = 1;
 
     return rows;
@@ -179,7 +179,7 @@
 {
     SBIconBadge *badge = nil;
 
-    NSString *displayId = (indexPath.section == 1) ? currentApp : [otherApps objectAtIndex:indexPath.row];
+    NSString *displayId = (indexPath.section == 1) ? fgAppId : [bgAppIds objectAtIndex:indexPath.row];
     if (displayId) {
         SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:displayId];
         badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
@@ -215,7 +215,7 @@
         // Is SpringBoard
         image = [UIImage imageNamed:@"applelogo.png"];
     } else {
-        // Is an application (either current or other)
+        // Is an application (either foreground or background)
         image = [icon icon];
 
         SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
@@ -260,7 +260,7 @@
         // Switch to selected application
         [springBoard switchToAppWithDisplayIdentifier:(indexPath.section == 0) ?
             @"com.apple.springboard" :
-            [otherApps objectAtIndex:indexPath.row]];
+            [bgAppIds objectAtIndex:indexPath.row]];
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -296,36 +296,36 @@
     [self.tableView beginUpdates];
 
     if ([displayId isEqualToString:[[(SpringBoard *)UIApp topApplication] displayIdentifier]]) {
-        // New current application
-        if (currentApp != nil) {
-            // Application replaced currently active application
+        // New foreground application
+        if (fgAppId != nil) {
+            // Application replaced current foreground application
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:1];
             [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
                 withRowAnimation:UITableViewRowAnimationFade];
 
-            // Move previous application to other applications section
-            [otherApps insertObject:currentApp atIndex:0];
+            // Move previous application to background applications section
+            [bgAppIds insertObject:fgAppId atIndex:0];
             indexPath = [NSIndexPath indexPathForRow:0 inSection:2];
             [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
                 withRowAnimation:UITableViewRowAnimationFade];
 
             // Release the old identifier
-            [currentApp release];
+            [fgAppId release];
         } else {
-            // No previous currently active application (was SpringBoard)
+            // No previous foreground application (was SpringBoard)
             NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:1];
             [self.tableView reloadSections:indexSet
                 withRowAnimation:UITableViewRowAnimationFade];
         }
 
         // Save the new identifier
-        currentApp = [displayId copy];
+        fgAppId = [displayId copy];
     } else {
-        // Other active application
-        int row = [otherApps indexOfObject:displayId];
+        // Background application
+        int row = [bgAppIds indexOfObject:displayId];
         if (row != NSNotFound) {
-            // Already exists in other applications list; will move to top of list
-            [otherApps removeObjectAtIndex:row];
+            // Already exists in background applications list; will move to top
+            [bgAppIds removeObjectAtIndex:row];
 
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:2];
             [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
@@ -333,7 +333,7 @@
         }
 
         // Insert at top of list
-        [otherApps insertObject:displayId atIndex:0];
+        [bgAppIds insertObject:displayId atIndex:0];
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:2];
         [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
             withRowAnimation:UITableViewRowAnimationFade];
@@ -346,17 +346,17 @@
 - (void)kirikae:(Kirikae *)kirikae applicationDidTerminate:(NSString *)displayId
 {
     int row = NSNotFound;
-    if ([displayId isEqualToString:currentApp]) {
-        // Currently active application terminated
-        [currentApp release];
-        currentApp = nil;
+    if ([displayId isEqualToString:fgAppId]) {
+        // Foreground application terminated
+        [fgAppId release];
+        fgAppId = nil;
 
         NSIndexSet *indexSet = [NSIndexSet indexSetWithIndex:1];
         [self.tableView reloadSections:indexSet
             withRowAnimation:UITableViewRowAnimationFade];
-    } else if ((row = [otherApps indexOfObject:displayId]) != NSNotFound) {
-        // Other application terminated
-        [otherApps removeObjectAtIndex:row];
+    } else if ((row = [bgAppIds indexOfObject:displayId]) != NSNotFound) {
+        // Backgroung application terminated
+        [bgAppIds removeObjectAtIndex:row];
 
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:2];
         [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
