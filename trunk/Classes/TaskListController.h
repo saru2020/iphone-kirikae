@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-15 18:07:20
+ * Last-modified: 2009-12-16 00:12:59
  */
 
 /**
@@ -44,6 +44,9 @@
 
 @interface TaskListController : UITableViewController <KirikaeDelegate>
 {
+    UIImage *termImage;
+    UIImage *termPressedImage;
+
     NSString *currentApp;
     NSMutableArray *otherApps;
 }

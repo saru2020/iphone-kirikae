@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-15 23:20:34
+ * Last-modified: 2009-12-16 00:15:52
  */
 
 /**
@@ -65,6 +65,13 @@
         UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
         [self setTabBarItem:item];
         [item release];
+
+        // Cache the images used for the terminate button
+        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+        termImage = [[UIImage alloc] initWithContentsOfFile:
+            [bundle pathForResource:@"terminate_btn" ofType:@"png"]];
+        termPressedImage = [[UIImage alloc] initWithContentsOfFile:
+            [bundle pathForResource:@"terminate_btn_pressed" ofType:@"png"]];
     }
     return self;
 }
@@ -80,6 +87,9 @@
     // NOTE: Should already be released and nullified, but just in case
     [currentApp release];
     [otherApps release];
+
+    [termImage release];
+    [termPressedImage release];
 
     [super dealloc];
 }
@@ -205,8 +215,15 @@
     }
     [cell setImage:image];
 
-    // Make sure to accessory view is nil (may have contained activity indicator)
-    cell.accessoryView = nil;
+    // Create close button to use as accessory for cell
+    // NOTE: The button is aligned so that it will appear in the same spot
+    //       as the activity indicator it is replaced with when tapped.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(0, 0, 40.0f, 60.0f);
+    [button setImage:termImage forState:UIControlStateNormal];
+    [button setImage:termPressedImage forState:UIControlStateHighlighted];
+    [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    cell.accessoryView = button;
 
     return cell;
 }
@@ -215,17 +232,6 @@
   commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Create an activity indicator to display while waiting for app to quit
-        UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-        UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
-            initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-        [spinner startAnimating];
-        cell.accessoryView = spinner;
-        [spinner release];
-
-        // Quit the selected application
-        NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
-        [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
     }
 }
 
@@ -244,17 +250,9 @@
             [otherApps objectAtIndex:indexPath.row]];
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    TaskListCell *cell = (TaskListCell *)[tableView cellForRowAtIndexPath:indexPath];
-    return ([[cell text] isEqualToString:@"SpringBoard"]) ? @"Respring" : @"Quit";
-}
-
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // If application is already quitting, do not show quit button
-    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-    return (cell.accessoryView == nil) ? UITableViewCellEditingStyleDelete : UITableViewCellEditingStyleNone;
+    return UITableViewCellEditingStyleNone;
 }
 
 #pragma mark - Kirikae delegate methods
@@ -333,6 +331,26 @@
         [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
             withRowAnimation:UITableViewRowAnimationFade];
     }
+}
+
+#pragma mark - Actions
+
+- (void)buttonPressed:(UIButton *)button
+{
+    // Get the cell for the pressed button
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
+
+    // Create an activity indicator to display while waiting for app to quit
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
+        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    [spinner startAnimating];
+    cell.accessoryView = spinner;
+    [spinner release];
+
+    // Quit the selected application
+    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
+    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
 }
 
 @end
