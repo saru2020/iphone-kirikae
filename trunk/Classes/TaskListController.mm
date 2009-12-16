@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 00:15:52
+ * Last-modified: 2009-12-16 00:35:42
  */
 
 /**
@@ -255,6 +255,26 @@
     return UITableViewCellEditingStyleNone;
 }
 
+#pragma mark - Actions
+
+- (void)buttonPressed:(UIButton *)button
+{
+    // Get the cell for the pressed button
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
+
+    // Create an activity indicator to display while waiting for app to quit
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
+        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    [spinner startAnimating];
+    cell.accessoryView = spinner;
+    [spinner release];
+
+    // Quit the selected application
+    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
+    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
+}
+
 #pragma mark - Kirikae delegate methods
 
 - (void)kirikae:(Kirikae *)kirikae applicationDidActivate:(NSString *)displayId
@@ -331,26 +351,6 @@
         [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
             withRowAnimation:UITableViewRowAnimationFade];
     }
-}
-
-#pragma mark - Actions
-
-- (void)buttonPressed:(UIButton *)button
-{
-    // Get the cell for the pressed button
-    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
-
-    // Create an activity indicator to display while waiting for app to quit
-    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
-        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-    [spinner startAnimating];
-    cell.accessoryView = spinner;
-    [spinner release];
-
-    // Quit the selected application
-    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
-    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
 }
 
 @end
