@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 19:41:54
+ * Last-modified: 2009-12-13 22:03:49
  */
 
 /**
@@ -53,6 +53,7 @@
 
 @interface TaskListController (Private)
 - (void)refresh;
+- (NSString *)displayIdentifierAtIndexPath:(NSIndexPath *)indexPath;
 @end
 
 @implementation TaskListController
@@ -89,12 +90,13 @@
     [super dealloc];
 }
 
+#pragma mark - Private methods
+
 - (void)refresh
 {
     // Update current application
-    SBApplication *app = [(SpringBoard *)UIApp topApplication];
     [currentApp autorelease];
-    currentApp = app ? [app.displayIdentifier retain] : @"com.apple.springboard";
+    currentApp = [[[(SpringBoard *)UIApp topApplication] displayIdentifier] retain];
 
     // Update list of other applications
     [otherApps removeAllObjects];
@@ -105,28 +107,62 @@
     [otherApps removeObject:currentApp];
 }
 
+- (NSString *)displayIdentifierAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *displayId = nil;
+
+    switch (indexPath.section) {
+        case 0:
+            displayId = @"com.apple.springboard";
+            break;
+        case 1:
+            displayId = currentApp;
+            break;
+        case 2:
+            displayId = [otherApps objectAtIndex:indexPath.row];
+            break;
+        default:
+            break;
+    }
+
+    return displayId;
+}
+
 #pragma mark - UITableViewDataSource
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 2;
+	return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    return (section == 0) ? @"Current Application" : @"Other Applications";
+    static NSString *titles[] =  {@"Home Screen", @"Current Application", @"Other Applications"};
+    return (section == 1 && currentApp == nil) ? nil : titles[section];
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return (section == 0) ? 1 : [otherApps count];
+    int rows = 0;
+
+    if (section == 2)
+        rows = [otherApps count];
+    else if (section == 0 || currentApp != nil)
+        rows = 1;
+
+    return rows;
 }
 
 - (float)tableView:(UITableView *)tableView_ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
-    SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
-    SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
+    SBIconBadge *badge = nil;
+
+    NSString *displayId = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
+    if (displayId) {
+        SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:displayId];
+        badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
+    }
+
     return (badge ? 68.0f : 60.0f);
 }
 
@@ -143,7 +179,7 @@
     }
 
     // Get the display identifier of the application for this cell
-    NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
+    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
 
     // Get the application icon object
     SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
@@ -153,7 +189,7 @@
 
     // Set the cell's image to the application's icon image
     UIImage *image = nil;
-    if ([identifier isEqualToString:@"com.apple.springboard"]) {
+    if (indexPath.section == 0) {
         // Is SpringBoard
         image = [UIImage imageNamed:@"applelogo.png"];
     } else {
@@ -178,18 +214,18 @@
 {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         // Get the display identifier of the application for this cell
-        NSString *identifier = (indexPath.section == 0) ? currentApp : [otherApps objectAtIndex:indexPath.row];
+        NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
 
         Class $SpringBoard = objc_getClass("SpringBoard");
         SpringBoard *springBoard = (SpringBoard *)[$SpringBoard sharedApplication];
         [springBoard quitAppWithDisplayIdentifier:identifier];
 
-        if (indexPath.section == 0) {
-            [springBoard dismissKirikae];
-        } else {
+        if (indexPath.section == 2) {
             [otherApps removeObjectAtIndex:indexPath.row];
             [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
                 withRowAnimation:UITableViewRowAnimationFade];
+        } else {
+            [springBoard dismissKirikae];
         }
     }
 }
@@ -200,11 +236,13 @@
 {
     SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
 
-    if (indexPath.section == 0)
+    if (indexPath.section == 1)
         [springBoard dismissKirikae];
     else
         // Switch to selected application
-        [springBoard switchToAppWithDisplayIdentifier:[otherApps objectAtIndex:indexPath.row]];
+        [springBoard switchToAppWithDisplayIdentifier:(indexPath.section == 0) ?
+            @"com.apple.springboard" :
+            [otherApps objectAtIndex:indexPath.row]];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
