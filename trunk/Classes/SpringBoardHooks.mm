@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 17:04:58
+ * Last-modified: 2009-12-13 18:06:23
  */
 
 /**
@@ -186,10 +186,9 @@ HOOK(SBUIController, animateLaunchApplication$, void, id app)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-// The alert window displays instructions when the home button is held down
 static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
-static id alert = nil;
+static Kirikae *kirikae = nil;
 
 static BOOL canInvoke()
 {
@@ -204,7 +203,7 @@ static void startInvocationTimer()
     if (canInvoke()) {
         invocationTimerDidFire = NO;
 
-        if (!alert) {
+        if (!kirikae) {
             // Task menu is not visible; setup toggle-delay timer
             SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
             invocationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.7f
@@ -246,7 +245,7 @@ HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
     if (!invocationTimerDidFire) {
         cancelInvocationTimer();
 
-        if (alert)
+        if (kirikae)
             // Popup is active; dismiss
             [self dismissKirikae];
         else
@@ -266,7 +265,7 @@ HOOK(SpringBoard, allowMenuDoubleTap, BOOL)
 
 HOOK(SpringBoard, handleMenuDoubleTap, void)
 {
-    if (alert) {
+    if (kirikae) {
         // Popup is active; dismiss and perform normal behaviour
         [self dismissKirikae];
     } else {
@@ -284,7 +283,7 @@ HOOK(SpringBoard, handleMenuDoubleTap, void)
 
 HOOK(SpringBoard, _handleMenuButtonEvent, void)
 {
-    if (alert) {
+    if (kirikae) {
         // Task menu is visible
         // FIXME: with short hold, the task menu may have just been invoked...
         if (invocationMethod != KKInvocationMethodMenuShortHold || invocationTimerDidFire == NO)
@@ -329,9 +328,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
     statusBarStates = [[NSMutableDictionary alloc] initWithCapacity:5];
 #endif
 
-    // Initialize task menu popup
-    initTaskMenuPopup();
-
     CALL_ORIG(SpringBoard, applicationDidFinishLaunching$, application);
 }
 
@@ -345,7 +341,7 @@ HOOK(SpringBoard, dealloc, void)
 
 METH(SpringBoard, invokeKirikae, void)
 {
-    if (alert)
+    if (kirikae)
         // Kirikae is already visible
         // NOTE: This check is needed when called by external invokers
         return;
@@ -377,8 +373,8 @@ METH(SpringBoard, invokeKirikae, void)
         identifier = @"com.apple.springboard";
     }
 
-    alert = [[objc_getClass("KirikaeAlert") alloc] initWithCurrentApp:identifier otherApps:array];
-    [(SBAlert *)alert activate];
+    kirikae = [[objc_getClass("Kirikae") alloc] initWithCurrentApp:identifier otherApps:array];
+    [kirikae activate];
 }
 
 METH(SpringBoard, dismissKirikae, void)
@@ -386,10 +382,10 @@ METH(SpringBoard, dismissKirikae, void)
     // FIXME: If feedback types other than simple and task-menu are added,
     //        this method will need to be updated
 
-    // Hide and release alert window (may be nil)
-    [[alert display] dismiss];
-    [alert release];
-    alert = nil;
+    // Hide and release kirikae window (may be nil)
+    [[kirikae display] dismiss];
+    [kirikae release];
+    kirikae = nil;
 }
 
 METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
@@ -690,6 +686,9 @@ void initSpringBoardHooks()
         default:
             break;
     }
+
+    // Initialize Kirikae* classes
+    initKirikae();
 }
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
