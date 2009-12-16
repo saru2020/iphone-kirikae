@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 01:01:36
+ * Last-modified: 2009-12-16 02:03:47
  */
 
 /**
@@ -177,15 +177,17 @@
 
 - (float)tableView:(UITableView *)tableView_ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    SBIconBadge *badge = nil;
+    float height = 60.0f;
 
-    NSString *displayId = (indexPath.section == 1) ? fgAppId : [bgAppIds objectAtIndex:indexPath.row];
-    if (displayId) {
+    if (indexPath.section != 0) {
+        NSString *displayId = (indexPath.section == 1) ? fgAppId : [bgAppIds objectAtIndex:indexPath.row];
         SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:displayId];
-        badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
+        if (MSHookIvar<SBIconBadge *>(icon, "_badge"))
+            // Make room for badge icon
+            height = 68.0f;
     }
 
-    return (badge ? 68.0f : 60.0f);
+    return height;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
