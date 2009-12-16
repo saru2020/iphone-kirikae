@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 12:59:19
+ * Last-modified: 2009-12-13 15:30:14
  */
 
 /**
@@ -629,9 +629,9 @@ void initSpringBoardHooks()
 {
     loadPreferences();
 
-    Class $SBDisplayStack = objc_getClass("SBDisplayStack");
-    LOAD_HOOK($SBDisplayStack, @selector(init), SBDisplayStack$init);
-    LOAD_HOOK($SBDisplayStack, @selector(dealloc), SBDisplayStack$dealloc);
+    GET_CLASS(SBDisplayStack);
+    LOAD_HOOK(SBDisplayStack, init, init);
+    LOAD_HOOK(SBDisplayStack, dealloc, dealloc);
 
 #if 0
     Class $SBStatusBarController = objc_getClass("SBStatusBarController");
@@ -644,41 +644,47 @@ void initSpringBoardHooks()
     }
 #endif
 
-    Class $SpringBoard = objc_getClass("SpringBoard");
-    LOAD_HOOK($SpringBoard, @selector(applicationDidFinishLaunching:), SpringBoard$applicationDidFinishLaunching$);
-    LOAD_HOOK($SpringBoard, @selector(dealloc), SpringBoard$dealloc);
-    LOAD_HOOK($SpringBoard, @selector(handleMenuDoubleTap), SpringBoard$handleMenuDoubleTap);
-    LOAD_HOOK($SpringBoard, @selector(_handleMenuButtonEvent), SpringBoard$_handleMenuButtonEvent);
+    GET_CLASS(SpringBoard);
+    LOAD_HOOK(SpringBoard, applicationDidFinishLaunching:, applicationDidFinishLaunching$);
+    LOAD_HOOK(SpringBoard, dealloc, dealloc);
+    LOAD_HOOK(SpringBoard, handleMenuDoubleTap, handleMenuDoubleTap);
+    LOAD_HOOK(SpringBoard, _handleMenuButtonEvent, _handleMenuButtonEvent);
     if (!animationsEnabled)
-        LOAD_HOOK($SpringBoard, @selector(frontDisplayDidChange), SpringBoard$frontDisplayDidChange);
+        LOAD_HOOK(SpringBoard, frontDisplayDidChange, frontDisplayDidChange);
     class_addMethod($SpringBoard, @selector(invokeKirikae), (IMP)&$SpringBoard$invokeKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(dismissKirikae), (IMP)&$SpringBoard$dismissKirikae, "v@:");
     class_addMethod($SpringBoard, @selector(switchToAppWithDisplayIdentifier:), (IMP)&$SpringBoard$switchToAppWithDisplayIdentifier$, "v@:@");
     class_addMethod($SpringBoard, @selector(quitAppWithDisplayIdentifier:), (IMP)&$SpringBoard$quitAppWithDisplayIdentifier$, "v@:@");
     class_addMethod($SpringBoard, @selector(topApplication), (IMP)&$SpringBoard$topApplication, "@@:");
 
-    Class $SBApplication = objc_getClass("SBApplication");
-    LOAD_HOOK($SBApplication, @selector(launchSucceeded:), SBApplication$launchSucceeded$);
-    LOAD_HOOK($SBApplication, @selector(deactivate), SBApplication$deactivate);
-    LOAD_HOOK($SBApplication, @selector(exitedAbnormally), SBApplication$exitedAbnormally);
-    LOAD_HOOK($SBApplication, @selector(exitedCommon), SBApplication$exitedCommon);
-    LOAD_HOOK($SBApplication, @selector(_relaunchAfterAbnormalExit:), SBApplication$_relaunchAfterAbnormalExit$);
+    GET_CLASS(SBApplication);
+    LOAD_HOOK(SBApplication, launchSucceeded:, launchSucceeded$);
+    LOAD_HOOK(SBApplication, deactivate, deactivate);
+    LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
+    LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
+    LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
 #if 0
-    LOAD_HOOK($SBApplication, @selector(pathForDefaultImage:), SBApplication$pathForDefaultImage$);
+    LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);
 #endif
 
     switch (invocationMethod) {
         case KKInvocationMethodMenuDoubleTap:
-            LOAD_HOOK($SpringBoard, @selector(allowMenuDoubleTap), SpringBoard$allowMenuDoubleTap);
+            LOAD_HOOK(SpringBoard, allowMenuDoubleTap, allowMenuDoubleTap);
             break;
         case KKInvocationMethodMenuShortHold:
-            LOAD_HOOK($SpringBoard, @selector(_setMenuButtonTimer:), SpringBoard$_setMenuButtonTimer$);
-            LOAD_HOOK(objc_getMetaClass("SBVoiceControlAlert"), @selector(shouldEnterVoiceControl), SBVoiceControlAlert$shouldEnterVoiceControl);
+            LOAD_HOOK(SpringBoard, _setMenuButtonTimer:, _setMenuButtonTimer$);
+            {
+                GET_CLASS(SBVoiceControlAlert);
+                LOAD_HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, shouldEnterVoiceControl);
+            }
             break;
         case KKInvocationMethodLockShortHold:
-            LOAD_HOOK($SpringBoard, @selector(lockButtonDown:), SpringBoard$lockButtonDown$);
-            LOAD_HOOK($SpringBoard, @selector(lockButtonUp:), SpringBoard$lockButtonUp$);
-            LOAD_HOOK(objc_getClass("SBPowerDownController"), @selector(activate), SBPowerDownController$activate);
+            LOAD_HOOK(SpringBoard, lockButtonDown:, lockButtonDown$);
+            LOAD_HOOK(SpringBoard, lockButtonUp:, lockButtonUp$);
+            {
+                GET_CLASS(SBPowerDownController);
+                LOAD_HOOK(SBPowerDownController, activate, activate);
+            }
             break;
         case KKInvocationMethodNone:
         default:

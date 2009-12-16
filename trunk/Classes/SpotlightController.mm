@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 13:03:10
+ * Last-modified: 2009-12-13 15:23:29
  */
 
 /**
@@ -104,8 +104,8 @@ HOOK(SBSearchController, tableView$didSelectRowAtIndexPath$, void, UITableView *
 
         // Hook methods, if not already hooked
         if (_SBSearchController$tableView$didSelectRowAtIndexPath$ == NULL) {
-            Class $SBSearchController = objc_getClass("SBSearchController");
-            LOAD_HOOK($SBSearchController, @selector(tableView:didSelectRowAtIndexPath:), SBSearchController$tableView$didSelectRowAtIndexPath$);
+            GET_CLASS(SBSearchController);
+            LOAD_HOOK(SBSearchController, tableView:didSelectRowAtIndexPath:, tableView$didSelectRowAtIndexPath$);
         }
     }
     return self;
