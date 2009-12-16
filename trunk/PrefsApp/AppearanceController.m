@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 19:00:01
+ * Last-modified: 2009-12-17 01:09:24
  */
 
 /**
@@ -88,15 +88,30 @@
         [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView = toggle;
         [toggle release];
+
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        button.frame = CGRectMake(0, 0, 54.0f, 27.0f);
+        button.font = [UIFont boldSystemFontOfSize:17.0f];
+        [button setBackgroundImage:[[UIImage imageNamed:@"toggle_off.png"]
+            stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateNormal];
+        [button setBackgroundImage:[[UIImage imageNamed:@"toggle_on.png"]
+            stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateSelected];
+        [button setTitle:@"OFF" forState:UIControlStateNormal];
+        [button setTitle:@"ON" forState:UIControlStateSelected];
+        [button setTitleColor:[UIColor colorWithWhite:0.5f alpha:1.0f] forState:UIControlStateNormal];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+        [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
+        cell.accessoryView = button;
     }
 
-    UISwitch *toggle = (UISwitch *)cell.accessoryView;
+    UIButton *button = (UIButton *)cell.accessoryView;
+	Preferences *prefs = [Preferences sharedInstance];
     if (indexPath.section == 0) {
         cell.textLabel.text = @"Animate switching";
-        toggle.on = [[Preferences sharedInstance] animationsEnabled];
+        button.selected = prefs.animationsEnabled;
     } else {
         cell.textLabel.text = @ "Use Large Rows";
-        toggle.on = [[Preferences sharedInstance] useLargeRows];
+        button.selected = prefs.useLargeRows;
     }
 
     return cell;
@@ -104,14 +119,17 @@
 
 #pragma mark - Switch delegate
 
-- (void)switchToggled:(UISwitch *)control
+- (void)buttonToggled:(UIButton *)button
 {
+    // Update selected state of button
+    button.selected = !button.selected;
+
 	Preferences *prefs = [Preferences sharedInstance];
-    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[control superview]];
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
     if (indexPath.section == 0)
-        [prefs setAnimationsEnabled:[control isOn]];
+        prefs.animationsEnabled = button.selected;
     else
-        [prefs setUseLargeRows:[control isOn]];
+        prefs.useLargeRows = button.selected;
 }
 
 @end
