@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-11 01:18:43
+ * Last-modified: 2009-12-13 19:29:29
  */
 
 /**
@@ -45,9 +45,6 @@
     NSString *currentApp;
     NSMutableArray *otherApps;
 }
-
-@property(nonatomic, copy) NSString *currentApp;
-@property(nonatomic, retain) NSMutableArray *otherApps;
 
 @end
 

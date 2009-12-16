@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 18:06:23
+ * Last-modified: 2009-12-13 19:33:49
  */
 
 /**
@@ -76,8 +76,6 @@ typedef enum {
 
 static KKInvocationMethod invocationMethod = KKInvocationMethodMenuDoubleTap;
 
-
-static NSMutableArray *activeApps = nil;
 
 //static NSMutableDictionary *statusBarStates = nil;
 //static NSString *deactivatingApp = nil;
@@ -318,10 +316,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
     // NOTE: SpringBoard creates four stacks at startup:
     displayStacks = [[NSMutableArray alloc] initWithCapacity:5];
 
-    // NOTE: The initial capacity value was chosen to hold the default active
-    //       apps (MobilePhone and MobileMail) plus two others
-    activeApps = [[NSMutableArray alloc] initWithCapacity:4];
-
 #if 0
     // Create a dictionary to store the statusbar state for active apps
     // FIXME: Determine a way to do this without requiring extra storage
@@ -334,7 +328,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
 HOOK(SpringBoard, dealloc, void)
 {
     [killedApp release];
-    [activeApps release];
     [displayStacks release];
     CALL_ORIG(SpringBoard, dealloc);
 }
@@ -356,24 +349,7 @@ METH(SpringBoard, invokeKirikae, void)
     // NOTE: Only used by KKInvocationMethodMenuShortHold and KKInvocationMethodLockShortHold
     invocationTimerDidFire = YES;
 
-    id app = [SBWActiveDisplayStack topApplication];
-    NSString *identifier = [app displayIdentifier];
-
-    // Display task menu popup
-    NSMutableArray *array = [NSMutableArray arrayWithArray:activeApps];
-    if (identifier) {
-        // Is an application
-        // This array will be used for "other apps", so remove the active app
-        [array removeObject:identifier];
-
-        // SpringBoard should always be first in the list of other applications
-        [array insertObject:@"com.apple.springboard" atIndex:0];
-    } else {
-        // Is SpringBoard
-        identifier = @"com.apple.springboard";
-    }
-
-    kirikae = [[objc_getClass("Kirikae") alloc] initWithCurrentApp:identifier otherApps:array];
+    kirikae = [[objc_getClass("Kirikae") alloc] init];
     [kirikae activate];
 }
 
@@ -513,44 +489,26 @@ METH(SpringBoard, topApplication, SBApplication *)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-HOOK(SBApplication, launchSucceeded$, void, BOOL unknownFlag)
-{
-    NSString *identifier = [self displayIdentifier];
-    if (![activeApps containsObject:identifier])
-        // Track active status of application
-        [activeApps addObject:identifier];
-
-    CALL_ORIG(SBApplication, launchSucceeded$, unknownFlag);
-}
-
+#if 0
 HOOK(SBApplication, exitedAbnormally, void)
 {
-#if 0
     if (animationsEnabled && ![self isSystemApplication])
         [[NSFileManager defaultManager] removeItemAtPath:[self defaultImage:"Default"] error:nil];
-#endif
 
     CALL_ORIG(SBApplication, exitedAbnormally);
 }
 
 HOOK(SBApplication, exitedCommon, void)
 {
-    // Application has exited (either normally or abnormally);
-    // remove from active applications list
+    // Remove status bar state data from states list
     NSString *identifier = [self displayIdentifier];
-    [activeApps removeObject:identifier];
-
-#if 0
-    // ... also remove status bar state data from states list
     [statusBarStates removeObjectForKey:identifier];
-#endif
 
     CALL_ORIG(SBApplication, exitedCommon);
 }
 
 HOOK(SBApplication, deactivate, BOOL)
 {
-#if 0
     NSString *identifier = [self displayIdentifier];
     if ([identifier isEqualToString:deactivatingApp]) {
         [[objc_getClass("SpringBoard") sharedApplication] dismissKirikae];
@@ -563,11 +521,11 @@ HOOK(SBApplication, deactivate, BOOL)
     NSNumber *mode = [NSNumber numberWithInt:[sbCont statusBarMode]];
     NSNumber *orientation = [NSNumber numberWithInt:[sbCont statusBarOrientation]];
     [statusBarStates setObject:[NSArray arrayWithObjects:mode, orientation, nil] forKey:identifier];
-#endif
 
     return CALL_ORIG(SBApplication, deactivate);
 
 }
+#endif
 
 HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
 {
@@ -654,10 +612,11 @@ void initSpringBoardHooks()
     ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
     GET_CLASS(SBApplication);
-    LOAD_HOOK(SBApplication, launchSucceeded:, launchSucceeded$);
+#if 0
     LOAD_HOOK(SBApplication, deactivate, deactivate);
     LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
     LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
+#endif
     LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
 #if 0
     LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);

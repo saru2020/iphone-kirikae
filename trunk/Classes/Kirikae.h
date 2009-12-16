@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 17:11:37
+ * Last-modified: 2009-12-13 19:31:44
  */
 
 /**
@@ -43,9 +43,6 @@
 #import <SpringBoard/SBAlert.h>
 #import <SpringBoard/SBAlertDisplay.h>
 
-@class NSArray;
-@class NSString;
-@class UITabBarController;
 
 @interface KirikaeDisplay : SBAlertDisplay
 {
@@ -63,15 +60,6 @@
 //______________________________________________________________________________
 
 @interface Kirikae : SBAlert
-{
-    NSString *currentApp;
-    NSArray *otherApps;
-}
-
-- (id)initWithCurrentApp:(NSString *)currentApp otherApps:(NSArray *)otherApps;
-- (NSString *)currentApp;
-- (NSArray *)otherApps;
-
 @end
 
 //______________________________________________________________________________

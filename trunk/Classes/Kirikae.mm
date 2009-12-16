@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 18:16:38
+ * Last-modified: 2009-12-13 19:30:59
  */
 
 /**
@@ -207,16 +207,6 @@ METH(KirikaeDisplay, dealloc, void)
 
 METH(KirikaeDisplay, alertDisplayWillBecomeVisible, void)
 {
-    if (showActive) {
-        NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
-        int index = [tabs indexOfObject:@"active"];
-        if (index != NSNotFound) {
-            UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
-            TaskListController *cont = [tbCont.viewControllers objectAtIndex:index];
-            [cont setCurrentApp:[(Kirikae *)[self alert] currentApp]];
-            [cont setOtherApps:[NSMutableArray arrayWithArray:[(Kirikae *)[self alert] otherApps]]];
-        }
-    }
 }
 
 METH(KirikaeDisplay, alertDisplayBecameVisible, void)
@@ -292,36 +282,6 @@ METH(KirikaeDisplay, alertDidAnimateOut$finished$context$, void,
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-METH(Kirikae, initWithCurrentApp$otherApps$, id, NSString *currentApp, NSArray *otherApps)
-{
-    objc_super $super = {self, objc_getClass("SBAlert")};
-    self = objc_msgSendSuper(&$super, @selector(init));
-    if (self) {
-        MSHookIvar<NSString *>(self, "currentApp") = [currentApp retain];
-        MSHookIvar<NSArray *>(self, "otherApps") = [otherApps retain];
-    }
-    return self;
-}
-
-METH(Kirikae, dealloc, void)
-{
-    [MSHookIvar<NSString *>(self, "currentApp") release];
-    [MSHookIvar<NSArray *>(self, "otherApps") release];
-
-    objc_super $super = {self, objc_getClass("SBAlert")};
-    self = objc_msgSendSuper(&$super, @selector(dealloc));
-}
-
-METH(Kirikae, currentApp, NSString *)
-{
-    return MSHookIvar<NSString *>(self, "currentApp");
-}
-
-METH(Kirikae, otherApps, NSArray *)
-{
-    return MSHookIvar<NSArray *>(self, "otherApps");
-}
-
 METH(Kirikae, alertDisplayViewWithSize$, id, CGSize size)
 {
     return [[[objc_getClass("KirikaeDisplay") alloc] initWithSize:size] autorelease];
@@ -351,13 +311,6 @@ void initKirikae()
 
     // Create custom alert class
     Class $Kirikae = objc_allocateClassPair(objc_getClass("SBAlert"), "Kirikae", 0);
-    NSGetSizeAndAlignment("@", &size, &align);
-    class_addIvar($Kirikae, "currentApp", size, align, "@");
-    class_addIvar($Kirikae, "otherApps", size, align, "@");
-    ADD_METH(Kirikae, initWithCurrentApp:otherApps:, initWithCurrentApp$otherApps$, "@@:@@");
-    ADD_METH(Kirikae, dealloc, dealloc, "v@:");
-    ADD_METH(Kirikae, currentApp, currentApp, "@@:");
-    ADD_METH(Kirikae, otherApps, otherApps, "@@:");
     ADD_METH(Kirikae, alertDisplayViewWithSize:, alertDisplayViewWithSize$, "@@:{CGSize=ff}");
     objc_registerClassPair($Kirikae);
 }

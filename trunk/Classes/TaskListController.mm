@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 15:33:33
+ * Last-modified: 2009-12-13 19:41:54
  */
 
 /**
@@ -43,6 +43,7 @@
 #import "TaskListController.h"
 
 #import <QuartzCore/CALayer.h>
+#import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBIconModel.h>
 
@@ -50,10 +51,11 @@
 #import "TaskListCell.h"
 
 
-@implementation TaskListController
+@interface TaskListController (Private)
+- (void)refresh;
+@end
 
-@synthesize currentApp;
-@synthesize otherApps;
+@implementation TaskListController
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -63,8 +65,20 @@
         UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
         [self setTabBarItem:item];
         [item release];
+
+        // Create array to hold list of "other" running applications
+        otherApps = [[NSMutableArray alloc] init];
+
+        // Get initial list of running applications
+        [self refresh];
     }
     return self;
+}
+
+- (void)loadView
+{
+    [super loadView];
+    [self.tableView setRowHeight:60.0f];
 }
 
 - (void)dealloc
@@ -75,10 +89,20 @@
     [super dealloc];
 }
 
-- (void)loadView
+- (void)refresh
 {
-    [super loadView];
-    [self.tableView setRowHeight:60.0f];
+    // Update current application
+    SBApplication *app = [(SpringBoard *)UIApp topApplication];
+    [currentApp autorelease];
+    currentApp = app ? [app.displayIdentifier retain] : @"com.apple.springboard";
+
+    // Update list of other applications
+    [otherApps removeAllObjects];
+    for (SBApplication *app in [(SpringBoard *)UIApp _accessibilityRunningApplications])
+        [otherApps addObject:app.displayIdentifier];
+
+    // Do not show current application in list of other applications
+    [otherApps removeObject:currentApp];
 }
 
 #pragma mark - UITableViewDataSource
