@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-15 20:58:01
+ * Last-modified: 2009-12-16 01:18:14
  */
 
 /**
@@ -546,6 +546,7 @@ HOOK(SBApplication, deactivate, BOOL)
 }
 #endif
 
+// NOTE: Only hooked for firmware < 3.1
 HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
 {
     if ([[self displayIdentifier] isEqualToString:killedApp]) {
@@ -554,6 +555,18 @@ HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
         killedApp = nil;
     } else {
         CALL_ORIG(SBApplication, _relaunchAfterAbnormalExit$, flag);
+    }
+}
+
+// NOTE: Only hooked for firmware >= 3.1
+HOOK(SBApplication, _relaunchAfterExit, void)
+{
+    if ([[self displayIdentifier] isEqualToString:killedApp]) {
+        // We killed this app; do not let it relaunch
+        [killedApp release];
+        killedApp = nil;
+    } else {
+        CALL_ORIG(SBApplication, _relaunchAfterExit);
     }
 }
 
@@ -638,7 +651,13 @@ void initSpringBoardHooks()
     LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
 #endif
     LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
-    LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
+
+    // NOTE: This method name changed from 3.0(.1) -> 3.1
+    if ([[[UIDevice currentDevice] systemVersion] hasPrefix:@"3.0"])
+        LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
+    else
+        LOAD_HOOK(SBApplication, _relaunchAfterExit, _relaunchAfterExit);
+
 #if 0
     LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);
 #endif
