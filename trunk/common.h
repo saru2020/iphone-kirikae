@@ -2,7 +2,7 @@
  * Name: Common
  * Description: a common header for iPhone OS SpringBoard extensions (MobileSubstrate-based)
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 13:11:04
+ * Last-modified: 2009-12-13 18:42:46
  */
 
 /**
@@ -44,6 +44,8 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+
+extern UIApplication *UIApp;
 
 
 #define GET_CLASS(class) \
