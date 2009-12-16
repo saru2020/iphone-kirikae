@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-05 13:17:30
+ * Last-modified: 2009-12-16 19:00:29
  */
 
 /**
@@ -53,6 +53,7 @@ static NSArray *allowedInvocationMethods = nil;
 
 @synthesize firstRun;
 @synthesize animationsEnabled;
+@synthesize useLargeRows;
 @synthesize showActive;
 @synthesize showFavorites;
 @synthesize showSpotlight;
@@ -113,6 +114,7 @@ static NSArray *allowedInvocationMethods = nil;
 
     [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
+    [dict setObject:[NSNumber numberWithBool:useLargeRows] forKey:@"useLargeRows"];
     [dict setObject:[NSNumber numberWithBool:showActive] forKey:@"showActive"];
     [dict setObject:[NSNumber numberWithBool:showFavorites] forKey:@"showFavorites"];
     [dict setObject:[NSNumber numberWithBool:showSpotlight] forKey:@"showSpotlight"];
@@ -163,6 +165,7 @@ static NSArray *allowedInvocationMethods = nil;
 
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"useLargeRows"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showActive"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showFavorites"];
     [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpotlight"];
@@ -179,6 +182,7 @@ static NSArray *allowedInvocationMethods = nil;
     
     firstRun = [defaults boolForKey:@"firstRun"];
     animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
+    useLargeRows = [defaults boolForKey:@"useLargeRows"];
     showActive = [defaults boolForKey:@"showActive"];
     showFavorites = [defaults boolForKey:@"showFavorites"];
     showSpotlight = [defaults boolForKey:@"showSpotlight"];

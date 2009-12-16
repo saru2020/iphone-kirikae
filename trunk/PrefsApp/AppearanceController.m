@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 20:45:09
+ * Last-modified: 2009-12-16 19:00:01
  */
 
 /**
@@ -65,7 +65,7 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 1;
+	return 2;
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
@@ -83,13 +83,20 @@
         // Cell does not exist, create a new one
         cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        cell.textLabel.text = @"Animate switching";
 
         UISwitch *toggle = [[UISwitch alloc] init];
-        toggle.on = [[Preferences sharedInstance] animationsEnabled];
         [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView = toggle;
         [toggle release];
+    }
+
+    UISwitch *toggle = (UISwitch *)cell.accessoryView;
+    if (indexPath.section == 0) {
+        cell.textLabel.text = @"Animate switching";
+        toggle.on = [[Preferences sharedInstance] animationsEnabled];
+    } else {
+        cell.textLabel.text = @ "Use Large Rows";
+        toggle.on = [[Preferences sharedInstance] useLargeRows];
     }
 
     return cell;
@@ -99,7 +106,12 @@
 
 - (void)switchToggled:(UISwitch *)control
 {
-    [[Preferences sharedInstance] setAnimationsEnabled:[control isOn]];
+	Preferences *prefs = [Preferences sharedInstance];
+    NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[control superview]];
+    if (indexPath.section == 0)
+        [prefs setAnimationsEnabled:[control isOn]];
+    else
+        [prefs setUseLargeRows:[control isOn]];
 }
 
 @end
