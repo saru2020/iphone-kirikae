@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 00:50:58
+ * Last-modified: 2009-12-17 01:19:47
  */
 
 /**
@@ -46,6 +46,7 @@
 #import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBIconBadge.h>
 #import <SpringBoard/SBIconModel.h>
 
 #import "SpringBoardHooks.h"
@@ -60,7 +61,7 @@
     if (self) {
         // Setup tab bar button
         UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemFavorites tag:1];
-        [self setTabBarItem:item];
+        self.tabBarItem = item;
         [item release];
 
         // Preferences may have changed since last read; synchronize
@@ -164,9 +165,6 @@
 
         [self.view addSubview:view];
         [view release];
-    } else {
-        // Adjust row height
-        [self.tableView setRowHeight:60.0f];
     }
 }
 
@@ -236,17 +234,17 @@
 
     if (icon) {
         // Set the cell's text to the name of the application
-        [cell setText:[icon displayName]];
+        cell.textLabel.text = [icon displayName];
 
         // Set the cell's image to the application's icon image
-        [cell setIconImage:[icon icon]];
+        cell.iconImage = [icon icon];
 
         // Set the cell's badge image (if applicable)
         SBIconBadge *&badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
         if (badge) {
             UIGraphicsBeginImageContext([badge frame].size);
-            [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
-            [cell setBadgeImage:UIGraphicsGetImageFromCurrentImageContext()];
+            [badge.layer renderInContext:UIGraphicsGetCurrentContext()];
+            cell.badgeImage = UIGraphicsGetImageFromCurrentImageContext();
             UIGraphicsEndImageContext();
         }
     }
@@ -258,8 +256,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Switch to selected application
-    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-    [springBoard switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
+    [(SpringBoard *)UIApp switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
 }
 
 #pragma mark - Actions
@@ -267,8 +264,7 @@
 - (void)openPreferences:(id)sender
 {
     // Switch to the Kirikae preferences application
-    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-    [springBoard switchToAppWithDisplayIdentifier:@APP_ID];
+    [(SpringBoard *)UIApp switchToAppWithDisplayIdentifier:@APP_ID];
 }
 
 @end

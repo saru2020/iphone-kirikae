@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 00:42:38
+ * Last-modified: 2009-12-17 01:20:08
  */
 
 /**
@@ -45,6 +45,7 @@
 #import <QuartzCore/CALayer.h>
 #import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBIconBadge.h>
 #import <SpringBoard/SBIconModel.h>
 
 #import "SpringBoardHooks.h"
@@ -63,7 +64,7 @@
     if (self) {
         // Setup tab bar button
         UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
-        [self setTabBarItem:item];
+        self.tabBarItem = item;
         [item release];
 
         // Cache the images used for the terminate button
@@ -212,14 +213,12 @@
         [cell setSelectionStyle:UITableViewCellSelectionStyleGray];
     }
 
-    // Get the display identifier of the application for this cell
-    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
-
     // Get the application icon object
-    SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:identifier];
+    NSString *displayId = [self displayIdentifierAtIndexPath:indexPath];
+    SBApplicationIcon *icon = [[objc_getClass("SBIconModel") sharedInstance] iconForDisplayIdentifier:displayId];
 
     // Set the cell's text to the name of the application
-    [cell setText:[icon displayName]];
+    cell.textLabel.text = [icon displayName];
 
     // Set the cell's image to the application's icon image
     UIImage *image = nil;
@@ -233,12 +232,12 @@
         SBIconBadge *badge = MSHookIvar<SBIconBadge *>(icon, "_badge");
         if (badge) {
             UIGraphicsBeginImageContext([badge frame].size);
-            [[badge layer] renderInContext:UIGraphicsGetCurrentContext()];
-            [cell setBadgeImage:UIGraphicsGetImageFromCurrentImageContext()];
+            [badge.layer renderInContext:UIGraphicsGetCurrentContext()];
+            cell.badgeImage = UIGraphicsGetImageFromCurrentImageContext();
             UIGraphicsEndImageContext();
         }
     }
-    [cell setIconImage:image];
+    cell.iconImage = image;
 
     // Create close button to use as accessory for cell
     // NOTE: The button is aligned so that it will appear in the same spot
@@ -296,8 +295,8 @@
     [spinner release];
 
     // Quit the selected application
-    NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
-    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
+    NSString *displayId = [self displayIdentifierAtIndexPath:indexPath];
+    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:displayId];
 }
 
 #pragma mark - Kirikae delegate methods
