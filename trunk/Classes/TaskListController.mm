@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-15 20:58:36
+ * Last-modified: 2009-12-15 23:20:34
  */
 
 /**
@@ -226,12 +226,6 @@
         // Quit the selected application
         NSString *identifier = [self displayIdentifierAtIndexPath:indexPath];
         [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:identifier];
-
-        // FIXME: To be removed
-#if 0
-        if (indexPath.section == 1)
-            [(SpringBoard *)UIApp dismissKirikae];
-#endif
     }
 }
 
