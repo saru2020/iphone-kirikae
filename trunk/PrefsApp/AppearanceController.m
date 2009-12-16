@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 01:09:24
+ * Last-modified: 2009-12-17 02:18:56
  */
 
 /**
@@ -65,7 +65,7 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 2;
+	return 3;
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
@@ -76,6 +76,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdToggle = @"ToggleCell";
+    static NSString *cellTitles[] = {@"Animate switching", @"Use Large Rows", @"Use Themed Icons"};
 
     // Try to retrieve from the table view a now-unused cell with the given identifier
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
@@ -103,15 +104,22 @@
         [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
         cell.accessoryView = button;
     }
+    cell.text = cellTitles[indexPath.section];
 
     UIButton *button = (UIButton *)cell.accessoryView;
 	Preferences *prefs = [Preferences sharedInstance];
-    if (indexPath.section == 0) {
-        cell.textLabel.text = @"Animate switching";
-        button.selected = prefs.animationsEnabled;
-    } else {
-        cell.textLabel.text = @ "Use Large Rows";
-        button.selected = prefs.useLargeRows;
+    switch (indexPath.section) {
+        case 0:
+            button.selected = prefs.animationsEnabled;
+            break;
+        case 1:
+            button.selected = prefs.useLargeRows;
+            break;
+        case 2:
+            button.selected = prefs.useThemedIcons;
+            break;
+        default:
+            break;
     }
 
     return cell;
@@ -126,10 +134,19 @@
 
 	Preferences *prefs = [Preferences sharedInstance];
     NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
-    if (indexPath.section == 0)
-        prefs.animationsEnabled = button.selected;
-    else
-        prefs.useLargeRows = button.selected;
+    switch (indexPath.section) {
+        case 0:
+            prefs.animationsEnabled = button.selected;
+            break;
+        case 1:
+            prefs.useLargeRows = button.selected;
+            break;
+        case 2:
+            prefs.useThemedIcons = button.selected;
+            break;
+        default:
+            break;
+    }
 }
 
 @end
