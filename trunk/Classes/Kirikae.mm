@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 18:04:28
+ * Last-modified: 2009-12-13 18:16:38
  */
 
 /**
@@ -44,6 +44,7 @@
 
 //#import <SpringBoard/SBStatusBarController.h>
 
+//#import "CategoriesController.h"
 #import "FavoritesController.h"
 #import "SpotlightController.h"
 #import "SpringBoardHooks.h"
@@ -53,6 +54,7 @@ typedef enum {
     KKInitialViewActive,
     KKInitialViewFavorites,
     KKInitialViewSpotlight,
+    KKInitialViewCategories,
     KKInitialViewLastUsed
 } KKInitialView;
 
@@ -61,6 +63,7 @@ static KKInitialView initialView = KKInitialViewActive;
 static BOOL showActive = YES;
 static BOOL showFavorites = YES;
 static BOOL showSpotlight = NO;
+static BOOL showCategories = NO;
 
 
 METH(KirikaeDisplay, initWithSize$, id, CGSize size)
@@ -99,6 +102,14 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
             CFRelease(propList);
         }
 
+        // Determine whether or not to show Categories tab
+        propList = CFPreferencesCopyAppValue(CFSTR("showCategories"), CFSTR(APP_ID));
+        if (propList) {
+            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+                showCategories = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+            CFRelease(propList);
+        }
+
         // Create and setup tab bar controller and view controllers
         UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
         tbCont = [[UITabBarController alloc] init];
@@ -132,6 +143,16 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
             [cont release];
         }
 
+        // Categories tab
+        if (showCategories) {
+            [tabs addObject:@"categories"];
+#if 0
+            cont = [[CategoriesController alloc] initWithNibName:nil bundle:nil];
+            [viewConts addObject:cont];
+            [cont release];
+#endif
+        }
+
         tbCont.viewControllers = viewConts;
         [self addSubview:tbCont.view];
 
@@ -150,6 +171,8 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
                     initialView = KKInitialViewFavorites;
                 } else if ([(NSString *)propList isEqualToString:@"spotlight"] && showSpotlight) {
                     initialView = KKInitialViewSpotlight;
+                } else if ([(NSString *)propList isEqualToString:@"categories"] && showCategories) {
+                    initialView = KKInitialViewCategories;
                 } else {
                     initialView = KKInitialViewActive;
                 }
