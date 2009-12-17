@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 02:27:59
+ * Last-modified: 2009-12-17 14:00:54
  */
 
 /**
@@ -383,6 +383,9 @@
 
 - (void)kirikae:(Kirikae *)kirikae applicationDidTerminate:(NSString *)displayId
 {
+    // Mark beginning of animations
+    [self.tableView beginUpdates];
+
     int row = NSNotFound;
     if ([displayId isEqualToString:fgAppId]) {
         // Foreground application terminated
@@ -400,6 +403,9 @@
         [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath]
             withRowAnimation:UITableViewRowAnimationFade];
     }
+
+    // Commit animations
+    [self.tableView endUpdates];
 }
 
 @end
