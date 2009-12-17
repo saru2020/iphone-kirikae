@@ -1,3 +1,20 @@
+> # Version svn.r133
+> - - -
+> * NEW: Added "Use Large Rows" option; disable for new, smaller rows.
+>    * Note that when using smaller rows, badges are enlarged to increase legibility.
+> * NEW: Added "Use Themed Icons" option; disabling will prevent use of WinterBoard-themed icons.
+>    * This is especially useful for those using themes with unusual-sized icons.
+> * FIX: Fixed ability to quit Mail/Phone when using firmware >= 3.1.
+> * MOD: Active tab:
+>    * Replaced swipe-to-quit behavior with always-visible quit button.
+>    * Quitting the current app will no longer close Kirikae.
+>    * SpringBoard is now always shown at the top in "Home Screen" section.
+>    * Renamed current/other applications to foreground/background applications.
+>    * "Foreground Application" section is only shown if not SpringBoard.
+>    * "Background Applications" section is now sorted by most-to-least recent usage.
+
+- - -
+
 > # Version svn.r105
 > - - -
 > * Added: Spotlight tab; can now access Spotlight from any application.
@@ -6,6 +23,7 @@
 >   * Note: The arrows used in the icon image are from Gnome (Gnome-view-refresh.svg).
 
 - - -
+
 > # Version svn.r95
 > - - -
 > * Added: Can select which tab to start with: Active, Favorites, or Last-used.
