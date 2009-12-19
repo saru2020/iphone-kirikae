@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 18:02:22
+ * Last-modified: 2009-12-19 22:33:37
  */
 
 /**
@@ -43,7 +43,7 @@
 #import "SpringBoardHooks.h"
 
 #import <CoreFoundation/CoreFoundation.h>
-#import <QuartzCore/CABase.h>
+#import <QuartzCore/QuartzCore.h>
 
 #import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationIcon.h>
@@ -55,6 +55,7 @@
 #import <SpringBoard/SBDisplayStack.h>
 #import <SpringBoard/SBPowerDownController.h>
 #import <SpringBoard/SBSearchController.h>
+#import <SpringBoard/SBSearchView.h>
 #import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SBVoiceControlAlert.h>
@@ -65,8 +66,10 @@
 @end
 
 #import "Kirikae.h"
+#import "SpringBoardController.h"
 
 struct GSEvent;
+
 
 //static BOOL animateStatusBar = YES;
 static BOOL animationsEnabled = YES;
@@ -510,6 +513,11 @@ HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *applicat
                 [displayId hasPrefix:@"jp.ashikase.springjumps."]) {
             // Is a category folder or a springjump, perform normal action
             CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
+
+            UITabBarController *tbCont = [(KirikaeDisplay *)kirikae.display tabBarController];
+            if ([tbCont.selectedViewController isMemberOfClass:[SpringBoardController class]])
+                // Make sure not to hide Kirikae
+                return;
         } else {
             // Not folder/jump; switch via Kirikae's method
             [springBoard switchToAppWithDisplayIdentifier:displayId];
@@ -520,38 +528,6 @@ HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *applicat
     } else {
         CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
     }
-}
-
-//______________________________________________________________________________
-//______________________________________________________________________________
-
-// NOTE: Only hooked when showSpotlight == YES
-HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSearchResult *result, NSString *displayId)
-{
-    id ret = nil;
-
-    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
-    if ([result domain] == 0x14) {
-        // Application selected; launch via Kirikae's method
-        // NOTE: Only appears to happen when Spotbright is installed; otherwise
-        //       activateApplicationAnimated is called instead of this method.
-        [springBoard switchToAppWithDisplayIdentifier:displayId];
-    } else {
-        // If Backgrounder is installed, enable backgrounding for current application
-        if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)]) {
-            SBApplication *app = [springBoard topApplication];
-            if (app)
-                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:[app displayIdentifier]];
-        }
-
-        // Call the original implementation to launch the selected item
-        ret = CALL_ORIG(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, result, displayId);
-    }
-
-    // Hide Kirikae
-    [springBoard dismissKirikae];
-
-    return ret;
 }
 
 //______________________________________________________________________________
@@ -648,6 +624,86 @@ HOOK(SBApplication, pathForDefaultImage$, id, char *def)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+// NOTE: Only hooked when showSpotlight == YES
+HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSearchResult *result, NSString *displayId)
+{
+    id ret = nil;
+
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    if ([result domain] == 0x14) {
+        // Application selected; launch via Kirikae's method
+        // NOTE: Only appears to happen when Spotbright is installed; otherwise
+        //       activateApplicationAnimated is called instead of this method.
+        [springBoard switchToAppWithDisplayIdentifier:displayId];
+    } else {
+        // If Backgrounder is installed, enable backgrounding for current application
+        if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)]) {
+            SBApplication *app = [springBoard topApplication];
+            if (app)
+                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:[app displayIdentifier]];
+        }
+
+        // Call the original implementation to launch the selected item
+        ret = CALL_ORIG(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, result, displayId);
+    }
+
+    // Hide Kirikae
+    [springBoard dismissKirikae];
+
+    return ret;
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
+HOOK(SBIcon, grabTimerFired, void)
+{
+    // Don't allow icons to be grabbed in the SpringBoard tab
+    // NOTE: This is because the 'grabbed-icon' view is drawn on a different
+    //       layer, and does not appear properly on the SpringBoard tab.
+    if (kirikae == nil)
+        CALL_ORIG(SBIcon, grabTimerFired);
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
+@interface UIKeyboard : UIView
+@end
+
+HOOK(SBSearchView, setShowsKeyboard$animated$, void, BOOL show, BOOL animated)
+{
+    if (kirikae != nil) {
+        if (show && !self.isKeyboardVisible) {
+            UIKeyboard *&keyboard = MSHookIvar<UIKeyboard *>(self, "_keyboard");
+            // The very first time the keyboard is shown, its origin is set to
+            // (0,0), causing the keyboard to animate from top of screen.
+            // Set the frame manually to ensure that this doesn't happen.
+            CGRect frame = keyboard.frame;
+            frame.origin.y = 480.0f;
+            keyboard.frame = frame;
+            [[[(KirikaeDisplay *)kirikae.display tabBarController] view] addSubview:keyboard];
+        }
+    }
+
+    CALL_ORIG(SBSearchView, setShowsKeyboard$animated$, show, animated);
+}
+
+HOOK(SBSearchView, keyboardAnimationDidStop$finished$context$, void, id animation, id finished, void *context)
+{
+    CALL_ORIG(SBSearchView, keyboardAnimationDidStop$finished$context$, animation, finished, context);
+
+    // NOTE: Failing to remove animations causes normal Spotlight animation to fail
+    // NOTE: Do this even if kirikae == nil, as Kirikae may have disappeared
+    //       before the keyboard animation finished (and thus *had been* invoked).
+    // FIXME: Where is this animation coming from?
+    UIKeyboard *&keyboard = MSHookIvar<UIKeyboard *>(self, "_keyboard");
+    [keyboard.layer removeAllAnimations];
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
 HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, BOOL)
 {
@@ -703,24 +759,6 @@ void initSpringBoardHooks()
     ADD_METH(SpringBoard, quitAppWithDisplayIdentifier:, quitAppWithDisplayIdentifier$, "v@:@");
     ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
-    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
-    if (propList) {
-        if (CFGetTypeID(propList) == CFBooleanGetTypeID() &&
-                CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList))) {
-            // Spotlight tab is enabled; set necessary hooks
-            GET_CLASS(SBUIController);
-            LOAD_HOOK(SBUIController, activateApplicationAnimated:, activateApplicationAnimated$);
-
-            GET_CLASS(SBSearchController);
-            LOAD_HOOK(SBSearchController, _launchingURLForResult:withDisplayIdentifier:, _launchingURLForResult$withDisplayIdentifier$);
-        }
-        CFRelease(propList);
-    }
-#if 0
-    if (!animationsEnabled)
-        LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
-#endif
-
     GET_CLASS(SBApplication);
     LOAD_HOOK(SBApplication, activate, activate);
 
@@ -738,6 +776,45 @@ void initSpringBoardHooks()
 
 #if 0
     LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);
+#endif
+
+    // Check if Spotlight or SpringBoard tabs are enabled
+    BOOL showSpotlight = NO;
+    BOOL showSpringBoard = NO;
+    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
+    if (propList) {
+        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+            showSpotlight = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+        CFRelease(propList);
+    }
+    propList = CFPreferencesCopyAppValue(CFSTR("showSpringBoard"), CFSTR(APP_ID));
+    if (propList) {
+        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
+            showSpringBoard = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+        CFRelease(propList);
+    }
+
+    if (showSpotlight || showSpringBoard) {
+        // Spotlight and/or SpringBoard tab is enabled; set necessary hooks
+        GET_CLASS(SBUIController);
+        LOAD_HOOK(SBUIController, activateApplicationAnimated:, activateApplicationAnimated$);
+
+        GET_CLASS(SBSearchController);
+        LOAD_HOOK(SBSearchController, _launchingURLForResult:withDisplayIdentifier:, _launchingURLForResult$withDisplayIdentifier$);
+
+        GET_CLASS(SBSearchView);
+        LOAD_HOOK(SBSearchView, setShowsKeyboard:animated:, setShowsKeyboard$animated$);
+        LOAD_HOOK(SBSearchView, keyboardAnimationDidStop:finished:context:, keyboardAnimationDidStop$finished$context$);
+    }
+
+    if (showSpringBoard) {
+        GET_CLASS(SBIcon);
+        LOAD_HOOK(SBIcon, grabTimerFired, grabTimerFired);
+    }
+
+#if 0
+    if (!animationsEnabled)
+        LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
 #endif
 
     switch (invocationMethod) {

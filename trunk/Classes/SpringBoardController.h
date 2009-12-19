@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 18:42:08
+ * Last-modified: 2009-12-10 23:16:56
  */
 
 /**
@@ -39,55 +39,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+@class SBIconList;
 
-#import <SpringBoard/SBAlert.h>
-#import <SpringBoard/SBAlertDisplay.h>
-
-
-@interface UITabBarController (Kirikae)
-- (void)setTabBarHidden:(BOOL)hidden animate:(BOOL)animate;
-@end
-
-//______________________________________________________________________________
-
-@interface KirikaeDisplay : SBAlertDisplay
+@interface SpringBoardController : UIViewController
 {
-    UITabBarController *tabBarController;
-    NSMutableArray *tabs;
+    UIView *contentView;
 
-    int currentStatusBarMode;
-    int currentStatusBarOrientation;
+    SBIconList *initialIconList;
+    BOOL wasScattered;
 }
 
-@property(nonatomic, readonly) UITabBarController *tabBarController;
-
-- (id)initWithSize:(CGSize)size;
-
 @end
-
-//______________________________________________________________________________
-
-@protocol KirikaeDelegate;
-
-@interface Kirikae : SBAlert
-{
-    id<KirikaeDelegate> delegate;
-}
-
-@property(nonatomic, assign) id<KirikaeDelegate> delegate;
-
-- (void)handleApplicationActivation:(NSString *)displayId;
-- (void)handleApplicationTermination:(NSString *)displayId;
-
-@end
-
-@protocol KirikaeDelegate
-- (void)kirikae:(Kirikae *)kirikae applicationDidActivate:(NSString *)displayId;
-- (void)kirikae:(Kirikae *)kirikae applicationDidTerminate:(NSString *)displayId;
-@end
-
-//______________________________________________________________________________
-
-void initKirikae();
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

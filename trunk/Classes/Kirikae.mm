@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-15 20:55:31
+ * Last-modified: 2009-12-19 21:51:04
  */
 
 /**
@@ -43,18 +43,76 @@
 #import "Kirikae.h"
 
 //#import <SpringBoard/SBStatusBarController.h>
+#import <SpringBoard/SBSearchController.h>
+#import <SpringBoard/SBSearchView.h>
 
-//#import "CategoriesController.h"
 #import "FavoritesController.h"
 #import "SpotlightController.h"
+#import "SpringBoardController.h"
 #import "SpringBoardHooks.h"
 #import "TaskListController.h"
+
+@interface UITabBarController (Private)
+- (id)_transitionView;
+@end
+
+
+@implementation UITabBarController (Kirikae)
+
+- (void)setTabBarHidden:(BOOL)hidden animate:(BOOL)animate
+{
+    // NOTE: This doesn't actually hide the tabbar; currently it slides it down
+    //       so that only the top portion (20px) is left visible
+
+    // Determine the necessary transform/frame sizes
+    CGRect tranFrame;
+    CGRect wrapFrame;
+    CGAffineTransform transform;
+    if (hidden) {
+        // Hide tabbar, make transform/wrapper views "fullscreen"
+        transform = CGAffineTransformMakeTranslation(0, self.tabBar.frame.size.height - 20);
+        tranFrame = CGRectMake(0, 0, 320.0f, 480.0f);
+        wrapFrame = CGRectMake(0, 20.0f, 320.0f, 460.0f);
+    } else {
+        // Show tabbar, restore transform/wrapper view to normal size
+        transform = CGAffineTransformIdentity;
+        tranFrame = CGRectMake(0, 0, 320.0f, 431.0f);
+        wrapFrame = CGRectMake(0, 0, 320.0f, 411.0f);
+    }
+
+    // Set the transition/wrapper frames
+	UIView *transitionView = [self _transitionView];
+    UIView *wrapperView = [[transitionView subviews] objectAtIndex:0];
+    transitionView.frame = tranFrame;
+    wrapperView.frame = wrapFrame;
+
+    // Resizing the wrapper view causes the Spotlight view to resize as well
+    // (by height +/- 49 pixels - the height of the tab bar); for some reason,
+    // switching from SpringBoard tab to Spotlight tab causes the Spotlight view
+    // to remain shrunken, and will continue to shrink with each unhide.
+    // FIXME: Find a better way to handle this
+    if (!hidden) {
+        SBSearchView *searchView = [[objc_getClass("SBSearchController") sharedInstance] searchView];
+        searchView.frame = CGRectMake(0, 0, 320.0f, 350.0f);
+    }
+
+    // Show/hide the tabbar, optionally animated
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:(animate ? 0.2f : 0)];
+    self.tabBar.transform = transform;
+    [UIView commitAnimations];
+}
+
+@end
+
+//______________________________________________________________________________
+//______________________________________________________________________________
 
 typedef enum {
     KKInitialViewActive,
     KKInitialViewFavorites,
     KKInitialViewSpotlight,
-    KKInitialViewCategories,
+    KKInitialViewSpringBoard,
     KKInitialViewLastUsed
 } KKInitialView;
 
@@ -63,7 +121,7 @@ static KKInitialView initialView = KKInitialViewActive;
 static BOOL showActive = YES;
 static BOOL showFavorites = YES;
 static BOOL showSpotlight = NO;
-static BOOL showCategories = NO;
+static BOOL showSpringBoard = NO;
 
 
 METH(KirikaeDisplay, initWithSize$, id, CGSize size)
@@ -102,11 +160,11 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
             CFRelease(propList);
         }
 
-        // Determine whether or not to show Categories tab
-        propList = CFPreferencesCopyAppValue(CFSTR("showCategories"), CFSTR(APP_ID));
+        // Determine whether or not to show SpringBoard tab
+        propList = CFPreferencesCopyAppValue(CFSTR("showSpringBoard"), CFSTR(APP_ID));
         if (propList) {
             if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                showCategories = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
+                showSpringBoard = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
             CFRelease(propList);
         }
 
@@ -143,14 +201,12 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
             [cont release];
         }
 
-        // Categories tab
-        if (showCategories) {
-            [tabs addObject:@"categories"];
-#if 0
-            cont = [[CategoriesController alloc] initWithNibName:nil bundle:nil];
+        // SpringBoard tab
+        if (showSpringBoard) {
+            [tabs addObject:@"springboard"];
+            cont = [[SpringBoardController alloc] initWithNibName:nil bundle:nil];
             [viewConts addObject:cont];
             [cont release];
-#endif
         }
 
         tbCont.viewControllers = viewConts;
@@ -171,8 +227,8 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
                     initialView = KKInitialViewFavorites;
                 } else if ([(NSString *)propList isEqualToString:@"spotlight"] && showSpotlight) {
                     initialView = KKInitialViewSpotlight;
-                } else if ([(NSString *)propList isEqualToString:@"categories"] && showCategories) {
-                    initialView = KKInitialViewCategories;
+                } else if ([(NSString *)propList isEqualToString:@"springboard"] && showSpringBoard) {
+                    initialView = KKInitialViewSpringBoard;
                 } else {
                     initialView = KKInitialViewActive;
                 }
@@ -203,6 +259,11 @@ METH(KirikaeDisplay, dealloc, void)
 
     objc_super $super = {self, objc_getClass("SBAlertDisplay")};
     self = objc_msgSendSuper(&$super, @selector(dealloc));
+}
+
+METH(KirikaeDisplay, tabBarController, UITabBarController *)
+{
+    return MSHookIvar<UITabBarController *>(self, "tabBarController");
 }
 
 METH(KirikaeDisplay, alertDisplayWillBecomeVisible, void)
@@ -328,6 +389,7 @@ void initKirikae()
     class_addIvar($KirikaeDisplay, "currentStatusBarOrientation", size, align, "i");
     ADD_METH(KirikaeDisplay, initWithSize:, initWithSize$, "@@:{CGSize=ff}");
     ADD_METH(KirikaeDisplay, dealloc, dealloc, "v@:");
+    ADD_METH(KirikaeDisplay, tabBarController, tabBarController, "@@:");
     ADD_METH(KirikaeDisplay, alertDisplayWillBecomeVisible, alertDisplayWillBecomeVisible, "v@:");
     ADD_METH(KirikaeDisplay, alertDisplayBecameVisible, alertDisplayBecameVisible, "v@:");
     ADD_METH(KirikaeDisplay, dismiss, dismiss, "v@:");

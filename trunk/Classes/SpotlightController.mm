@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 16:24:17
+ * Last-modified: 2009-12-19 21:50:32
  */
 
 /**
@@ -93,27 +93,17 @@
     //        Does the instance change?
     searchView = [[[objc_getClass("SBSearchController") sharedInstance] searchView] retain];
     [self.view addSubview:searchView];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    // Get keyboard associated with search view and add to tab controller
-    // NOTE: Really only need to adjust the initial position the first time the
-    //       keyboard is shown after respring
-    UIKeyboard *&keyboard = MSHookIvar<UIKeyboard *>(searchView, "_keyboard");
-    CGRect frame = keyboard.frame;
-    frame.origin.y = 480.0f;
-    keyboard.frame = frame;
-    [self.tabBarController.view addSubview:keyboard];
 
     // Set search button to always be enabled (so keyboard can be cancelled)
     UISearchBar *&bar = MSHookIvar<UISearchBar *>(searchView, "_searchBar");
     bar.searchField.enablesReturnKeyAutomatically = NO;
+}
 
-    // Make search bar active to show keyboard
-    // NOTE: Without the delay, the keyboard does not animate in (possibly due
-    //       to viewDidAppear being a part of a separate animation)?
-    [bar performSelector:@selector(becomeFirstResponder) withObject:nil afterDelay:0.1f];
+- (void)viewDidAppear:(BOOL)animated
+{
+    [self.view addSubview:searchView];
+    [searchView setShowsSearchKeyWhenAnimatingKeyboard:YES];
+    [searchView setShowsKeyboard:YES animated:YES];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -127,12 +117,8 @@
 	SBIconScrollView *scrollView = MSHookIvar<SBIconScrollView *>(iconCont, "_scrollView");
     [scrollView addSubview:searchView];
 
-    // Release control of keyboard
-    // NOTE: Failing to remove animations causes normal Spotlight animation to fail
-    // FIXME: Where is this animation coming from?
-    UIKeyboard *&keyboard = MSHookIvar<UIKeyboard *>(searchView, "_keyboard");
-    [keyboard removeFromSuperview];
-    [keyboard.layer removeAllAnimations];
+    [searchView setShowsKeyboard:NO animated:YES];
+    [searchView setShowsSearchKeyWhenAnimatingKeyboard:NO];
 
     // Release search view
     // FIXME: Again, is it necessary to do ewith each showing/hiding?
