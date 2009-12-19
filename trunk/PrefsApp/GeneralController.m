@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 01:04:49
+ * Last-modified: 2009-12-19 16:36:48
  */
 
 /**
@@ -75,7 +75,7 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return (section == 0) ? 3 : 4;
+    return (section == 0) ? 4 : 5;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -83,10 +83,11 @@
     static NSString *reuseIdToggle = @"ToggleCell";
     static NSString *reuseIdSimple = @"SimpleCell";
 
+    static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab",
+        @"Spotlight Tab", @"SpringBoard Tab", @"Last-used Tab"};
+
 	UITableViewCell *cell = nil; 
     if (indexPath.section == 0) {
-        static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab", @"Spotlight Tab"};
-
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
         if (cell == nil) {
@@ -122,12 +123,13 @@
             case 2:
                 button.selected = prefs.showSpotlight;
                 break;
+            case 3:
+                button.selected = prefs.showSpringBoard;
+                break;
             default:
                 break;
         }
     } else {
-        static NSString *cellTitles[] = {@"Active Tab", @"Favorites Tab", @"Spotlight Tab", @"Last-used Tab"};
-
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
         if (cell == nil) {
@@ -172,6 +174,9 @@
 			break;
 		case 2:
 			prefs.showSpotlight = button.selected;
+			break;
+		case 3:
+			prefs.showSpringBoard = button.selected;
 			break;
 		default:
 			break;

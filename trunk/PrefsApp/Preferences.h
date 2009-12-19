@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 02:13:01
+ * Last-modified: 2009-12-19 16:37:22
  */
 
 /**
@@ -59,6 +59,7 @@
     BOOL showActive;
     BOOL showFavorites;
     BOOL showSpotlight;
+    BOOL showSpringBoard;
     unsigned int initialView;
     unsigned int invocationMethod;
     NSArray *favorites;
@@ -71,6 +72,7 @@
 @property(nonatomic) BOOL showActive;
 @property(nonatomic) BOOL showFavorites;
 @property(nonatomic) BOOL showSpotlight;
+@property(nonatomic) BOOL showSpringBoard;
 @property(nonatomic) unsigned int initialView;
 @property(nonatomic) unsigned int invocationMethod;
 @property(nonatomic, retain) NSArray *favorites;

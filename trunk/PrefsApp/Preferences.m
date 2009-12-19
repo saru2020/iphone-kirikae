@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 02:13:41
+ * Last-modified: 2009-12-19 16:38:39
  */
 
 /**
@@ -58,6 +58,7 @@ static NSArray *allowedInvocationMethods = nil;
 @synthesize showActive;
 @synthesize showFavorites;
 @synthesize showSpotlight;
+@synthesize showSpringBoard;
 @synthesize initialView;
 @synthesize invocationMethod;
 @synthesize favorites;
@@ -77,7 +78,7 @@ static NSArray *allowedInvocationMethods = nil;
     self = [super init];
     if (self) {
         allowedInitialViews = [[NSArray alloc] initWithObjects:
-            @"active", @"favorites", @"spotlight", @"lastUsed", nil];
+            @"active", @"favorites", @"spotlight", @"springboard", @"lastUsed", nil];
 
         allowedInvocationMethods = [[NSArray alloc] initWithObjects:
             @"homeDoubleTap", @"homeSingleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
@@ -120,6 +121,7 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:showActive] forKey:@"showActive"];
     [dict setObject:[NSNumber numberWithBool:showFavorites] forKey:@"showFavorites"];
     [dict setObject:[NSNumber numberWithBool:showSpotlight] forKey:@"showSpotlight"];
+    [dict setObject:[NSNumber numberWithBool:showSpringBoard] forKey:@"showSpringBoard"];
 
     NSString *string = nil;
     @try {
@@ -172,6 +174,7 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showActive"];
     [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showFavorites"];
     [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpotlight"];
+    [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpringBoard"];
     [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
     [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
@@ -190,6 +193,7 @@ static NSArray *allowedInvocationMethods = nil;
     showActive = [defaults boolForKey:@"showActive"];
     showFavorites = [defaults boolForKey:@"showFavorites"];
     showSpotlight = [defaults boolForKey:@"showSpotlight"];
+    showSpringBoard = [defaults boolForKey:@"showSpringBoard"];
 
     NSString *string = [defaults stringForKey:@"initialView"];
     unsigned int index = [allowedInitialViews indexOfObject:string];
