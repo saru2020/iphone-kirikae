@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 22:42:44
+ * Last-modified: 2009-12-19 23:36:15
  */
 
 /**
@@ -347,6 +347,8 @@ METH(SpringBoard, dismissKirikae, void)
 
 METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
 {
+    BOOL switchingToSpringBoard = [identifier isEqualToString:@"com.apple.springboard"];
+
     SBApplication *fromApp = [SBWActiveDisplayStack topApplication];
     NSString *fromIdent = fromApp ? [fromApp displayIdentifier] : @"com.apple.springboard";
     if (![fromIdent isEqualToString:identifier]) {
@@ -375,7 +377,7 @@ METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
                 [SBWPreActivateDisplayStack pushDisplay:toApp];
             } else {
                 // Switching from another app
-                if (![identifier isEqualToString:@"com.apple.springboard"]) {
+                if (!switchingToSpringBoard) {
                     // Switching to another app; setup app-to-app
                     [toApp setActivationSetting:0x40 flag:YES]; // animateOthersSuspension
                     [toApp setActivationSetting:0x20000 flag:YES]; // appToApp
@@ -407,6 +409,13 @@ METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
                 [SBWSuspendingDisplayStack pushDisplay:fromApp];
             }
         }
+    }
+
+    if (!switchingToSpringBoard) {
+        // If CategoriesSB is installed, dismiss any open categories
+        SBUIController *uiCont = [objc_getClass("SBUIController") sharedInstance];
+        if ([uiCont respondsToSelector:@selector(categoriesSBCloseAll)])
+            [uiCont performSelector:@selector(categoriesSBCloseAll)];
     }
 
     if (animationsEnabled)
