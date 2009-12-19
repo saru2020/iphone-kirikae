@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 23:36:15
+ * Last-modified: 2009-12-20 02:15:18
  */
 
 /**
@@ -46,7 +46,6 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import <SpringBoard/SBApplication.h>
-#import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBAlertItemsController.h>
 #import <SpringBoard/SBAwayController.h>
@@ -479,6 +478,20 @@ METH(SpringBoard, topApplication, SBApplication *)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+// NOTE: Only hooked when showSpringBoard == YES
+HOOK(SBIconController, launchIcon$, void, SBIcon *icon)
+{
+    if (kirikae != nil)
+        // NOTE: Normally launch will not be called if another application is active
+        //       (as technically SpringBoard shouldn't be accessible in such case).
+        [icon launch];
+    else
+        CALL_ORIG(SBIconController, launchIcon$, icon);
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
 #if 0
 // NOTE: Only hooked when animationsEnabled == NO
 HOOK(SBUIController, animateLaunchApplication$, void, id app)
@@ -509,7 +522,7 @@ HOOK(SBUIController, animateLaunchApplication$, void, id app)
 }
 #endif
 
-// NOTE: Only hooked when showSpotlight == YES
+// NOTE: Only hooked when showSpotlight == YES or showSpringBoard == YES
 HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *application)
 {
     if (kirikae != nil) {
@@ -631,7 +644,7 @@ HOOK(SBApplication, pathForDefaultImage$, id, char *def)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-// NOTE: Only hooked when showSpotlight == YES
+// NOTE: Only hooked when showSpotlight == YES or showSpringBoard == YES
 HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSearchResult *result, NSString *displayId)
 {
     id ret = nil;
@@ -815,10 +828,12 @@ void initSpringBoardHooks()
     }
 
     if (showSpringBoard) {
+        GET_CLASS(SBIconController);
+        LOAD_HOOK(SBIconController, launchIcon:, launchIcon$);
+
         GET_CLASS(SBIcon);
         LOAD_HOOK(SBIcon, grabTimerFired, grabTimerFired);
     }
-
 #if 0
     if (!animationsEnabled)
         LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
