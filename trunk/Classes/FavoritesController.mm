@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 02:02:29
+ * Last-modified: 2009-12-19 22:48:02
  */
 
 /**
@@ -60,7 +60,7 @@
     self = [super initWithStyle:style];
     if (self) {
         // Setup tab bar button
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemFavorites tag:1];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Favorites" image:[UIImage imageNamed:@"Kirikae_Favorites.png"] tag:1];
         self.tabBarItem = item;
         [item release];
 
