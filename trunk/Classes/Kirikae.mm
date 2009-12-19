@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 21:51:04
+ * Last-modified: 2009-12-20 00:45:12
  */
 
 /**
@@ -68,14 +68,17 @@
     CGRect tranFrame;
     CGRect wrapFrame;
     CGAffineTransform transform;
+    float alpha;
     if (hidden) {
         // Hide tabbar, make transform/wrapper views "fullscreen"
         transform = CGAffineTransformMakeTranslation(0, self.tabBar.frame.size.height - 20);
+        alpha = 0.65f;
         tranFrame = CGRectMake(0, 0, 320.0f, 480.0f);
         wrapFrame = CGRectMake(0, 20.0f, 320.0f, 460.0f);
     } else {
         // Show tabbar, restore transform/wrapper view to normal size
         transform = CGAffineTransformIdentity;
+        alpha = 1.0f;
         tranFrame = CGRectMake(0, 0, 320.0f, 431.0f);
         wrapFrame = CGRectMake(0, 0, 320.0f, 411.0f);
     }
@@ -100,6 +103,7 @@
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:(animate ? 0.2f : 0)];
     self.tabBar.transform = transform;
+    self.tabBar.alpha = alpha;
     [UIView commitAnimations];
 }
 
