@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-13 15:23:29
+ * Last-modified: 2009-12-19 16:24:17
  */
 
 /**
@@ -61,36 +61,6 @@
 #import "TaskListCell.h"
 
 
-HOOK(SBSearchController, tableView$didSelectRowAtIndexPath$, void, UITableView *tableView, NSIndexPath *indexPath)
-{
-    int section = indexPath.section;
-    int offset = 0;
-
-    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-    if ([self _sectionIsApp:&section appOffset:&offset]) {
-        // Application selected; launch via Kirikae's method
-        NSMutableArray *&matchingLaunchingIcons = MSHookIvar<NSMutableArray *>(self, "_matchingLaunchingIcons");
-        SBApplicationIcon *icon = [matchingLaunchingIcons objectAtIndex:offset];
-        [springBoard switchToAppWithDisplayIdentifier:[icon displayIdentifier]];
-    } else {
-        // If Backgrounder is installed, enable backgrounding for current application
-        if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)]) {
-            SBApplication *app = [springBoard topApplication];
-            if (app)
-                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:[app displayIdentifier]];
-        }
-
-        // Call the original implementation to launch the selected item
-        CALL_ORIG(SBSearchController, tableView$didSelectRowAtIndexPath$, tableView, indexPath);
-    }
-
-    // Hide Kirikae
-    [springBoard dismissKirikae];
-}
-
-//______________________________________________________________________________
-//______________________________________________________________________________
-
 @implementation SpotlightController
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil;
@@ -101,12 +71,6 @@ HOOK(SBSearchController, tableView$didSelectRowAtIndexPath$, void, UITableView *
         UITabBarItem *item = [[UITabBarItem alloc] initWithTabBarSystemItem:UITabBarSystemItemSearch tag:2];
         [self setTabBarItem:item];
         [item release];
-
-        // Hook methods, if not already hooked
-        if (_SBSearchController$tableView$didSelectRowAtIndexPath$ == NULL) {
-            GET_CLASS(SBSearchController);
-            LOAD_HOOK(SBSearchController, tableView:didSelectRowAtIndexPath:, tableView$didSelectRowAtIndexPath$);
-        }
     }
     return self;
 }

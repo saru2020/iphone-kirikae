@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-16 02:22:55
+ * Last-modified: 2009-12-19 16:27:00
  */
 
 /**
@@ -54,10 +54,15 @@
 #import <SpringBoard/SBIconModel.h>
 #import <SpringBoard/SBDisplayStack.h>
 #import <SpringBoard/SBPowerDownController.h>
+#import <SpringBoard/SBSearchController.h>
 #import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SBVoiceControlAlert.h>
 #import <SpringBoard/SpringBoard.h>
+
+@interface SPSearchResult : NSObject
+@property(assign, nonatomic) int domain;
+@end
 
 #import "Kirikae.h"
 
@@ -149,36 +154,6 @@ HOOK(SBStatusBarController, setStatusBarMode$mode$orientation$duration$fenceID$a
             mode, orientation, duration, fenceID, animation);
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
-
-// NOTE: Only hooked when animationsEnabled == NO
-HOOK(SBUIController, animateLaunchApplication$, void, id app)
-{
-    if ([app pid] != -1) {
-        // Application is backgrounded
-
-        // FIXME: Find a better solution for the Categories "transparent-window" issue
-        if ([[app displayIdentifier] hasPrefix:@"com.bigboss.categories."]) {
-            // Make sure SpringBoard dock and icons are hidden
-            [[objc_getClass("SBIconController") sharedInstance] scatter:NO startTime:CFAbsoluteTimeGetCurrent()];
-            [self showButtonBar:NO animate:NO action:NULL delegate:nil];
-        }
-
-        // Prevent status bar from fading in
-        animateStatusBar = NO;
-
-        // Launch without animation
-        NSArray *state = [statusBarStates objectForKey:[app displayIdentifier]];
-        [app setDisplaySetting:0x10 value:[state objectAtIndex:0]]; // statusBarMode
-        [app setDisplaySetting:0x20 value:[state objectAtIndex:1]]; // statusBarOrienation
-        // FIXME: Originally Activating (and not Active)
-        [SBWActiveDisplayStack pushDisplay:app];
-    } else {
-        // Normal launch
-        CALL_ORIG(SBUIController, animateLaunchApplication$, app);
-    }
-}
 #endif
 
 //______________________________________________________________________________
@@ -494,6 +469,88 @@ METH(SpringBoard, topApplication, SBApplication *)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
+#if 0
+// NOTE: Only hooked when animationsEnabled == NO
+HOOK(SBUIController, animateLaunchApplication$, void, id app)
+{
+    if ([app pid] != -1) {
+        // Application is backgrounded
+
+        // FIXME: Find a better solution for the Categories "transparent-window" issue
+        if ([[app displayIdentifier] hasPrefix:@"com.bigboss.categories."]) {
+            // Make sure SpringBoard dock and icons are hidden
+            [[objc_getClass("SBIconController") sharedInstance] scatter:NO startTime:CFAbsoluteTimeGetCurrent()];
+            [self showButtonBar:NO animate:NO action:NULL delegate:nil];
+        }
+
+        // Prevent status bar from fading in
+        animateStatusBar = NO;
+
+        // Launch without animation
+        NSArray *state = [statusBarStates objectForKey:[app displayIdentifier]];
+        [app setDisplaySetting:0x10 value:[state objectAtIndex:0]]; // statusBarMode
+        [app setDisplaySetting:0x20 value:[state objectAtIndex:1]]; // statusBarOrienation
+        // FIXME: Originally Activating (and not Active)
+        [SBWActiveDisplayStack pushDisplay:app];
+    } else {
+        // Normal launch
+        CALL_ORIG(SBUIController, animateLaunchApplication$, app);
+    }
+}
+#endif
+
+// NOTE: Only hooked when showSpotlight == YES
+HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *application)
+{
+    if (kirikae) {
+        // FIXME: It is assumed that only the Kirikae Spotlight tab will call
+        //        this method; if this is not the case, may need to add a check
+        //        to see which tab is currently visible.
+        SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+        [springBoard switchToAppWithDisplayIdentifier:application.displayIdentifier];
+
+        // Hide Kirikae
+        [springBoard dismissKirikae];
+    } else {
+        CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
+    }
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
+// NOTE: Only hooked when showSpotlight == YES
+HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSearchResult *result, NSString *displayId)
+{
+    id ret = nil;
+
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    if ([result domain] == 0x14) {
+        // Application selected; launch via Kirikae's method
+        // NOTE: Only appears to happen when Spotbright is installed; otherwise
+        //       activateApplicationAnimated is called instead of this method.
+        [springBoard switchToAppWithDisplayIdentifier:displayId];
+    } else {
+        // If Backgrounder is installed, enable backgrounding for current application
+        if ([springBoard respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)]) {
+            SBApplication *app = [springBoard topApplication];
+            if (app)
+                [springBoard setBackgroundingEnabled:YES forDisplayIdentifier:[app displayIdentifier]];
+        }
+
+        // Call the original implementation to launch the selected item
+        ret = CALL_ORIG(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, result, displayId);
+    }
+
+    // Hide Kirikae
+    [springBoard dismissKirikae];
+
+    return ret;
+}
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
 HOOK(SBApplication, activate, void)
 {
     // NOTE: This gets called on both initial launch and when resumed
@@ -624,11 +681,6 @@ void initSpringBoardHooks()
     Class $SBStatusBarController = objc_getClass("SBStatusBarController");
     LOAD_HOOK($SBStatusBarController, @selector(setStatusBarMode:orientation:duration:fenceID:animation:),
         SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$);
-
-    if (!animationsEnabled) {
-        Class $SBUIController = objc_getClass("SBUIController");
-        LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
-    }
 #endif
 
     GET_CLASS(SpringBoard);
@@ -645,8 +697,27 @@ void initSpringBoardHooks()
     ADD_METH(SpringBoard, quitAppWithDisplayIdentifier:, quitAppWithDisplayIdentifier$, "v@:@");
     ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
 
+    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
+    if (propList) {
+        if (CFGetTypeID(propList) == CFBooleanGetTypeID() &&
+                CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList))) {
+            // Spotlight tab is enabled; set necessary hooks
+            GET_CLASS(SBUIController);
+            LOAD_HOOK(SBUIController, activateApplicationAnimated:, activateApplicationAnimated$);
+
+            GET_CLASS(SBSearchController);
+            LOAD_HOOK(SBSearchController, _launchingURLForResult:withDisplayIdentifier:, _launchingURLForResult$withDisplayIdentifier$);
+        }
+        CFRelease(propList);
+    }
+#if 0
+    if (!animationsEnabled)
+        LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
+#endif
+
     GET_CLASS(SBApplication);
     LOAD_HOOK(SBApplication, activate, activate);
+
 #if 0
     LOAD_HOOK(SBApplication, deactivate, deactivate);
     LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
