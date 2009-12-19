@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 17:56:56
+ * Last-modified: 2009-12-19 18:02:22
  */
 
 /**
@@ -176,8 +176,8 @@ static void startInvocationTimer()
     if (canInvoke()) {
         invocationTimerDidFire = NO;
 
-        if (!kirikae) {
-            // Task menu is not visible; setup toggle-delay timer
+        if (kirikae == nil) {
+            // Kirikae is not invoked; setup toggle-delay timer
             SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
             invocationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.7f
                 target:springBoard selector:@selector(invokeKirikae)
@@ -218,8 +218,8 @@ HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
     if (!invocationTimerDidFire) {
         cancelInvocationTimer();
 
-        if (kirikae)
-            // Popup is active; dismiss
+        if (kirikae != nil)
+            // Kirikae is invoked; dismiss
             [self dismissKirikae];
         else
             return CALL_ORIG(SpringBoard, lockButtonUp$, event);
@@ -238,11 +238,11 @@ HOOK(SpringBoard, allowMenuDoubleTap, BOOL)
 
 HOOK(SpringBoard, handleMenuDoubleTap, void)
 {
-    if (kirikae) {
-        // Popup is active; dismiss and perform normal behaviour
+    if (kirikae != nil) {
+        // Kirikae is invoked; dismiss and perform normal behaviour
         [self dismissKirikae];
     } else {
-        // Popup not active
+        // Kirikae not invoked
         if (invocationMethod == KKInvocationMethodMenuDoubleTap && canInvoke()) {
             // Invoke and return
             [self invokeKirikae];
@@ -256,8 +256,8 @@ HOOK(SpringBoard, handleMenuDoubleTap, void)
 
 HOOK(SpringBoard, _handleMenuButtonEvent, void)
 {
-    if (kirikae) {
-        // Task menu is visible
+    if (kirikae != nil) {
+        // Kirikae is invoked
         // FIXME: with short hold, the task menu may have just been invoked...
         if (invocationMethod != KKInvocationMethodMenuShortHold || invocationTimerDidFire == NO)
             // Hide and destroy the task menu
@@ -314,8 +314,8 @@ METH(SpringBoard, kirikae, Kirikae *)
 
 METH(SpringBoard, invokeKirikae, void)
 {
-    if (kirikae)
-        // Kirikae is already visible
+    if (kirikae != nil)
+        // Kirikae is already invoked
         // NOTE: This check is needed when called by external invokers
         return;
 
