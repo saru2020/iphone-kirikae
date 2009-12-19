@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 22:48:42
+ * Last-modified: 2009-12-20 02:37:23
  */
 
 /**
@@ -44,7 +44,6 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-#import <SpringBoard/SBApplicationIcon.h>
 #import <SpringBoard/SBButtonBar.h>
 #import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBIconList.h>
@@ -85,7 +84,8 @@
 {
     // FIXME: Is it really necessary to get the content view each time?
     //        Does the instance change?
-    contentView = [[objc_getClass("SBUIController") sharedInstance] contentView];
+    SBUIController *uiCont = [objc_getClass("SBUIController") sharedInstance];
+    contentView = uiCont.contentView;
 
     UIView *view = contentView.superview;
     if (![view isMemberOfClass:objc_getClass("SBAppWindow")])
@@ -99,17 +99,9 @@
 
     // Check if list is currently scattered
     wasScattered = [initialIconList isScattered];
-    if (wasScattered) {
-        SBButtonBar *buttonBar = [[objc_getClass("SBIconModel") sharedInstance] buttonBar];
+    if (wasScattered)
+        [uiCont restoreIconList:NO];
 
-        // Unscatter list and unhide dock
-        [initialIconList unscatter:NO startTime:CACurrentMediaTime()];
-        buttonBar.alpha = 1.0f;
-
-        // Add icon view and dock to content view
-        [contentView addSubview:iconCont.contentView];
-        [contentView addSubview:buttonBar.superview];
-    }
     [self.view addSubview:contentView];
 }
 
@@ -126,21 +118,11 @@
 
 - (void)viewDidDisappear:(BOOL)animated
 {
-    if (wasScattered) {
-        SBButtonBar *buttonBar = [[objc_getClass("SBIconModel") sharedInstance] buttonBar];
+    if (wasScattered)
+        // Re-scatter the icons and dock
+        [[objc_getClass("SBUIController") sharedInstance] scatterIconListAndBar:NO];
 
-        // Icons/dock were scattered/hidden, unscatter/unhide
-        [initialIconList scatter:NO startTime:CACurrentMediaTime()];
-        buttonBar.alpha = 0;
-
-        // Remove icon view and dock from content view
-        [[[objc_getClass("SBUIController") sharedInstance] contentView] removeFromSuperview];
-        [buttonBar.superview removeFromSuperview];
-
-        // Rescatter list and rehide dock
-        [initialIconList scatter:NO startTime:CACurrentMediaTime()];
-        [buttonBar setAlpha:0.0f];
-    }
+    // Release the icon list
     [initialIconList release];
     initialIconList = nil;
 
