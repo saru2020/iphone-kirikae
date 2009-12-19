@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 22:33:37
+ * Last-modified: 2009-12-19 22:42:44
  */
 
 /**
@@ -67,8 +67,6 @@
 
 #import "Kirikae.h"
 #import "SpringBoardController.h"
-
-struct GSEvent;
 
 
 //static BOOL animateStatusBar = YES;
@@ -209,14 +207,14 @@ HOOK(SpringBoard, _setMenuButtonTimer$, void, id timer)
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-HOOK(SpringBoard, lockButtonDown$, void, GSEvent *event)
+HOOK(SpringBoard, lockButtonDown$, void, GSEventRef event)
 {
     startInvocationTimer();
     CALL_ORIG(SpringBoard, lockButtonDown$, event);
 }
 
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-HOOK(SpringBoard, lockButtonUp$, void, GSEvent *event)
+HOOK(SpringBoard, lockButtonUp$, void, GSEventRef event)
 {
     if (!invocationTimerDidFire) {
         cancelInvocationTimer();
