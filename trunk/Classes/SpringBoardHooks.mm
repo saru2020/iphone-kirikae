@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 16:27:00
+ * Last-modified: 2009-12-19 17:56:56
  */
 
 /**
@@ -502,12 +502,18 @@ HOOK(SBUIController, animateLaunchApplication$, void, id app)
 // NOTE: Only hooked when showSpotlight == YES
 HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *application)
 {
-    if (kirikae) {
-        // FIXME: It is assumed that only the Kirikae Spotlight tab will call
-        //        this method; if this is not the case, may need to add a check
-        //        to see which tab is currently visible.
+    if (kirikae != nil) {
         SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
-        [springBoard switchToAppWithDisplayIdentifier:application.displayIdentifier];
+
+        NSString *displayId = application.displayIdentifier;
+        if ([displayId hasPrefix:@"com.bigboss.categories."] ||
+                [displayId hasPrefix:@"jp.ashikase.springjumps."]) {
+            // Is a category folder or a springjump, perform normal action
+            CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
+        } else {
+            // Not folder/jump; switch via Kirikae's method
+            [springBoard switchToAppWithDisplayIdentifier:displayId];
+        }
 
         // Hide Kirikae
         [springBoard dismissKirikae];
