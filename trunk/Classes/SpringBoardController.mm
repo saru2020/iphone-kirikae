@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 02:37:23
+ * Last-modified: 2009-12-20 03:43:01
  */
 
 /**
@@ -78,6 +78,16 @@
     view.backgroundColor = [UIColor blackColor];
     self.view = view;
     [view release];
+
+    // Set the background image
+    NSBundle *bundle = [NSBundle bundleWithPath:@"/Applications/Kirikae.app"];
+    UIImage *image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"springboard_background" ofType:@"png"]];
+    if (image) {
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+        imageView.frame = CGRectMake(0, 0, 320.0f, 480.0f);
+        [self.view addSubview:imageView];
+        [imageView release];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -87,11 +97,10 @@
     SBUIController *uiCont = [objc_getClass("SBUIController") sharedInstance];
     contentView = uiCont.contentView;
 
-    UIView *view = contentView.superview;
-    if (![view isMemberOfClass:objc_getClass("SBAppWindow")])
+    if (![contentView.superview isMemberOfClass:objc_getClass("SBAppWindow")])
         // Content view is inside a container view
         // NOTE: WinterBoard does this in order to add a background image
-        contentView = view;
+        contentViewHasWrapper = YES;
 
     // Get current icon list
     SBIconController *iconCont = [objc_getClass("SBIconController") sharedInstance];
@@ -127,9 +136,12 @@
     initialIconList = nil;
 
     // Readd content view to SpringBoard
-    contentView.frame =  CGRectMake(0, 0, 320.0f, 480.0f);
+    contentView.frame = CGRectMake(0, 0, 320.0f, 480.0f);
     UIWindow *appWindow = [[objc_getClass("SBUIController") sharedInstance] window];
-    [appWindow insertSubview:contentView atIndex:0];
+    if (contentViewHasWrapper)
+        [[[appWindow subviews] objectAtIndex:0] addSubview:contentView];
+    else
+        [appWindow insertSubview:contentView atIndex:0];
     contentView = nil;
 }
 
