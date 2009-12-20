@@ -1,3 +1,19 @@
+> # Version svn.r152
+> - - -
+> * NEW: SringBoard tab; can now access SpringBoard from any application.
+>    * Note that the tab bar will only partially hide so that both dock icons and tab can be accessed.
+>    * Icon editing (moving/deleting) are not supported due to technical limitations.
+>    * Like all other tabs, if Backgrounder is installed, the current application will be backgrounded upon switching to another app.
+>    * The tab allows for the use of a custom background image: /Applications/Kirikae.app/springboard_background.png
+>       * If the image is not present, the background will be black.
+>       * This is done to differentiate the Kirikae SpringBoard tab from normal SpringBoard.
+>       * The dock image is not themeable.
+> * FIX: Always show the statusbar while Kirikae is active.
+> * FIX: Fixed Spotbright support in Spotlight tab.
+> * MOD: Changed titles used for tabbar buttons (all English, sorry).
+
+- - -
+
 > # Version svn.r133
 > - - -
 > * NEW: Added "Use Large Rows" option; disable for new, smaller rows.

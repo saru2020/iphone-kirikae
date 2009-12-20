@@ -1,12 +1,10 @@
 > # Todo
 > ## (These *might* be implemented)
 > - - -
-> * Add option to show unthemed icons.
+> * Add option to select page to jump to when showing SpringBoard tab
 > * Add color options.
 > * Add ability to manually sort favorites.
-> * Add alternate view style (grid).
 > * Display process info (processor/memory usage).
-> * Make a proper icon.
 
 - - -
 
