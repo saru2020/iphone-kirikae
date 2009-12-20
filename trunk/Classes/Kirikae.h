@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 22:53:06
+ * Last-modified: 2009-12-21 00:55:01
  */
 
 /**
@@ -50,9 +50,15 @@
 
 //______________________________________________________________________________
 
+// FIXME: Find better way to reset Spotlight view height
+@interface KKTabBarController : UITabBarController
+@end
+
+//______________________________________________________________________________
+
 @interface KirikaeDisplay : SBAlertDisplay
 {
-    UITabBarController *tabBarController;
+    KKTabBarController *tabBarController;
     NSMutableArray *tabs;
 
     BOOL invoked;
@@ -61,7 +67,7 @@
     int currentStatusBarOrientation;
 }
 
-@property(nonatomic, readonly) UITabBarController *tabBarController;
+@property(nonatomic, readonly) KKTabBarController *tabBarController;
 @property(nonatomic, readonly, getter=isInvoked) BOOL invoked;
 
 

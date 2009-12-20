@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 15:19:02
+ * Last-modified: 2009-12-21 01:12:08
  */
 
 /**
@@ -47,6 +47,8 @@
 #import <SpringBoard/SBButtonBar.h>
 #import <SpringBoard/SBIconList.h>
 #import <SpringBoard/SBIconModel.h>
+#import <SpringBoard/SBSearchController.h>>
+#import <SpringBoard/SBSearchView.h>>
 #import <SpringBoard/SBUIController.h>
 
 #import "Kirikae.h"
@@ -120,6 +122,14 @@
 {
     [self.tabBarController setTabBarHidden:YES animate:YES];
     contentView.frame = CGRectMake(0, -20.0f, 320.0f, 480.0f);
+
+    // Resizing the wrapper view causes the Spotlight view to resize as well
+    // (by height +/- 49 pixels - the height of the tab bar); for some reason,
+    // switching from SpringBoard tab to Spotlight tab causes the Spotlight view
+    // to remain shrunken, and will continue to shrink with each unhide.
+    // FIXME: Find a better way to handle this
+    SBSearchView *searchView = [[objc_getClass("SBSearchController") sharedInstance] searchView];
+    searchView.frame = CGRectMake(0, 0, 320.0f, 350.0f);
 }
 
 - (void)viewWillDisappear:(BOOL)animated

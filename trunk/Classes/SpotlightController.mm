@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 22:48:23
+ * Last-modified: 2009-12-21 01:10:41
  */
 
 /**
@@ -104,6 +104,13 @@
     [self.view addSubview:searchView];
     [searchView setShowsSearchKeyWhenAnimatingKeyboard:YES];
     [searchView setShowsKeyboard:YES animated:YES];
+
+    // Resizing the wrapper view causes the Spotlight view to resize as well
+    // (by height +/- 49 pixels - the height of the tab bar); for some reason,
+    // switching from SpringBoard tab to Spotlight tab causes the Spotlight view
+    // to remain shrunken, and will continue to shrink with each unhide.
+    // FIXME: Find a better way to handle this
+    searchView.frame = CGRectMake(0, 0, 320.0f, 399.0f);
 }
 
 - (void)viewDidDisappear:(BOOL)animated

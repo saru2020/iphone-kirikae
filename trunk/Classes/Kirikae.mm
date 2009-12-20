@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 22:53:56
+ * Last-modified: 2009-12-21 01:15:11
  */
 
 /**
@@ -57,6 +57,8 @@
 - (id)_transitionView;
 @end
 
+//______________________________________________________________________________
+//______________________________________________________________________________
 
 @implementation UITabBarController (Kirikae)
 
@@ -90,22 +92,28 @@
     transitionView.frame = tranFrame;
     wrapperView.frame = wrapFrame;
 
-    // Resizing the wrapper view causes the Spotlight view to resize as well
-    // (by height +/- 49 pixels - the height of the tab bar); for some reason,
-    // switching from SpringBoard tab to Spotlight tab causes the Spotlight view
-    // to remain shrunken, and will continue to shrink with each unhide.
-    // FIXME: Find a better way to handle this
-    if (!hidden) {
-        SBSearchView *searchView = [[objc_getClass("SBSearchController") sharedInstance] searchView];
-        searchView.frame = CGRectMake(0, 0, 320.0f, 350.0f);
-    }
-
     // Show/hide the tabbar, optionally animated
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:(animate ? 0.2f : 0)];
     self.tabBar.transform = transform;
     self.tabBar.alpha = alpha;
     [UIView commitAnimations];
+}
+
+@end
+
+//______________________________________________________________________________
+//______________________________________________________________________________
+
+@implementation KKTabBarController
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+
+    // FIXME: Find a better way to handle this
+    SBSearchView *searchView = [[objc_getClass("SBSearchController") sharedInstance] searchView];
+    searchView.frame = CGRectMake(0, 0, 320.0f, 350.0f);
 }
 
 @end
@@ -174,8 +182,8 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
         }
 
         // Create and setup tab bar controller and view controllers
-        UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
-        tbCont = [[UITabBarController alloc] init];
+        KKTabBarController *&tbCont = MSHookIvar<KKTabBarController *>(self, "tabBarController");
+        tbCont = [[KKTabBarController alloc] init];
         NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
         tabs = [[NSMutableArray alloc] init];
 
@@ -260,15 +268,15 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
 METH(KirikaeDisplay, dealloc, void)
 {
     [MSHookIvar<NSMutableArray *>(self, "tabs") release];
-    [MSHookIvar<UITabBarController *>(self, "tabBarController") release];
+    [MSHookIvar<KKTabBarController *>(self, "tabBarController") release];
 
     objc_super $super = {self, objc_getClass("SBAlertDisplay")};
     self = objc_msgSendSuper(&$super, @selector(dealloc));
 }
 
-METH(KirikaeDisplay, tabBarController, UITabBarController *)
+METH(KirikaeDisplay, tabBarController, KKTabBarController *)
 {
-    return MSHookIvar<UITabBarController *>(self, "tabBarController");
+    return MSHookIvar<KKTabBarController *>(self, "tabBarController");
 }
 
 METH(KirikaeDisplay, isInvoked, BOOL)
@@ -338,7 +346,7 @@ METH(KirikaeDisplay, alertDidAnimateOut$finished$context$, void,
 {
     if (initialView == KKInitialViewLastUsed) {
         // Note which view is currently selected, save to preferences
-        UITabBarController *&tbCont = MSHookIvar<UITabBarController *>(self, "tabBarController");
+        KKTabBarController *&tbCont = MSHookIvar<KKTabBarController *>(self, "tabBarController");
         NSMutableArray *&tabs = MSHookIvar<NSMutableArray *>(self, "tabs");
         NSString *lastUsedView = [tabs objectAtIndex:tbCont.selectedIndex];
         CFPreferencesSetAppValue(CFSTR("lastUsedView"), (CFStringRef)lastUsedView, CFSTR(APP_ID));
