@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 14:22:49
+ * Last-modified: 2009-12-20 15:19:02
  */
 
 /**
@@ -82,8 +82,9 @@
     NSBundle *bundle = [NSBundle bundleWithPath:@"/Applications/Kirikae.app"];
     UIImage *image = [UIImage imageWithContentsOfFile:[bundle pathForResource:@"springboard_background" ofType:@"png"]];
     if (image) {
+        // NOTE: The image is shifted up by 20 pixels to account for statusbar
         UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-        imageView.frame = CGRectMake(0, 0, 320.0f, 480.0f);
+        imageView.frame = CGRectMake(0, -20.0f, 320.0f, 480.0f);
         [self.view addSubview:imageView];
         [imageView release];
     }
