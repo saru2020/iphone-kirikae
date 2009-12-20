@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 03:31:18
+ * Last-modified: 2009-12-20 14:01:39
  */
 
 /**
@@ -45,7 +45,6 @@
 {
     UIView *contentView;
 
-    SBIconList *initialIconList;
     BOOL wasScattered;
     BOOL contentViewHasWrapper;
 }

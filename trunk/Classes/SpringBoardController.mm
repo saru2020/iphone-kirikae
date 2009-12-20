@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 03:43:01
+ * Last-modified: 2009-12-20 14:22:49
  */
 
 /**
@@ -45,7 +45,6 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import <SpringBoard/SBButtonBar.h>
-#import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBIconList.h>
 #import <SpringBoard/SBIconModel.h>
 #import <SpringBoard/SBUIController.h>
@@ -102,12 +101,14 @@
         // NOTE: WinterBoard does this in order to add a background image
         contentViewHasWrapper = YES;
 
-    // Get current icon list
-    SBIconController *iconCont = [objc_getClass("SBIconController") sharedInstance];
-    initialIconList = [[iconCont currentIconList] retain];
-
-    // Check if list is currently scattered
-    wasScattered = [initialIconList isScattered];
+    // Use dock's alpha value as indicator of scatter status
+    // NOTE: Cannot use SBIconList, as only the current list will be
+    //       scattered; when the current view is the Spotlight page, no
+    //       list is scattered.
+    // FIXME: Would it be better to instead use topApplication == nil?
+    //       
+    SBButtonBar *dock = [[objc_getClass("SBIconModel") sharedInstance] buttonBar];
+    wasScattered = (dock.alpha == 0);
     if (wasScattered)
         [uiCont restoreIconList:NO];
 
@@ -130,10 +131,6 @@
     if (wasScattered)
         // Re-scatter the icons and dock
         [[objc_getClass("SBUIController") sharedInstance] scatterIconListAndBar:NO];
-
-    // Release the icon list
-    [initialIconList release];
-    initialIconList = nil;
 
     // Readd content view to SpringBoard
     contentView.frame = CGRectMake(0, 0, 320.0f, 480.0f);
