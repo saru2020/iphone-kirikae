@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 00:45:12
+ * Last-modified: 2009-12-20 22:53:56
  */
 
 /**
@@ -45,6 +45,7 @@
 //#import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBSearchController.h>
 #import <SpringBoard/SBSearchView.h>
+#import <SpringBoard/SBStatusBarController.h>
 
 #import "FavoritesController.h"
 #import "SpotlightController.h"
@@ -270,23 +271,20 @@ METH(KirikaeDisplay, tabBarController, UITabBarController *)
     return MSHookIvar<UITabBarController *>(self, "tabBarController");
 }
 
+METH(KirikaeDisplay, isInvoked, BOOL)
+{
+    return MSHookIvar<BOOL>(self, "invoked");
+}
+
 METH(KirikaeDisplay, alertDisplayWillBecomeVisible, void)
 {
 }
 
 METH(KirikaeDisplay, alertDisplayBecameVisible, void)
 {
-#if 0
-    // Task list displays a black status bar; save current status-bar settings
+    // Display a black status bar at top of (portrait) screen
     SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
-    int &currentStatusBarMode = MSHookIvar<int>(self, "currentStatusBarMode");
-    int &currentStatusBarOrientation = MSHookIvar<int>(self, "currentStatusBarOrientation");
-    currentStatusBarMode = [sbCont statusBarMode];
-    if (currentStatusBarMode != 2) {
-        currentStatusBarOrientation = [sbCont statusBarOrientation];
-        [sbCont setStatusBarMode:2 orientation:0 duration:0.4f animation:0];
-    }
-#endif
+    [sbCont setStatusBarMode:2 orientation:0 duration:0.2f animation:0];
 
     // FIXME: The proper method for animating an SBAlertDisplay is currently
     //        unknown; for now, the following method seems to work well enough
@@ -294,26 +292,36 @@ METH(KirikaeDisplay, alertDisplayBecameVisible, void)
     [self setFrame:[[UIScreen mainScreen] bounds]];
     [UIView commitAnimations];
 
+    // Mark Kirikae as being visible
+    BOOL &invoked = MSHookIvar<BOOL>(self, "invoked");
+    invoked = YES;
+
     // NOTE: There is no need to call the superclass's method, as its
     //       implementation does nothing
 }
 
 METH(KirikaeDisplay, dismiss, void)
 {
-#if 0
-    int &currentStatusBarMode = MSHookIvar<int>(self, "currentStatusBarMode");
-    if (currentStatusBarMode != 2) {
-        // Restore the previous status-bar mode
-        int &currentStatusBarOrientation = MSHookIvar<int>(self, "currentStatusBarOrientation");
-        SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
-        [sbCont setStatusBarMode:currentStatusBarMode orientation:currentStatusBarOrientation
-            duration:0.4f animation:0];
-    }
-#endif
+    // Mark Kirikae as no longer being invoked
+    BOOL &invoked = MSHookIvar<BOOL>(self, "invoked");
+    invoked = NO;
+
+    // Restore statusbar state
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    SBApplication *app = [springBoard topApplication];
+    SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
+    if (app != nil)
+        // Set statusbar to use mode/orientation specified by top application
+        [sbCont setStatusBarMode:[app statusBarMode] orientation:[app statusBarOrientation] duration:0.2f animation:0];
+    else
+        // No top application (is SpringBoard)
+        // NOTE: This is needed as closing an app with a white/gray bar takes
+        //       the bar with it, causing it to be hidden when returning to
+        //       SpringBoard.
+        [[sbCont statusBarWindow] setHidden:NO];
 
     // FIXME: The proper method for animating an SBAlertDisplay is currently
     //        unknown; for now, the following method seems to work well enough
-
     CGRect frame = [[UIScreen mainScreen] bounds];
     frame.origin.y += frame.size.height;
 
@@ -388,12 +396,15 @@ void initKirikae()
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($KirikaeDisplay, "tabBarController", size, align, "@");
     class_addIvar($KirikaeDisplay, "tabs", size, align, "@");
+    NSGetSizeAndAlignment("c", &size, &align);
+    class_addIvar($KirikaeDisplay, "invoked", size, align, "c");
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($KirikaeDisplay, "currentStatusBarMode", size, align, "i");
     class_addIvar($KirikaeDisplay, "currentStatusBarOrientation", size, align, "i");
     ADD_METH(KirikaeDisplay, initWithSize:, initWithSize$, "@@:{CGSize=ff}");
     ADD_METH(KirikaeDisplay, dealloc, dealloc, "v@:");
     ADD_METH(KirikaeDisplay, tabBarController, tabBarController, "@@:");
+    ADD_METH(KirikaeDisplay, isInvoked, isInvoked, "c@:");
     ADD_METH(KirikaeDisplay, alertDisplayWillBecomeVisible, alertDisplayWillBecomeVisible, "v@:");
     ADD_METH(KirikaeDisplay, alertDisplayBecameVisible, alertDisplayBecameVisible, "v@:");
     ADD_METH(KirikaeDisplay, dismiss, dismiss, "v@:");

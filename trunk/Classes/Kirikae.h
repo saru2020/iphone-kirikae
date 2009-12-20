@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 18:42:08
+ * Last-modified: 2009-12-20 22:53:06
  */
 
 /**
@@ -55,11 +55,15 @@
     UITabBarController *tabBarController;
     NSMutableArray *tabs;
 
+    BOOL invoked;
+
     int currentStatusBarMode;
     int currentStatusBarOrientation;
 }
 
 @property(nonatomic, readonly) UITabBarController *tabBarController;
+@property(nonatomic, readonly, getter=isInvoked) BOOL invoked;
+
 
 - (id)initWithSize:(CGSize)size;
 

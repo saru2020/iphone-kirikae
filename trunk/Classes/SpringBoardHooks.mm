@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-20 02:15:18
+ * Last-modified: 2009-12-20 22:54:29
  */
 
 /**
@@ -45,12 +45,13 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <QuartzCore/QuartzCore.h>
 
+#import <SpringBoard/SBAlertWindow.h>
 #import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationController.h>
-#import <SpringBoard/SBAlertItemsController.h>
 #import <SpringBoard/SBAwayController.h>
 #import <SpringBoard/SBIconController.h>
 #import <SpringBoard/SBIconModel.h>
+#import <SpringBoard/SBDisplay.h>
 #import <SpringBoard/SBDisplayStack.h>
 #import <SpringBoard/SBPowerDownController.h>
 #import <SpringBoard/SBSearchController.h>
@@ -68,7 +69,8 @@
 #import "SpringBoardController.h"
 
 
-//static BOOL animateStatusBar = YES;
+static Kirikae *kirikae = nil;
+
 static BOOL animationsEnabled = YES;
 
 typedef enum {
@@ -81,8 +83,6 @@ typedef enum {
 
 static KKInvocationMethod invocationMethod = KKInvocationMethodMenuDoubleTap;
 
-
-//static NSMutableDictionary *statusBarStates = nil;
 //static NSString *deactivatingApp = nil;
 
 static NSString *killedApp = nil;
@@ -141,27 +141,21 @@ HOOK(SBDisplayStack, dealloc, void)
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-#if 0
-HOOK(SBStatusBarController, setStatusBarMode$mode$orientation$duration$fenceID$animation$,
-    void, int mode, int orientation, float duration, int fenceID, int animation)
+HOOK(SBStatusBarController, setStatusBarMode$orientation$duration$fenceID$animation$startTime$, void,
+        int mode, int orientation, double duration, int fenceID, int animation, double startTime)
 {
-    if (!animateStatusBar) {
-        duration = 0;
-        // Reset the flag to default (animation enabled)
-        animateStatusBar = YES;
+    // Prevent modifcation of the statusbar while Kirikae is invoked
+    if (![(KirikaeDisplay *)[kirikae display] isInvoked]) {
+        CALL_ORIG(SBStatusBarController, setStatusBarMode$orientation$duration$fenceID$animation$startTime$,
+                mode, orientation, duration, fenceID, animation, startTime);
     }
-    CALL_ORIG(SBStatusBarController, setStatusBarMode$mode$orientation$duration$fenceID$animation$,
-            mode, orientation, duration, fenceID, animation);
 }
-
-#endif
 
 //______________________________________________________________________________
 //______________________________________________________________________________
 
 static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
-static Kirikae *kirikae = nil;
 
 static BOOL canInvoke()
 {
@@ -290,13 +284,6 @@ HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
 {
     // NOTE: SpringBoard creates four stacks at startup:
     displayStacks = [[NSMutableArray alloc] initWithCapacity:5];
-
-#if 0
-    // Create a dictionary to store the statusbar state for active apps
-    // FIXME: Determine a way to do this without requiring extra storage
-    statusBarStates = [[NSMutableDictionary alloc] initWithCapacity:5];
-#endif
-
     CALL_ORIG(SpringBoard, applicationDidFinishLaunching$, application);
 }
 
@@ -506,13 +493,7 @@ HOOK(SBUIController, animateLaunchApplication$, void, id app)
             [self showButtonBar:NO animate:NO action:NULL delegate:nil];
         }
 
-        // Prevent status bar from fading in
-        animateStatusBar = NO;
-
         // Launch without animation
-        NSArray *state = [statusBarStates objectForKey:[app displayIdentifier]];
-        [app setDisplaySetting:0x10 value:[state objectAtIndex:0]]; // statusBarMode
-        [app setDisplaySetting:0x20 value:[state objectAtIndex:1]]; // statusBarOrienation
         // FIXME: Originally Activating (and not Active)
         [SBWActiveDisplayStack pushDisplay:app];
     } else {
@@ -577,11 +558,6 @@ HOOK(SBApplication, exitedCommon, void)
 {
     // Inform Kirikae of application termination (Kirikae may be nil)
     [kirikae handleApplicationTermination:self.displayIdentifier];
-
-    // Remove status bar state data from states list
-    //NSString *identifier = self.displayIdentifier;
-    //[statusBarStates removeObjectForKey:identifier];
-
     CALL_ORIG(SBApplication, exitedCommon);
 }
 
@@ -595,14 +571,7 @@ HOOK(SBApplication, deactivate, BOOL)
         deactivatingApp = nil;
     }
 
-    // Store the status bar state of the current application
-    SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
-    NSNumber *mode = [NSNumber numberWithInt:[sbCont statusBarMode]];
-    NSNumber *orientation = [NSNumber numberWithInt:[sbCont statusBarOrientation]];
-    [statusBarStates setObject:[NSArray arrayWithObjects:mode, orientation, nil] forKey:identifier];
-
     return CALL_ORIG(SBApplication, deactivate);
-
 }
 #endif
 
@@ -759,11 +728,9 @@ void initSpringBoardHooks()
     LOAD_HOOK(SBDisplayStack, init, init);
     LOAD_HOOK(SBDisplayStack, dealloc, dealloc);
 
-#if 0
-    Class $SBStatusBarController = objc_getClass("SBStatusBarController");
-    LOAD_HOOK($SBStatusBarController, @selector(setStatusBarMode:orientation:duration:fenceID:animation:),
-        SBStatusBarController$setStatusBarMode$mode$orientation$duration$fenceID$animation$);
-#endif
+    GET_CLASS(SBStatusBarController);
+    LOAD_HOOK(SBStatusBarController, setStatusBarMode:orientation:duration:fenceID:animation:startTime:,
+            setStatusBarMode$orientation$duration$fenceID$animation$startTime$);
 
     GET_CLASS(SpringBoard);
     LOAD_HOOK(SpringBoard, applicationDidFinishLaunching:, applicationDidFinishLaunching$);
