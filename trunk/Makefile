@@ -18,9 +18,7 @@ LDFLAGS = -march=armv6 \
 		  -framework Foundation \
 		  -framework UIKit \
 		  -framework CoreGraphics \
-		  -framework QuartzCore \
 		  -F$(SYS_PATH)/System/Library/PrivateFrameworks \
-		  -framework GraphicsServices \
 		  -L$(MS_PATH) -lsubstrate \
 		  -lobjc
 
