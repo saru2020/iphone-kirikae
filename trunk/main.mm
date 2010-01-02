@@ -3,7 +3,7 @@
  * Type: iPhoneOS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-09 00:35:42
+ * Last-modified: 2009-12-25 01:33:43
  */
 
 /**
@@ -42,7 +42,7 @@
 
 extern void initSpringBoardHooks();
 
-extern "C" void KirikaeInitialize()
+__attribute__((constructor)) static void init()
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 

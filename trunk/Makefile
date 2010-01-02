@@ -47,7 +47,7 @@ install: $(NAME).dylib
 	ssh root@iphone restart
 
 $(NAME).dylib: config $(OBJS) $(HDRS)
-	$(LD) -dynamiclib $(LDFLAGS) $(OBJS) -init _$(NAME)Initialize -o $@
+	$(LD) -dynamiclib $(LDFLAGS) $(OBJS) -o $@
 	$(LDID) -S $@
 
 %.o: %.mm
