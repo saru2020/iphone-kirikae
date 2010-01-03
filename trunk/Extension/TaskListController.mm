@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 14:00:54
+ * Last-modified: 2010-01-03 23:16:10
  */
 
 /**
@@ -41,6 +41,8 @@
 
 
 #import "TaskListController.h"
+
+#import <substrate.h>
 
 #import <QuartzCore/CALayer.h>
 #import <SpringBoard/SBApplication.h>
@@ -117,11 +119,12 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     // Get foreground application
-    fgAppId = [[[(SpringBoard *)UIApp topApplication] displayIdentifier] copy];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    fgAppId = [[[springBoard topApplication] displayIdentifier] copy];
 
     // Get list of background applications
     bgAppIds = [[NSMutableArray alloc] init];
-    for (SBApplication *app in [(SpringBoard *)UIApp _accessibilityRunningApplications])
+    for (SBApplication *app in [springBoard _accessibilityRunningApplications])
         [bgAppIds addObject:app.displayIdentifier];
 
     // Do not show foreground application in list of background applications
@@ -130,12 +133,14 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
-    [[(SpringBoard *)UIApp kirikae] setDelegate:self];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    [[springBoard kirikae] setDelegate:self];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-    [[(SpringBoard *)UIApp kirikae] setDelegate:nil];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    [[springBoard kirikae] setDelegate:nil];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -323,7 +328,8 @@
 
     // Quit the selected application
     NSString *displayId = [self displayIdentifierAtIndexPath:indexPath];
-    [(SpringBoard *)UIApp quitAppWithDisplayIdentifier:displayId];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    [springBoard quitAppWithDisplayIdentifier:displayId];
 }
 
 #pragma mark - Kirikae delegate methods
@@ -333,7 +339,8 @@
     // Mark beginning of animations
     [self.tableView beginUpdates];
 
-    if ([displayId isEqualToString:[[(SpringBoard *)UIApp topApplication] displayIdentifier]]) {
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    if ([displayId isEqualToString:[[springBoard topApplication] displayIdentifier]]) {
         // New foreground application
         if (fgAppId != nil) {
             // Application replaced current foreground application

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 22:48:02
+ * Last-modified: 2010-01-03 23:13:44
  */
 
 /**
@@ -41,6 +41,8 @@
 
 
 #import "FavoritesController.h"
+
+#import <substrate.h>
 
 #import <QuartzCore/CALayer.h>
 #import <SpringBoard/SBApplication.h>
@@ -284,7 +286,8 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     // Switch to selected application
-    [(SpringBoard *)UIApp switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    [springBoard switchToAppWithDisplayIdentifier:[favorites objectAtIndex:indexPath.row]];
 }
 
 #pragma mark - Actions
@@ -292,7 +295,8 @@
 - (void)openPreferences:(id)sender
 {
     // Switch to the Kirikae preferences application
-    [(SpringBoard *)UIApp switchToAppWithDisplayIdentifier:@APP_ID];
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    [springBoard switchToAppWithDisplayIdentifier:@APP_ID];
 }
 
 @end

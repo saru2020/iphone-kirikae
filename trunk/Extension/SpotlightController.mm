@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-21 01:10:41
+ * Last-modified: 2010-01-03 23:14:03
  */
 
 /**
@@ -41,6 +41,8 @@
 
 
 #import "SpotlightController.h"
+
+#import <substrate.h>
 
 #import <QuartzCore/QuartzCore.h>
 
