@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-02 16:57:44
+ * Last-modified: 2010-01-03 23:12:07
  */
 
 /**
@@ -42,8 +42,6 @@
 
 #import "SpringBoardHooks.h"
 
-#import "common.h"
-
 #import <CoreFoundation/CoreFoundation.h>
 #import <QuartzCore/QuartzCore.h>
 
@@ -62,6 +60,9 @@
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SBVoiceControlAlert.h>
 #import <SpringBoard/SpringBoard.h>
+
+@interface UIKeyboard : UIView
+@end
 
 @interface SPSearchResult : NSObject
 @property(assign, nonatomic) int domain;
@@ -89,8 +90,7 @@ static KKInvocationMethod invocationMethod = KKInvocationMethodMenuDoubleTap;
 
 static NSString *killedApp = nil;
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+//==============================================================================
 
 static void loadPreferences()
 {
@@ -116,8 +116,7 @@ static void loadPreferences()
     }
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+//==============================================================================
 
 NSMutableArray *displayStacks = nil;
 
@@ -127,34 +126,24 @@ NSMutableArray *displayStacks = nil;
 #define SBWSuspendingDisplayStack         [displayStacks objectAtIndex:2]
 #define SBWSuspendedEventOnlyDisplayStack [displayStacks objectAtIndex:3]
 
-HOOK(SBDisplayStack, init, id)
+%hook SBDisplayStack
+
+- (id)init
 {
-    id stack = CALL_ORIG(SBDisplayStack, init);
+    id stack = %orig;
     [displayStacks addObject:stack];
     return stack;
 }
 
-HOOK(SBDisplayStack, dealloc, void)
+- (void)dealloc
 {
     [displayStacks removeObject:self];
-    CALL_ORIG(SBDisplayStack, dealloc);
+    %orig;
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
-HOOK(SBStatusBarController, setStatusBarMode$orientation$duration$fenceID$animation$startTime$, void,
-        int mode, int orientation, double duration, int fenceID, int animation, double startTime)
-{
-    // Prevent modifcation of the statusbar while Kirikae is invoked
-    if (![(KirikaeDisplay *)[kirikae display] isInvoked]) {
-        CALL_ORIG(SBStatusBarController, setStatusBarMode$orientation$duration$fenceID$animation$startTime$,
-                mode, orientation, duration, fenceID, animation, startTime);
-    }
-}
-
-//______________________________________________________________________________
-//______________________________________________________________________________
+//==============================================================================
 
 static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
@@ -190,49 +179,9 @@ static void cancelInvocationTimer()
     invocationTimer = nil;
 }
 
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
-HOOK(SpringBoard, _setMenuButtonTimer$, void, id timer)
-{
-    if (timer)
-        startInvocationTimer();
-    else if (!invocationTimerDidFire)
-        cancelInvocationTimer();
+%hook SpringBoard
 
-    CALL_ORIG(SpringBoard, _setMenuButtonTimer$, timer);
-}
-
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-HOOK(SpringBoard, lockButtonDown$, void, GSEventRef event)
-{
-    startInvocationTimer();
-    CALL_ORIG(SpringBoard, lockButtonDown$, event);
-}
-
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-HOOK(SpringBoard, lockButtonUp$, void, GSEventRef event)
-{
-    if (!invocationTimerDidFire) {
-        cancelInvocationTimer();
-
-        if (kirikae != nil)
-            // Kirikae is invoked; dismiss
-            [self dismissKirikae];
-        else
-            return CALL_ORIG(SpringBoard, lockButtonUp$, event);
-    }
-
-    // Reset the lock button state
-    [self _unsetLockButtonBearTrap];
-    [self _setLockButtonTimer:nil];
-}
-
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
-HOOK(SpringBoard, allowMenuDoubleTap, BOOL)
-{
-    return YES;
-}
-
-HOOK(SpringBoard, handleMenuDoubleTap, void)
+- (void)handleMenuDoubleTap
 {
     if (kirikae != nil) {
         // Kirikae is invoked; dismiss and perform normal behaviour
@@ -247,10 +196,10 @@ HOOK(SpringBoard, handleMenuDoubleTap, void)
         // Fall-through
     }
 
-    CALL_ORIG(SpringBoard, handleMenuDoubleTap);
+    %orig;
 }
 
-HOOK(SpringBoard, _handleMenuButtonEvent, void)
+- (void)_handleMenuButtonEvent
 {
     if (kirikae != nil) {
         // Kirikae is invoked
@@ -270,38 +219,33 @@ HOOK(SpringBoard, _handleMenuButtonEvent, void)
             unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
             _menuButtonClickCount = 0x8000;
         } else {
-            CALL_ORIG(SpringBoard, _handleMenuButtonEvent);
+            %orig;
         }
     }
 }
 
-// NOTE: Only hooked when animationsEnabled == NO
-HOOK(SpringBoard, frontDisplayDidChange, void)
-{
-    [self dismissKirikae];
-    CALL_ORIG(SpringBoard, frontDisplayDidChange);
-}
-
-HOOK(SpringBoard, applicationDidFinishLaunching$, void, id application)
+- (void)applicationDidFinishLaunching:(UIApplication *)application
 {
     // NOTE: SpringBoard creates four stacks at startup:
-    displayStacks = [[NSMutableArray alloc] initWithCapacity:5];
-    CALL_ORIG(SpringBoard, applicationDidFinishLaunching$, application);
+    displayStacks = [[NSMutableArray alloc] initWithCapacity:4];
+    %orig;
 }
 
-HOOK(SpringBoard, dealloc, void)
+- (void)dealloc
 {
     [killedApp release];
     [displayStacks release];
-    CALL_ORIG(SpringBoard, dealloc);
+    %orig;
 }
 
-METH(SpringBoard, kirikae, Kirikae *)
+%new(@@:)
+- (Kirikae *)kirikae
 {
     return kirikae;
 }
 
-METH(SpringBoard, invokeKirikae, void)
+%new(v@:)
+- (void)invokeKirikae
 {
     if (kirikae != nil)
         // Kirikae is already invoked
@@ -322,7 +266,8 @@ METH(SpringBoard, invokeKirikae, void)
     [kirikae activate];
 }
 
-METH(SpringBoard, dismissKirikae, void)
+%new(v@:)
+- (void)dismissKirikae
 {
     // FIXME: If feedback types other than simple and task-menu are added,
     //        this method will need to be updated
@@ -333,7 +278,8 @@ METH(SpringBoard, dismissKirikae, void)
     kirikae = nil;
 }
 
-METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
+%new(v@:@)
+- (void)switchToAppWithDisplayIdentifier:(NSString *)identifier
 {
     BOOL switchingToSpringBoard = [identifier isEqualToString:@"com.apple.springboard"];
 
@@ -411,7 +357,8 @@ METH(SpringBoard, switchToAppWithDisplayIdentifier$, void, NSString *identifier)
         [self dismissKirikae];
 }
 
-METH(SpringBoard, quitAppWithDisplayIdentifier$, void, NSString *identifier)
+%new(v@:@)
+- (void)quitAppWithDisplayIdentifier:(NSString *)identifier
 {
     if ([identifier isEqualToString:@"com.apple.springboard"]) {
         // Is SpringBoard
@@ -459,31 +406,80 @@ METH(SpringBoard, quitAppWithDisplayIdentifier$, void, NSString *identifier)
     }
 }
 
-METH(SpringBoard, topApplication, SBApplication *)
+%new(@@:)
+- (SBApplication *)topApplication
 {
     return [SBWActiveDisplayStack topApplication];
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
-// NOTE: Only hooked when showSpringBoard == YES
-HOOK(SBIconController, launchIcon$, void, SBIcon *icon)
+//==============================================================================
+
+%hook SBApplication
+
+- (void)activate
 {
-    if (kirikae != nil)
-        // NOTE: Normally launch will not be called if another application is active
-        //       (as technically SpringBoard shouldn't be accessible in such case).
-        [icon launch];
-    else
-        CALL_ORIG(SBIconController, launchIcon$, icon);
+    // NOTE: This method gets called on both initial launch and when resumed
+    //       from background.
+    %orig;
+
+    // Inform Kirikae of application activation (Kirikae may be nil)
+    [kirikae handleApplicationActivation:self.displayIdentifier];
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+#if 0
+- (void)exitedAbnormally
+{
+    if (animationsEnabled && ![self isSystemApplication])
+        [[NSFileManager defaultManager] removeItemAtPath:[self defaultImage:"Default"] error:nil];
+
+    %orig;
+}
+#endif
+
+- (void)exitedCommon
+{
+    // Inform Kirikae of application termination (Kirikae may be nil)
+    [kirikae handleApplicationTermination:self.displayIdentifier];
+    %orig;
+}
 
 #if 0
+- (void)deactivate
+{
+    NSString *identifier = [self displayIdentifier];
+    if ([identifier isEqualToString:deactivatingApp]) {
+        [[objc_getClass("SpringBoard") sharedApplication] dismissKirikae];
+        [deactivatingApp release];
+        deactivatingApp = nil;
+    }
+
+    orig;
+}
+#endif
+
+#if 0
+// NOTE: Only hooked when animationsEnabled == YES
+- (id)pathForDefaultImage:(char *)def
+{
+    return ([self isSystemApplication] || ![activeApps containsObject:[self displayIdentifier]]) ?
+        %orig :
+        [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/%@-Default.jpg",
+            [[self seatbeltProfilePath] stringByDeletingPathExtension], [self bundleIdentifier]];
+}
+#endif
+
+%end
+
+//==============================================================================
+
+#if 0
+
+%hook SBUIController
+
 // NOTE: Only hooked when animationsEnabled == NO
-HOOK(SBUIController, animateLaunchApplication$, void, id app)
+- (void)animateLaunchApplication:(SBApplication *)app
 {
     if ([app pid] != -1) {
         // Application is backgrounded
@@ -500,13 +496,129 @@ HOOK(SBUIController, animateLaunchApplication$, void, id app)
         [SBWActiveDisplayStack pushDisplay:app];
     } else {
         // Normal launch
-        CALL_ORIG(SBUIController, animateLaunchApplication$, app);
+        %orig;
     }
 }
+
+%end
+
 #endif
 
+//==============================================================================
+
+%hook SBStatusBarController
+
+- (void)setStatusBarMode:(int)mode orientation:(int)orientation duration:(double)duration
+    fenceID:(int)fenceID animation:(int)animation startTime:(double)startTime
+{
+    // Prevent modifcation of the statusbar while Kirikae is invoked
+    if (![(KirikaeDisplay *)[kirikae display] isInvoked])
+        %orig;
+}
+
+%end
+
+//==============================================================================
+
+%group GNoAnimation
+// NOTE: Only hooked when animationsEnabled == NO
+
+%hook SpringBoard
+
+- (void)frontDisplayDidChange
+{
+    [self dismissKirikae];
+    %orig;
+}
+
+%end
+
+%end // GNoAnimation
+
+//==============================================================================
+
+%group GFirmware30x
+// NOTE: Only hooked for firmware < 3.1
+
+%hook SBApplication
+
+- (void)_relaunchAfterAbnormalExit:(BOOL)flag
+{
+    if ([[self displayIdentifier] isEqualToString:killedApp]) {
+        // We killed this app; do not let it relaunch
+        [killedApp release];
+        killedApp = nil;
+    } else {
+        %orig;
+    }
+}
+
+%end
+
+%end // GFirmware30x
+
+%group GFirmware31x
+// NOTE: Only hooked for firmware >= 3.1
+
+%hook SBApplication
+
+- (void)_relaunchAfterExit
+{
+    if ([[self displayIdentifier] isEqualToString:killedApp]) {
+        // We killed this app; do not let it relaunch
+        [killedApp release];
+        killedApp = nil;
+    } else {
+        %orig;
+    }
+}
+
+%end
+
+%end // GFirmware31x
+
+//==============================================================================
+
+%group GSpringBoardTab
+// NOTE: Only hooked when showSpringBoard == YES
+
+%hook SBIconController
+
+- (void)launchIcon:(SBIcon *)icon
+{
+    if (kirikae != nil)
+        // NOTE: Normally launch will not be called if another application is active
+        //       (as technically SpringBoard shouldn't be accessible in such case).
+        [icon launch];
+    else
+        %orig;
+}
+
+%end
+
+%hook SBIcon
+
+- (void)grabTimerFired
+{
+    // Don't allow icons to be grabbed in the SpringBoard tab
+    // NOTE: This is because the 'grabbed-icon' view is drawn on a different
+    //       layer, and does not appear properly on the SpringBoard tab.
+    if (kirikae == nil)
+        %orig;
+}
+
+%end
+
+%end // GSpringBoardTab
+
+//==============================================================================
+
+%group GSpotSpringTabs
 // NOTE: Only hooked when showSpotlight == YES or showSpringBoard == YES
-HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *application)
+
+%hook SBUIController
+
+- (void)activateApplicationAnimated:(SBApplication *)application
 {
     if (kirikae != nil) {
         SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
@@ -515,7 +627,7 @@ HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *applicat
         if ([displayId hasPrefix:@"com.bigboss.categories."] ||
                 [displayId hasPrefix:@"jp.ashikase.springjumps."]) {
             // Is a category folder or a springjump, perform normal action
-            CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
+            %orig;
 
             UITabBarController *tbCont = [(KirikaeDisplay *)kirikae.display tabBarController];
             if ([tbCont.selectedViewController isMemberOfClass:[SpringBoardController class]])
@@ -529,94 +641,15 @@ HOOK(SBUIController, activateApplicationAnimated$, void, SBApplication *applicat
         // Hide Kirikae
         [springBoard dismissKirikae];
     } else {
-        CALL_ORIG(SBUIController, activateApplicationAnimated$, application);
+        %orig;
     }
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
-HOOK(SBApplication, activate, void)
-{
-    // NOTE: This gets called on both initial launch and when resumed
-    //       from background.
-    CALL_ORIG(SBApplication, activate);
+%hook SBSearchController
 
-    // Inform Kirikae of application activation (Kirikae may be nil)
-    [kirikae handleApplicationActivation:self.displayIdentifier];
-}
-
-#if 0
-HOOK(SBApplication, exitedAbnormally, void)
-{
-    if (animationsEnabled && ![self isSystemApplication])
-        [[NSFileManager defaultManager] removeItemAtPath:[self defaultImage:"Default"] error:nil];
-
-    CALL_ORIG(SBApplication, exitedAbnormally);
-}
-#endif
-
-HOOK(SBApplication, exitedCommon, void)
-{
-    // Inform Kirikae of application termination (Kirikae may be nil)
-    [kirikae handleApplicationTermination:self.displayIdentifier];
-    CALL_ORIG(SBApplication, exitedCommon);
-}
-
-#if 0
-HOOK(SBApplication, deactivate, BOOL)
-{
-    NSString *identifier = [self displayIdentifier];
-    if ([identifier isEqualToString:deactivatingApp]) {
-        [[objc_getClass("SpringBoard") sharedApplication] dismissKirikae];
-        [deactivatingApp release];
-        deactivatingApp = nil;
-    }
-
-    return CALL_ORIG(SBApplication, deactivate);
-}
-#endif
-
-// NOTE: Only hooked for firmware < 3.1
-HOOK(SBApplication, _relaunchAfterAbnormalExit$, void, BOOL flag)
-{
-    if ([[self displayIdentifier] isEqualToString:killedApp]) {
-        // We killed this app; do not let it relaunch
-        [killedApp release];
-        killedApp = nil;
-    } else {
-        CALL_ORIG(SBApplication, _relaunchAfterAbnormalExit$, flag);
-    }
-}
-
-// NOTE: Only hooked for firmware >= 3.1
-HOOK(SBApplication, _relaunchAfterExit, void)
-{
-    if ([[self displayIdentifier] isEqualToString:killedApp]) {
-        // We killed this app; do not let it relaunch
-        [killedApp release];
-        killedApp = nil;
-    } else {
-        CALL_ORIG(SBApplication, _relaunchAfterExit);
-    }
-}
-
-#if 0
-// NOTE: Only hooked when animationsEnabled == YES
-HOOK(SBApplication, pathForDefaultImage$, id, char *def)
-{
-    return ([self isSystemApplication] || ![activeApps containsObject:[self displayIdentifier]]) ?
-        CALL_ORIG(SBApplication, pathForDefaultImage$, def) :
-        [NSString stringWithFormat:@"%@/Library/Caches/Snapshots/%@-Default.jpg",
-            [[self seatbeltProfilePath] stringByDeletingPathExtension], [self bundleIdentifier]];
-}
-#endif
-
-//______________________________________________________________________________
-//______________________________________________________________________________
-
-// NOTE: Only hooked when showSpotlight == YES or showSpringBoard == YES
-HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSearchResult *result, NSString *displayId)
+- (id)_launchingURLForResult:(SPSearchResult *)result withDisplayIdentifier:(NSString *)displayId
 {
     id ret = nil;
 
@@ -635,7 +668,7 @@ HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSe
         }
 
         // Call the original implementation to launch the selected item
-        ret = CALL_ORIG(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, result, displayId);
+        ret = %orig;
     }
 
     // Hide Kirikae
@@ -644,25 +677,11 @@ HOOK(SBSearchController, _launchingURLForResult$withDisplayIdentifier$, id, SPSe
     return ret;
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
-HOOK(SBIcon, grabTimerFired, void)
-{
-    // Don't allow icons to be grabbed in the SpringBoard tab
-    // NOTE: This is because the 'grabbed-icon' view is drawn on a different
-    //       layer, and does not appear properly on the SpringBoard tab.
-    if (kirikae == nil)
-        CALL_ORIG(SBIcon, grabTimerFired);
-}
+%hook SBSearchView
 
-//______________________________________________________________________________
-//______________________________________________________________________________
-
-@interface UIKeyboard : UIView
-@end
-
-HOOK(SBSearchView, setShowsKeyboard$animated$, void, BOOL show, BOOL animated)
+- (void)setShowsKeyboard:(BOOL)show animated:(BOOL)animated
 {
     if (kirikae != nil) {
         if (show && !self.isKeyboardVisible) {
@@ -677,12 +696,12 @@ HOOK(SBSearchView, setShowsKeyboard$animated$, void, BOOL show, BOOL animated)
         }
     }
 
-    CALL_ORIG(SBSearchView, setShowsKeyboard$animated$, show, animated);
+    %orig;
 }
 
-HOOK(SBSearchView, keyboardAnimationDidStop$finished$context$, void, id animation, id finished, void *context)
+- (void)keyboardAnimationDidStop:(id)animation finished:(id)finished context:(void *)context
 {
-    CALL_ORIG(SBSearchView, keyboardAnimationDidStop$finished$context$, animation, finished, context);
+    %orig;
 
     // NOTE: Failing to remove animations causes normal Spotlight animation to fail
     // NOTE: Do this even if kirikae == nil, as Kirikae may have disappeared
@@ -692,13 +711,33 @@ HOOK(SBSearchView, keyboardAnimationDidStop$finished$context$, void, id animatio
     [keyboard.layer removeAllAnimations];
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
+%end // GSpotSpringTabs
+
+//==============================================================================
+
+%group GHomeHold
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
-HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, BOOL)
+
+%hook SpringBoard
+
+- (void)_setMenuButtonTimer:(id)timer
 {
-    BOOL flag = CALL_ORIG(SBVoiceControlAlert, shouldEnterVoiceControl);
+    if (timer)
+        startInvocationTimer();
+    else if (!invocationTimerDidFire)
+        cancelInvocationTimer();
+    %orig;
+}
+
+%end
+
+%hook SBVoiceControlAlert
+
+- (BOOL)shouldEnterVoiceControl
+{
+    BOOL flag = %orig;
     if (flag) {
         // Voice Control will appear; dismiss Kirikae
         SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
@@ -707,61 +746,99 @@ HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, BOOL)
     return flag;
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
 
+%end // GHomeHold
+
+//==============================================================================
+
+%group GHomeDoubleTap
+// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
+
+%hook SpringBoard
+
+- (BOOL)allowMenuDoubleTap
+{
+    return YES;
+}
+
+%end
+
+%end // GHomeDoubleTap
+
+//==============================================================================
+
+%group GLockHold
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-HOOK(SBPowerDownController, activate, void)
+
+%hook SpringBoard
+
+- (void)lockButtonDown:(GSEventRef)event
+{
+    startInvocationTimer();
+    %orig;
+}
+
+- (void)lockButtonUp:(GSEventRef)event
+{
+    if (!invocationTimerDidFire) {
+        cancelInvocationTimer();
+
+        if (kirikae != nil)
+            // Kirikae is invoked; dismiss
+            [self dismissKirikae];
+        else
+            return %orig;
+    }
+
+    // Reset the lock button state
+    [self _unsetLockButtonBearTrap];
+    [self _setLockButtonTimer:nil];
+}
+
+%end
+
+%hook SBPowerDownController
+
+- (void)activate
 {
     // Power-off screen will appear; dismiss Kirikae
     SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
     [springBoard dismissKirikae];
-    CALL_ORIG(SBPowerDownController, activate);
+
+    %orig;
 }
 
-//______________________________________________________________________________
-//______________________________________________________________________________
+%end
+
+%end // GLockHold
+
+//==============================================================================
 
 void initSpringBoardHooks()
 {
     loadPreferences();
 
-    GET_CLASS(SBDisplayStack);
-    LOAD_HOOK(SBDisplayStack, init, init);
-    LOAD_HOOK(SBDisplayStack, dealloc, dealloc);
+    $SBApplication = objc_getClass("SBApplication");
+    $SBDisplayStack = objc_getClass("SBDisplayStack");
+    $SBIcon = objc_getClass("SBIcon");
+    $SBIconController = objc_getClass("SBIconController");
+    $SBPowerDownController = objc_getClass("SBPowerDownController");
+    $SBSearchController = objc_getClass("SBSearchController");
+    $SBSearchView = objc_getClass("SBSearchView");
+    $SBStatusBarController = objc_getClass("SBStatusBarController");
+    $SBUIController = objc_getClass("SBUIController");
+    $SBVoiceControlAlert = objc_getClass("SBVoiceControlAlert");
+    $SpringBoard = objc_getClass("SpringBoard");
 
-    GET_CLASS(SBStatusBarController);
-    LOAD_HOOK(SBStatusBarController, setStatusBarMode:orientation:duration:fenceID:animation:startTime:,
-            setStatusBarMode$orientation$duration$fenceID$animation$startTime$);
-
-    GET_CLASS(SpringBoard);
-    LOAD_HOOK(SpringBoard, applicationDidFinishLaunching:, applicationDidFinishLaunching$);
-    LOAD_HOOK(SpringBoard, dealloc, dealloc);
-    LOAD_HOOK(SpringBoard, handleMenuDoubleTap, handleMenuDoubleTap);
-    LOAD_HOOK(SpringBoard, _handleMenuButtonEvent, _handleMenuButtonEvent);
     if (!animationsEnabled)
-        LOAD_HOOK(SpringBoard, frontDisplayDidChange, frontDisplayDidChange);
-    ADD_METH(SpringBoard, kirikae, kirikae, "@@:");
-    ADD_METH(SpringBoard, invokeKirikae, invokeKirikae, "v@:");
-    ADD_METH(SpringBoard, dismissKirikae, dismissKirikae, "v@:");
-    ADD_METH(SpringBoard, switchToAppWithDisplayIdentifier:, switchToAppWithDisplayIdentifier$, "v@:@");
-    ADD_METH(SpringBoard, quitAppWithDisplayIdentifier:, quitAppWithDisplayIdentifier$, "v@:@");
-    ADD_METH(SpringBoard, topApplication, topApplication, "@@:");
-
-    GET_CLASS(SBApplication);
-    LOAD_HOOK(SBApplication, activate, activate);
-
-#if 0
-    LOAD_HOOK(SBApplication, deactivate, deactivate);
-    LOAD_HOOK(SBApplication, exitedAbnormally, exitedAbnormally);
-#endif
-    LOAD_HOOK(SBApplication, exitedCommon, exitedCommon);
+        %init(GNoAnimation);
 
     // NOTE: This method name changed from 3.0(.1) -> 3.1
     if ([[[UIDevice currentDevice] systemVersion] hasPrefix:@"3.0"])
-        LOAD_HOOK(SBApplication, _relaunchAfterAbnormalExit:, _relaunchAfterAbnormalExit$);
+        %init(GFirmware30x);
     else
-        LOAD_HOOK(SBApplication, _relaunchAfterExit, _relaunchAfterExit);
+        %init(GFirmware31x);
 
 #if 0
     LOAD_HOOK(SBApplication, pathForDefaultImage:, pathForDefaultImage$);
@@ -783,26 +860,11 @@ void initSpringBoardHooks()
         CFRelease(propList);
     }
 
-    if (showSpotlight || showSpringBoard) {
-        // Spotlight and/or SpringBoard tab is enabled; set necessary hooks
-        GET_CLASS(SBUIController);
-        LOAD_HOOK(SBUIController, activateApplicationAnimated:, activateApplicationAnimated$);
+    if (showSpotlight || showSpringBoard)
+        %init(GSpotSpringTabs);
 
-        GET_CLASS(SBSearchController);
-        LOAD_HOOK(SBSearchController, _launchingURLForResult:withDisplayIdentifier:, _launchingURLForResult$withDisplayIdentifier$);
-
-        GET_CLASS(SBSearchView);
-        LOAD_HOOK(SBSearchView, setShowsKeyboard:animated:, setShowsKeyboard$animated$);
-        LOAD_HOOK(SBSearchView, keyboardAnimationDidStop:finished:context:, keyboardAnimationDidStop$finished$context$);
-    }
-
-    if (showSpringBoard) {
-        GET_CLASS(SBIconController);
-        LOAD_HOOK(SBIconController, launchIcon:, launchIcon$);
-
-        GET_CLASS(SBIcon);
-        LOAD_HOOK(SBIcon, grabTimerFired, grabTimerFired);
-    }
+    if (showSpringBoard)
+        %init(GSpringBoardTab);
 #if 0
     if (!animationsEnabled)
         LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
@@ -810,27 +872,21 @@ void initSpringBoardHooks()
 
     switch (invocationMethod) {
         case KKInvocationMethodMenuDoubleTap:
-            LOAD_HOOK(SpringBoard, allowMenuDoubleTap, allowMenuDoubleTap);
+            %init(GHomeDoubleTap);
             break;
         case KKInvocationMethodMenuShortHold:
-            LOAD_HOOK(SpringBoard, _setMenuButtonTimer:, _setMenuButtonTimer$);
-            {
-                GET_CLASS(SBVoiceControlAlert);
-                LOAD_HOOK(SBVoiceControlAlert, shouldEnterVoiceControl, shouldEnterVoiceControl);
-            }
+            %init(GHomeHold);
             break;
         case KKInvocationMethodLockShortHold:
-            LOAD_HOOK(SpringBoard, lockButtonDown:, lockButtonDown$);
-            LOAD_HOOK(SpringBoard, lockButtonUp:, lockButtonUp$);
-            {
-                GET_CLASS(SBPowerDownController);
-                LOAD_HOOK(SBPowerDownController, activate, activate);
-            }
+            %init(GLockHold);
             break;
         case KKInvocationMethodNone:
         default:
             break;
     }
+
+    // Initialize non-grouped hooks
+    %init;
 
     // Initialize Kirikae* classes
     initKirikae();
