@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-16 01:21:20
+ * Last-modified: 2010-02-12 17:52:33
  */
 
 /**
@@ -90,6 +90,10 @@ static KKInvocationMethod invocationMethod = KKInvocationMethodMenuDoubleTap;
 //static NSString *deactivatingApp = nil;
 
 static NSString *killedApp = nil;
+
+// FIXME: Find a better way to prevent dismissal when quitting an application
+//        (when animations are disabled)
+static BOOL shouldDismiss = NO;
 
 //==============================================================================
 
@@ -359,6 +363,11 @@ static void cancelInvocationTimer()
     if (animationsEnabled)
         // Hide the task menu
         [self dismissKirikae];
+    else
+        // NOTE: With animations off, wait until other app appears before
+        //       dismissing. This is to avoid an ugly flash between old
+        //       and new app.
+        shouldDismiss = YES;
 }
 
 %new(v@:@)
@@ -550,7 +559,10 @@ static void cancelInvocationTimer()
 
 - (void)frontDisplayDidChange
 {
-    [self dismissKirikae];
+    if (shouldDismiss) {
+        [self dismissKirikae];
+        shouldDismiss = NO;
+    }
     %orig;
 }
 
