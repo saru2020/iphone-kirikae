@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-14 23:54:36
+ * Last-modified: 2010-01-15 00:18:25
  */
 
 /**
@@ -154,6 +154,7 @@ static BOOL canInvoke()
     SBAwayController *awayCont = [objc_getClass("SBAwayController") sharedAwayController];
     return !([awayCont isLocked]
             || [awayCont isMakingEmergencyCall]
+            || [[objc_getClass("SBIconController") sharedInstance] isEditing]
             || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
 }
 
