@@ -1,45 +1,20 @@
-EXE = KirikaePrefs
-VERSION = 1.0
+APPLICATION_NAME = Preferences
+Preferences_BUNDLE_NAME = Kirikae
+Preferences_CFLAGS = -std=gnu99 -DMAX_PAGES=9
+Preferences_OBJC_FILES = main.m \
+						 AppearanceController.m \
+						 ApplicationCell.m \
+						 Application.m \
+						 ControlController.m \
+						 DocumentationController.m \
+						 FavoritesController.m \
+						 GeneralController.m \
+						 HtmlDocController.m \
+						 Preferences.m \
+						 RootController.m \
+						 ToggleButton.m
+Preferences_FRAMEWORKS = UIKit CoreGraphics
+Preferences_PRIVATE_FRAMEWORKS = SpringBoardServices
 
-CODESIGN = /opt/iPhone/ldid -S
-
-# These paths must be changed to match the compilation environment
-SYS_PATH = /opt/iPhone/sys
-CC = arm-apple-darwin9-gcc
-CFLAGS = -march=armv6 -mcpu=arm1176jzf-s -Wall -Os -ObjC -std=gnu99
-LD = $(CC)
-LDFLAGS = -march=armv6 \
-		  -mcpu=arm1176jzf-s \
-		  -bind_at_load \
-		  -multiply_defined suppress \
-          -framework CoreFoundation \
-		  -framework Foundation \
-          -framework CoreGraphics \
-          -framework UIKit \
-		  -F$(SYS_PATH)/System/Library/PrivateFrameworks \
-		  -framework SpringBoardServices \
-          -lobjc
-
-INCLUDES = -F$(SYS_PATH)/System/Library/PrivateFrameworks \
-		   -I./Classes
-
-SUBDIRS    = . Classes
-
-DIRLIST    := $(SUBDIRS:%=%)
-SRCS       := $(foreach dir,$(DIRLIST), $(wildcard $(dir)/*.m))
-HDRS       := $(foreach dir,$(DIRLIST), $(wildcard $(dir)/*.h))
-OBJS       := $(SRCS:.m=.o)
-
-all: $(EXE)
-
-$(EXE): $(OBJS) $(HDRS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
-	$(CODESIGN) $(EXE)
-
-%.o: %.m
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) $< -o $@
-	   
-clean:
-	rm -f $(OBJS) $(EXE)
-
-.PHONY: all clean
+include ../framework/makefiles/common.mk
+include ../framework/makefiles/application.mk
