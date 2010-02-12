@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-03 23:12:07
+ * Last-modified: 2010-01-11 20:27:27
  */
 
 /**
@@ -818,18 +818,6 @@ static void cancelInvocationTimer()
 void initSpringBoardHooks()
 {
     loadPreferences();
-
-    $SBApplication = objc_getClass("SBApplication");
-    $SBDisplayStack = objc_getClass("SBDisplayStack");
-    $SBIcon = objc_getClass("SBIcon");
-    $SBIconController = objc_getClass("SBIconController");
-    $SBPowerDownController = objc_getClass("SBPowerDownController");
-    $SBSearchController = objc_getClass("SBSearchController");
-    $SBSearchView = objc_getClass("SBSearchView");
-    $SBStatusBarController = objc_getClass("SBStatusBarController");
-    $SBUIController = objc_getClass("SBUIController");
-    $SBVoiceControlAlert = objc_getClass("SBVoiceControlAlert");
-    $SpringBoard = objc_getClass("SpringBoard");
 
     if (!animationsEnabled)
         %init(GNoAnimation);
