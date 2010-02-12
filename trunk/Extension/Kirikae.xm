@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-02 16:57:06
+ * Last-modified: 2010-01-05 00:45:54
  */
 
 /**
@@ -138,8 +138,10 @@ static BOOL showFavorites = YES;
 static BOOL showSpotlight = NO;
 static BOOL showSpringBoard = NO;
 
+%hook KirikaeDisplay
 
-METH(KirikaeDisplay, initWithSize$, id, CGSize size)
+%new(@@:{CGSize=ff})
+- (id)initWithSize:(CGSize)size
 {
     CGRect rect = CGRectMake(0, 0, size.width, size.height);
 
@@ -267,7 +269,8 @@ METH(KirikaeDisplay, initWithSize$, id, CGSize size)
     return self;
 }
 
-METH(KirikaeDisplay, dealloc, void)
+%new(v@:)
+- (void)dealloc
 {
     [MSHookIvar<NSMutableArray *>(self, "tabs") release];
     [MSHookIvar<KKTabBarController *>(self, "tabBarController") release];
@@ -276,21 +279,20 @@ METH(KirikaeDisplay, dealloc, void)
     self = objc_msgSendSuper(&$super, @selector(dealloc));
 }
 
-METH(KirikaeDisplay, tabBarController, KKTabBarController *)
+%new(@@:)
+- (KKTabBarController *)tabBarController
 {
     return MSHookIvar<KKTabBarController *>(self, "tabBarController");
 }
 
-METH(KirikaeDisplay, isInvoked, BOOL)
+%new(c@:)
+- (BOOL)isInvoked
 {
     return MSHookIvar<BOOL>(self, "invoked");
 }
 
-METH(KirikaeDisplay, alertDisplayWillBecomeVisible, void)
-{
-}
-
-METH(KirikaeDisplay, alertDisplayBecameVisible, void)
+%new(v@:)
+- (void)alertDisplayBecameVisible
 {
     // Display a black status bar at top of (portrait) screen
     SBStatusBarController *sbCont = [objc_getClass("SBStatusBarController") sharedStatusBarController];
@@ -310,7 +312,8 @@ METH(KirikaeDisplay, alertDisplayBecameVisible, void)
     //       implementation does nothing
 }
 
-METH(KirikaeDisplay, dismiss, void)
+%new(v@:)
+- (void)dismiss
 {
     // Mark Kirikae as no longer being invoked
     BOOL &invoked = MSHookIvar<BOOL>(self, "invoked");
@@ -343,8 +346,8 @@ METH(KirikaeDisplay, dismiss, void)
     [UIView commitAnimations];
 }
 
-METH(KirikaeDisplay, alertDidAnimateOut$finished$context$, void, 
-    NSString *animationID, NSNumber *finished, void *context)
+%new(v@:@@^v)
+- (void)alertDidAnimateOut:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     if (initialView == KKInitialViewLastUsed) {
         // Note which view is currently selected, save to preferences
@@ -362,47 +365,59 @@ METH(KirikaeDisplay, alertDidAnimateOut$finished$context$, void,
     [[self alert] deactivate];
 }
 
+%end
+
 //______________________________________________________________________________
 //______________________________________________________________________________
 
-METH(Kirikae, alertDisplayViewWithSize$, id, CGSize size)
+%hook Kirikae
+
+%new(@@:{CGSize=ff})
+- (id)alertDisplayViewWithSize:(CGSize)size
 {
     return [[[objc_getClass("KirikaeDisplay") alloc] initWithSize:size] autorelease];
 }
 
-METH(Kirikae, delegate, id)
+%new(@@:)
+- (id)delegate
 {
     return MSHookIvar<id>(self, "delegate");
 }
 
-METH(Kirikae, setDelegate$, void, id delegate_)
+%new(v@:@)
+- (void)setDelegate:(id)delegate_
 {
     id &delegate = MSHookIvar<id>(self, "delegate");
     delegate = delegate_;
 }
 
-METH(Kirikae, handleApplicationActivation$, void, NSString *displayId)
+%new(v@:@)
+- (void)handleApplicationActivation:(NSString *)displayId
 {
     id &delegate = MSHookIvar<id>(self, "delegate");
     if ([delegate respondsToSelector:@selector(kirikae:applicationDidActivate:)])
         [delegate kirikae:self applicationDidActivate:displayId];
 }
 
-METH(Kirikae, handleApplicationTermination$, void, NSString *displayId)
+%new(v@:@)
+- (void)handleApplicationTermination:(NSString *)displayId
 {
     id &delegate = MSHookIvar<id>(self, "delegate");
     if ([delegate respondsToSelector:@selector(kirikae:applicationDidTerminate:)])
         [delegate kirikae:self applicationDidTerminate:displayId];
 }
 
+%end
+
 //______________________________________________________________________________
 //______________________________________________________________________________
 
 void initKirikae()
 {
+    unsigned int size, align;
+
     // Create custom alert-display class
     Class $KirikaeDisplay = objc_allocateClassPair(objc_getClass("SBAlertDisplay"), "KirikaeDisplay", 0);
-    unsigned int size, align;
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($KirikaeDisplay, "tabBarController", size, align, "@");
     class_addIvar($KirikaeDisplay, "tabs", size, align, "@");
@@ -411,26 +426,15 @@ void initKirikae()
     NSGetSizeAndAlignment("i", &size, &align);
     class_addIvar($KirikaeDisplay, "currentStatusBarMode", size, align, "i");
     class_addIvar($KirikaeDisplay, "currentStatusBarOrientation", size, align, "i");
-    ADD_METH(KirikaeDisplay, initWithSize:, initWithSize$, "@@:{CGSize=ff}");
-    ADD_METH(KirikaeDisplay, dealloc, dealloc, "v@:");
-    ADD_METH(KirikaeDisplay, tabBarController, tabBarController, "@@:");
-    ADD_METH(KirikaeDisplay, isInvoked, isInvoked, "c@:");
-    ADD_METH(KirikaeDisplay, alertDisplayWillBecomeVisible, alertDisplayWillBecomeVisible, "v@:");
-    ADD_METH(KirikaeDisplay, alertDisplayBecameVisible, alertDisplayBecameVisible, "v@:");
-    ADD_METH(KirikaeDisplay, dismiss, dismiss, "v@:");
-    ADD_METH(KirikaeDisplay, alertDidAnimateOut:finished:context:, alertDidAnimateOut$finished$context$, "v@:@@^v");
     objc_registerClassPair($KirikaeDisplay);
 
     // Create custom alert class
     Class $Kirikae = objc_allocateClassPair(objc_getClass("SBAlert"), "Kirikae", 0);
     NSGetSizeAndAlignment("@", &size, &align);
     class_addIvar($Kirikae, "delegate", size, align, "@");
-    ADD_METH(Kirikae, alertDisplayViewWithSize:, alertDisplayViewWithSize$, "@@:{CGSize=ff}");
-    ADD_METH(Kirikae, delegate, delegate, "@@:");
-    ADD_METH(Kirikae, setDelegate:, setDelegate$, "v@:@");
-    ADD_METH(Kirikae, handleApplicationActivation:,  handleApplicationActivation$, "v@:@");
-    ADD_METH(Kirikae, handleApplicationTermination:,  handleApplicationTermination$, "v@:@");
     objc_registerClassPair($Kirikae);
+
+    %init;
 }
 
 /* vim: set syntax=objcpp sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */
