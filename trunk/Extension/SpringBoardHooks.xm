@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-15 00:18:25
+ * Last-modified: 2010-01-16 01:21:20
  */
 
 /**
@@ -56,6 +56,7 @@
 #import <SpringBoard/SBPowerDownController.h>
 #import <SpringBoard/SBSearchController.h>
 #import <SpringBoard/SBSearchView.h>
+#import <SpringBoard/SBStatusBar.h>
 #import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBUIController.h>
 #import <SpringBoard/SBVoiceControlAlert.h>
@@ -517,6 +518,25 @@ static void cancelInvocationTimer()
     // Prevent modifcation of the statusbar while Kirikae is invoked
     if (![(KirikaeDisplay *)[kirikae display] isInvoked])
         %orig;
+}
+
+%end
+
+//==============================================================================
+
+%hook SBStatusWindow
+
+- (void)orderOut:(id)unknown
+{
+    if ([(KirikaeDisplay *)[kirikae display] isInvoked])
+        // Prevent the black statusbar from being hidden while Kirikae is invoked
+        for (id view in [[[self subviews] lastObject] subviews])
+            // NOTE: It's probably not necessary to check orientation
+            if ([view isMemberOfClass:[objc_getClass("SBStatusBar") class]] &&
+               [view mode] == 2 && [view orientation] == 0) 
+               return;
+
+    %orig;
 }
 
 %end
