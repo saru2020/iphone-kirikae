@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 02:18:56
+ * Last-modified: 2010-01-15 00:07:49
  */
 
 /**
@@ -48,6 +48,7 @@
 
 #import "Constants.h"
 #import "Preferences.h"
+#import "ToggleButton.h"
 
 
 @implementation AppearanceController
@@ -90,17 +91,7 @@
         cell.accessoryView = toggle;
         [toggle release];
 
-        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(0, 0, 54.0f, 27.0f);
-        button.font = [UIFont boldSystemFontOfSize:17.0f];
-        [button setBackgroundImage:[[UIImage imageNamed:@"toggle_off.png"]
-            stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateNormal];
-        [button setBackgroundImage:[[UIImage imageNamed:@"toggle_on.png"]
-            stretchableImageWithLeftCapWidth:5.0f topCapHeight:0] forState:UIControlStateSelected];
-        [button setTitle:@"OFF" forState:UIControlStateNormal];
-        [button setTitle:@"ON" forState:UIControlStateSelected];
-        [button setTitleColor:[UIColor colorWithWhite:0.5f alpha:1.0f] forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+        ToggleButton *button = [ToggleButton button];
         [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
         cell.accessoryView = button;
     }
