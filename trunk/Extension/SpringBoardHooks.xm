@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-11 20:27:27
+ * Last-modified: 2010-01-14 23:54:36
  */
 
 /**
@@ -151,7 +151,9 @@ static BOOL invocationTimerDidFire = NO;
 static BOOL canInvoke()
 {
     // Should not invoke if either lock screen or power-off screen is active
-    return !([[objc_getClass("SBAwayController") sharedAwayController] isLocked]
+    SBAwayController *awayCont = [objc_getClass("SBAwayController") sharedAwayController];
+    return !([awayCont isLocked]
+            || [awayCont isMakingEmergencyCall]
             || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
 }
 
