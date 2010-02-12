@@ -1,3 +1,12 @@
+> # Version svn.r170
+> - - -
+> * FIX: Prevent invocation from emergency call screen
+> * FIX: Prevent invocation while editing icons
+> * FIX: Prevent status bar from disappearing when closing certain apps
+> * FIX: Prevent dismissal of Kirikae when quitting an app (when "Animate switching" is disabled)
+
+- - -
+
 > # Version svn.r152
 > - - -
 > * NEW: SringBoard tab; can now access SpringBoard from any application.
