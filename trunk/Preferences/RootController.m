@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-30 01:33:31
+ * Last-modified: 2010-02-15 00:53:43
  */
 
 /**
@@ -44,8 +44,10 @@
 
 #include <stdlib.h>
 
-#import <CoreGraphics/CGGeometry.h>
+#import <objc/runtime.h>
+#import <libactivator/libactivator.h>
 
+#import <CoreGraphics/CGGeometry.h>
 #import <Foundation/Foundation.h>
 
 #import "AppearanceController.h"
@@ -57,6 +59,39 @@
 #import "FavoritesController.h"
 #import "Preferences.h"
 
+//==============================================================================
+
+@interface KirikaeSettingsViewController : LAListenerSettingsViewController
+{
+}
+@end
+
+@implementation KirikaeSettingsViewController
+
+- (id)init
+{
+    self = [super init];
+    if (self) {
+        // FIXME: Currently "Home Button - Single Press" is hidden; must
+        //        manually add it to the list of options
+ 
+        // Get list of all events (private variable)
+        NSMutableDictionary *_events = nil;
+        object_getInstanceVariable(self, "_events", (void **)&_events);
+
+        // Get name of group containing "Single Press"
+        NSString *group = [[LAActivator sharedInstance]
+            localizedGroupForEventName:LAEventNameMenuPressSingle];
+
+        // Add "Single Press" to list of allowed events
+        [[_events objectForKey:group] addObject:LAEventNameMenuPressSingle];
+    }
+    return self;
+}
+
+@end
+
+//==============================================================================
 
 @implementation RootController
 
@@ -132,21 +167,35 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdSimple = @"SimpleCell";
+    static NSString *reuseIdRightValue = @"RightValueCell";
     static NSString *reuseIdSubtitle = @"SubtitleCell";
 
     UITableViewCell *cell = nil;
     if (indexPath.section == 0) {
-        static NSString *cellTitles[] = {@"General", @"Appearance", @"Control", @"Favorites"};
+        if (indexPath.row == 2) {
+            // Try to retrieve from the table view a now-unused cell with the given identifier
+            cell = [tableView dequeueReusableCellWithIdentifier:reuseIdRightValue];
+            if (cell == nil) {
+                // Cell does not exist, create a new one
+                cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdRightValue] autorelease];
+                cell.selectionStyle = UITableViewCellSelectionStyleGray;
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            }
+            cell.textLabel.text = @"Control";
+            cell.detailTextLabel.text = @"(via libactivator)";
+        } else {
+            static NSString *cellTitles[] = {@"General", @"Appearance", nil, @"Favorites"};
 
-        // Try to retrieve from the table view a now-unused cell with the given identifier
-        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
-        if (cell == nil) {
-            // Cell does not exist, create a new one
-            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
-            cell.selectionStyle = UITableViewCellSelectionStyleGray;
-            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            // Try to retrieve from the table view a now-unused cell with the given identifier
+            cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
+            if (cell == nil) {
+                // Cell does not exist, create a new one
+                cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
+                cell.selectionStyle = UITableViewCellSelectionStyleGray;
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            }
+            cell.textLabel.text = cellTitles[indexPath.row];
         }
-        cell.textLabel.text = cellTitles[indexPath.row];
     } else {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSubtitle];
@@ -156,9 +205,9 @@
             cell.selectionStyle = UITableViewCellSelectionStyleGray;
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
-        cell.textLabel.text = @"Documentation";
-        cell.detailTextLabel.text = @"Usage, Issues, Todo, etc.";
-    }
+            cell.textLabel.text = @"Documentation";
+            cell.detailTextLabel.text = @"Usage, Issues, Todo, etc.";
+        }
 
     return cell;
 }
@@ -181,7 +230,8 @@
                 break;
             case 2:
                 // Control
-                vc = [[[ControlController alloc] initWithStyle:1] autorelease];
+                vc = [[[KirikaeSettingsViewController alloc] init] autorelease];
+                [(KirikaeSettingsViewController *)vc setListenerName:@APP_ID];
                 break;
             case 3:
             default:
