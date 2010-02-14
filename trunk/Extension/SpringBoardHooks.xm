@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-12 17:52:33
+ * Last-modified: 2010-02-13 12:01:29
  */
 
 /**
@@ -70,6 +70,7 @@
 @end
 
 #import "Kirikae.h"
+#import "KirikaeActivator.h"
 #import "SpringBoardController.h"
 
 
@@ -150,7 +151,7 @@ NSMutableArray *displayStacks = nil;
 
 //==============================================================================
 
-static NSTimer *invocationTimer = nil;
+//static NSTimer *invocationTimer = nil;
 static BOOL invocationTimerDidFire = NO;
 
 static BOOL canInvoke()
@@ -163,6 +164,7 @@ static BOOL canInvoke()
             || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
 }
 
+#if 0
 static void startInvocationTimer()
 {
     // FIXME: If already invoked, should not set timer... right? (needs thought)
@@ -186,9 +188,11 @@ static void cancelInvocationTimer()
     [invocationTimer release];
     invocationTimer = nil;
 }
+#endif
 
 %hook SpringBoard
 
+#if 0
 - (void)handleMenuDoubleTap
 {
     if (kirikae != nil) {
@@ -206,6 +210,7 @@ static void cancelInvocationTimer()
 
     %orig;
 }
+#endif
 
 - (void)_handleMenuButtonEvent
 {
@@ -234,9 +239,14 @@ static void cancelInvocationTimer()
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
-    // NOTE: SpringBoard creates four stacks at startup:
+    // NOTE: SpringBoard creates four stacks at startup
+    // NOTE: Must create array before calling original implementation
     displayStacks = [[NSMutableArray alloc] initWithCapacity:4];
+
     %orig;
+
+    // Create the libactivator event listener
+    [KirikaeActivator load];
 }
 
 - (void)dealloc
@@ -752,6 +762,7 @@ static void cancelInvocationTimer()
 
 //==============================================================================
 
+#if 0
 %group GHomeHold
 // NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
 
@@ -847,6 +858,7 @@ static void cancelInvocationTimer()
 %end
 
 %end // GLockHold
+#endif
 
 //==============================================================================
 
@@ -893,6 +905,7 @@ void initSpringBoardHooks()
         LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
 #endif
 
+#if 0
     switch (invocationMethod) {
         case KKInvocationMethodMenuDoubleTap:
             %init(GHomeDoubleTap);
@@ -907,6 +920,7 @@ void initSpringBoardHooks()
         default:
             break;
     }
+#endif
 
     // Initialize non-grouped hooks
     %init;
