@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-13 12:01:29
+ * Last-modified: 2010-02-15 00:41:17
  */
 
 /**
@@ -86,7 +86,7 @@ typedef enum {
     KKInvocationMethodLockShortHold
 } KKInvocationMethod;
 
-static KKInvocationMethod invocationMethod = KKInvocationMethodMenuDoubleTap;
+static KKInvocationMethod invocationMethod = KKInvocationMethodNone;
 
 //static NSString *deactivatingApp = nil;
 
@@ -100,6 +100,7 @@ static BOOL shouldDismiss = NO;
 
 static void loadPreferences()
 {
+    // Animate switching
     CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("animationsEnabled"), CFSTR(APP_ID));
     if (propList) {
         if (CFGetTypeID(propList) == CFBooleanGetTypeID())
@@ -107,18 +108,27 @@ static void loadPreferences()
         CFRelease(propList);
     }
 
+    // Invocation type
+    // NOTE: This setting is from pre-libactivator; convert and remove
     propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
     if (propList) {
-        // NOTE: Defaults to KKInvocationMethodMenuDoubleTap
+        NSString *eventName = nil;
         if ([(NSString *)propList isEqualToString:@"homeSingleTap"])
-            invocationMethod = KKInvocationMethodMenuSingleTap;
+            eventName = LAEventNameMenuPressSingle;
+        else if ([(NSString *)propList isEqualToString:@"homeDoubleTap"])
+            eventName = LAEventNameMenuPressDouble;
         else if ([(NSString *)propList isEqualToString:@"homeShortHold"])
-            invocationMethod = KKInvocationMethodMenuShortHold;
+            eventName = LAEventNameMenuHoldShort;
         else if ([(NSString *)propList isEqualToString:@"powerShortHold"])
-            invocationMethod = KKInvocationMethodLockShortHold;
-        else if ([(NSString *)propList isEqualToString:@"none"])
-            invocationMethod = KKInvocationMethodNone;
+            eventName = LAEventNameLockHoldShort;
         CFRelease(propList);
+
+        // Register the event type with libactivator
+        [[LAActivator sharedInstance] assignEvent:[LAEvent eventWithName:eventName] toListenerWithName:@APP_ID];
+
+        // Remove the preference, as it is no longer used
+        CFPreferencesSetAppValue(CFSTR("invocationMethod"), NULL, CFSTR(APP_ID));
+        CFPreferencesAppSynchronize(CFSTR(APP_ID));
     }
 }
 
@@ -244,9 +254,6 @@ static void cancelInvocationTimer()
     displayStacks = [[NSMutableArray alloc] initWithCapacity:4];
 
     %orig;
-
-    // Create the libactivator event listener
-    [KirikaeActivator load];
 }
 
 - (void)dealloc
@@ -849,8 +856,8 @@ static void cancelInvocationTimer()
 - (void)activate
 {
     // Power-off screen will appear; dismiss Kirikae
-    SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-    [springBoard dismissKirikae];
+            SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+            [springBoard dismissKirikae];
 
     %orig;
 }
@@ -865,6 +872,9 @@ static void cancelInvocationTimer()
 void initSpringBoardHooks()
 {
     loadPreferences();
+
+    // Create the libactivator event listener
+    [KirikaeActivator load];
 
     if (!animationsEnabled)
         %init(GNoAnimation);
