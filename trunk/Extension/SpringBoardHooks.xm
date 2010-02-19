@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-19 17:09:21
+ * Last-modified: 2010-02-19 17:33:46
  */
 
 /**
@@ -151,9 +151,6 @@ NSMutableArray *displayStacks = nil;
 
 //==============================================================================
 
-//static NSTimer *invocationTimer = nil;
-static BOOL invocationTimerDidFire = NO;
-
 static BOOL canInvoke()
 {
     // Should not invoke if either lock screen or power-off screen is active
@@ -164,53 +161,7 @@ static BOOL canInvoke()
             || [[objc_getClass("SBPowerDownController") sharedInstance] isOrderedFront]);
 }
 
-#if 0
-static void startInvocationTimer()
-{
-    // FIXME: If already invoked, should not set timer... right? (needs thought)
-    if (canInvoke()) {
-        invocationTimerDidFire = NO;
-
-        if (kirikae == nil) {
-            // Kirikae is not invoked; setup toggle-delay timer
-            SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-            invocationTimer = [[NSTimer scheduledTimerWithTimeInterval:0.7f
-                target:springBoard selector:@selector(invokeKirikae)
-                userInfo:nil repeats:NO] retain];
-        }
-    }
-}
-
-static void cancelInvocationTimer()
-{
-    // Disable and release timer (may be nil)
-    [invocationTimer invalidate];
-    [invocationTimer release];
-    invocationTimer = nil;
-}
-#endif
-
 %hook SpringBoard
-
-#if 0
-- (void)handleMenuDoubleTap
-{
-    if (kirikae != nil) {
-        // Kirikae is invoked; dismiss and perform normal behaviour
-        [self dismissKirikae];
-    } else {
-        // Kirikae not invoked
-        if (invocationMethod == KKInvocationMethodMenuDoubleTap && canInvoke()) {
-            // Invoke and return
-            [self invokeKirikae];
-            return;
-        }
-        // Fall-through
-    }
-
-    %orig;
-}
-#endif
 
 - (void)_handleMenuButtonEvent
 {
@@ -257,15 +208,10 @@ static void cancelInvocationTimer()
         return;
 
     if (!canInvoke())
-        // Lock screen or power-off screen is visible
-        // NOTE: This is only necessary here for invocationMethod ==
-        //       KKInvocationMethodNone, as canInvoke() is already called
-        //       earlier for all other methods.
+        // Currently in a state where invocation is prohibited
         return;
 
-    // NOTE: Only used by KKInvocationMethodMenuShortHold and KKInvocationMethodLockShortHold
-    invocationTimerDidFire = YES;
-
+    // Create and show Kirikae view
     kirikae = [[objc_getClass("Kirikae") alloc] init];
     [kirikae activate];
 }
