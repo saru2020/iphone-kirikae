@@ -1,3 +1,10 @@
+> # Version svn.r179
+> - - -
+> * NEW: Activator support; all control is now handled via Ryan Petrich's libactivator.
+> * MOD: The lock/power button will always dismiss Kirikae, regardless of activation method.
+
+- - -
+
 > # Version svn.r170
 > - - -
 > * FIX: Prevent invocation from emergency call screen

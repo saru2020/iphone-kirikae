@@ -10,5 +10,4 @@
 > # To quit an active/backgrounded application:
 > - - -
 > 1. Invoke Kirikae using the method chosen in preferences (default is double-tap home button).
-> 1. Swipe the application that you wish to quit.
-> 1. Tap the quit button that appears.
+> 1. Tap the "x" button next to the application that you wish to quit.
