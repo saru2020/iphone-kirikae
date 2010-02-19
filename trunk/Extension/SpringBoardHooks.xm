@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-19 17:33:46
+ * Last-modified: 2010-02-19 23:38:43
  */
 
 /**
@@ -728,6 +728,9 @@ void initSpringBoardHooks()
     loadPreferences();
 
     // Create the libactivator event listener
+    // NOTE: must load this *after* loading preferences, or else default
+    //       invocation method may mistakenly be set when another pre-Activator
+    //       method is already enabled.
     [KirikaeActivator load];
 
     if (!animationsEnabled)

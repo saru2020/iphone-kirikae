@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-13 11:49:02
+ * Last-modified: 2010-02-19 23:36:39
  */
 
 /**
@@ -49,10 +49,16 @@
  
 + (void)load
 {
-    static KirikaeActivator *activator = nil;
-    if (activator == nil) {
-        activator = [[KirikaeActivator alloc] init];
-	    [[LAActivator sharedInstance] registerListener:activator forName:@APP_ID];
+    static KirikaeActivator *listener = nil;
+    if (listener == nil) {
+        LAActivator *activator = [LAActivator sharedInstance];
+        if (![activator hasSeenListenerWithName:@APP_ID])
+            // Kirikae has never been assigned an invocation method; set the default
+            [activator assignEvent:[LAEvent eventWithName:LAEventNameMenuPressDouble] toListenerWithName:@APP_ID];
+
+        // Create Kirikae's event listener and register it with libactivator
+        listener = [[KirikaeActivator alloc] init];
+	    [activator registerListener:listener forName:@APP_ID];
     }
 }
  
