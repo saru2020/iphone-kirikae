@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-15 00:41:17
+ * Last-modified: 2010-02-19 17:09:21
  */
 
 /**
@@ -77,16 +77,6 @@
 static Kirikae *kirikae = nil;
 
 static BOOL animationsEnabled = YES;
-
-typedef enum {
-    KKInvocationMethodNone,
-    KKInvocationMethodMenuSingleTap,
-    KKInvocationMethodMenuDoubleTap,
-    KKInvocationMethodMenuShortHold,
-    KKInvocationMethodLockShortHold
-} KKInvocationMethod;
-
-static KKInvocationMethod invocationMethod = KKInvocationMethodNone;
 
 //static NSString *deactivatingApp = nil;
 
@@ -225,25 +215,14 @@ static void cancelInvocationTimer()
 - (void)_handleMenuButtonEvent
 {
     if (kirikae != nil) {
-        // Kirikae is invoked
-        // FIXME: with short hold, the task menu may have just been invoked...
-        if (invocationMethod != KKInvocationMethodMenuShortHold || invocationTimerDidFire == NO)
-            // Hide and destroy the task menu
-            [self dismissKirikae];
+        // Kirikae is invoked; hide and destroy
+        [self dismissKirikae];
 
         // NOTE: _handleMenuButtonEvent is responsible for resetting the home tap count
         unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
         _menuButtonClickCount = 0x8000;
     } else {
-        if (invocationMethod == KKInvocationMethodMenuSingleTap && canInvoke()) {
-            [self invokeKirikae];
-
-            // NOTE: _handleMenuButtonEvent is responsible for resetting the home tap count
-            unsigned int &_menuButtonClickCount = MSHookIvar<unsigned int>(self, "_menuButtonClickCount");
-            _menuButtonClickCount = 0x8000;
-        } else {
-            %orig;
-        }
+        %orig;
     }
 }
 
@@ -504,10 +483,22 @@ static void cancelInvocationTimer()
 
 //==============================================================================
 
-#if 0
-
 %hook SBUIController
 
+- (void)lock:(BOOL)shouldLock
+{
+    if (shouldLock) {
+        if (kirikae != nil) {
+            SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+            [springBoard dismissKirikae];
+            return;
+        }
+    }
+
+    %orig;
+}
+
+#if 0
 // NOTE: Only hooked when animationsEnabled == NO
 - (void)animateLaunchApplication:(SBApplication *)app
 {
@@ -530,9 +521,26 @@ static void cancelInvocationTimer()
     }
 }
 
+#endif
+
 %end
 
-#endif
+//==============================================================================
+
+%hook SBVoiceControlAlert
+
++ (BOOL)shouldEnterVoiceControl
+{
+    BOOL flag = %orig;
+    if (flag) {
+        // Voice Control will appear; dismiss Kirikae
+        SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
+        [springBoard dismissKirikae];
+    }
+    return flag;
+}
+
+%end
 
 //==============================================================================
 
@@ -769,106 +777,6 @@ static void cancelInvocationTimer()
 
 //==============================================================================
 
-#if 0
-%group GHomeHold
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuShortHold
-
-%hook SpringBoard
-
-- (void)_setMenuButtonTimer:(id)timer
-{
-    if (timer)
-        startInvocationTimer();
-    else if (!invocationTimerDidFire)
-        cancelInvocationTimer();
-    %orig;
-}
-
-%end
-
-%hook SBVoiceControlAlert
-
-- (BOOL)shouldEnterVoiceControl
-{
-    BOOL flag = %orig;
-    if (flag) {
-        // Voice Control will appear; dismiss Kirikae
-        SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-        [springBoard dismissKirikae];
-    }
-    return flag;
-}
-
-%end
-
-%end // GHomeHold
-
-//==============================================================================
-
-%group GHomeDoubleTap
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodMenuDoubleTap
-
-%hook SpringBoard
-
-- (BOOL)allowMenuDoubleTap
-{
-    return YES;
-}
-
-%end
-
-%end // GHomeDoubleTap
-
-//==============================================================================
-
-%group GLockHold
-// NOTE: Only hooked when invocationMethod == KKInvocationMethodLockShortHold
-
-%hook SpringBoard
-
-- (void)lockButtonDown:(GSEventRef)event
-{
-    startInvocationTimer();
-    %orig;
-}
-
-- (void)lockButtonUp:(GSEventRef)event
-{
-    if (!invocationTimerDidFire) {
-        cancelInvocationTimer();
-
-        if (kirikae != nil)
-            // Kirikae is invoked; dismiss
-            [self dismissKirikae];
-        else
-            return %orig;
-    }
-
-    // Reset the lock button state
-    [self _unsetLockButtonBearTrap];
-    [self _setLockButtonTimer:nil];
-}
-
-%end
-
-%hook SBPowerDownController
-
-- (void)activate
-{
-    // Power-off screen will appear; dismiss Kirikae
-            SpringBoard *springBoard = (SpringBoard *)[objc_getClass("SpringBoard") sharedApplication];
-            [springBoard dismissKirikae];
-
-    %orig;
-}
-
-%end
-
-%end // GLockHold
-#endif
-
-//==============================================================================
-
 void initSpringBoardHooks()
 {
     loadPreferences();
@@ -913,23 +821,6 @@ void initSpringBoardHooks()
 #if 0
     if (!animationsEnabled)
         LOAD_HOOK($SBUIController, @selector(animateLaunchApplication:), SBUIController$animateLaunchApplication$);
-#endif
-
-#if 0
-    switch (invocationMethod) {
-        case KKInvocationMethodMenuDoubleTap:
-            %init(GHomeDoubleTap);
-            break;
-        case KKInvocationMethodMenuShortHold:
-            %init(GHomeHold);
-            break;
-        case KKInvocationMethodLockShortHold:
-            %init(GLockHold);
-            break;
-        case KKInvocationMethodNone:
-        default:
-            break;
-    }
 #endif
 
     // Initialize non-grouped hooks
