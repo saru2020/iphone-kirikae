@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:53:17
+ * Last-modified: 2010-02-25 01:20:32
  */
 
 /**
@@ -42,6 +42,7 @@
 
 @interface TabsController : UITableViewController
 {
+    NSArray *tabNames;
 }
 
 @end

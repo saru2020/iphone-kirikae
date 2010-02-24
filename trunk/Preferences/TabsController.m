@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:53:10
+ * Last-modified: 2010-02-25 01:22:37
  */
 
 /**
@@ -55,8 +55,16 @@
     self = [super initWithStyle:style];
     if (self) {
         self.title = @"Tabs";
+        tabNames = [[NSArray alloc] initWithObjects:
+            @"active", @"favorites", @"spotlight", @"springboard", @"lastUsed", nil];
     }
     return self;
+}
+
+- (void)dealloc
+{
+    [tabNames release];
+    [super dealloc];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -123,7 +131,8 @@
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         } else {
             cell.textLabel.text = cellTitles[indexPath.row];
-            cell.accessoryType = ([[Preferences sharedInstance] integerForKey:kInitialView] == indexPath.row) ?
+            cell.accessoryType =
+                ([tabNames indexOfObject:[[Preferences sharedInstance] stringForKey:kInitialView]] == indexPath.row) ?
                 UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
         }
     }
@@ -137,7 +146,7 @@
 {
     if (indexPath.section == 1) {
         // Store the selected option
-        [[Preferences sharedInstance] setInteger:indexPath.row forKey:kInitialView];
+        [[Preferences sharedInstance] setObject:[tabNames objectAtIndex:indexPath.row] forKey:kInitialView];
         [tableView reloadData];
     } else if (indexPath.section == 2) {
         UIViewController *vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
