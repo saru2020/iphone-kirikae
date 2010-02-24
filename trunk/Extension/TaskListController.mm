@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 10:51:42
+ * Last-modified: 2010-02-24 23:11:25
  */
 
 /**
@@ -81,12 +81,14 @@ static unsigned int itemTextColor;
     self = [super initWithStyle:style];
     if (self) {
         // Setup tab bar button
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:[UIImage imageNamed:@"Kirikae_Active.png"] tag:0];
+        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+        UIImage *image = [[UIImage alloc] initWithContentsOfFile:[bundle pathForResource:@"active_tab" ofType:@"png"]];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:image tag:2];
         self.tabBarItem = item;
         [item release];
+        [image release];
 
         // Cache the images used for the terminate button
-        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
         termImage = [[UIImage alloc] initWithContentsOfFile:
             [bundle pathForResource:@"terminate_btn" ofType:@"png"]];
         termPressedImage = [[UIImage alloc] initWithContentsOfFile:

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 10:51:52
+ * Last-modified: 2010-02-24 23:08:49
  */
 
 /**
@@ -78,9 +78,12 @@ static unsigned int itemTextColor;
     self = [super initWithStyle:style];
     if (self) {
         // Setup tab bar button
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Favorites" image:[UIImage imageNamed:@"Kirikae_Favorites.png"] tag:1];
+        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+        UIImage *image = [[UIImage alloc] initWithContentsOfFile:[bundle pathForResource:@"favorites_tab" ofType:@"png"]];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Favorites" image:image tag:1];
         self.tabBarItem = item;
         [item release];
+        [image release];
 
         // Preferences may have changed since last read; synchronize
         CFPreferencesAppSynchronize(CFSTR(APP_ID));

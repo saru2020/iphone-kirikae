@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-03 23:14:03
+ * Last-modified: 2010-02-24 23:10:10
  */
 
 /**
@@ -70,9 +70,12 @@
     self = [super initWithNibName:nil bundle:nil];
     if (self) {
         // Setup tab bar button
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Spotlight" image:[UIImage imageNamed:@"Kirikae_Spotlight.png"] tag:2];
-        [self setTabBarItem:item];
+        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+        UIImage *image = [[UIImage alloc] initWithContentsOfFile:[bundle pathForResource:@"spotlight_tab" ofType:@"png"]];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Spotlight" image:image tag:2];
+        self.tabBarItem = item;
         [item release];
+        [image release];
     }
     return self;
 }
