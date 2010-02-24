@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:29:33
+ * Last-modified: 2010-02-24 00:25:07
  */
 
 /**
@@ -40,43 +40,52 @@
  */
 
 
-#import "GeneralController.h"
+#import "TabsController.h"
 
 #import <CoreGraphics/CGGeometry.h>
 
 #import <Foundation/Foundation.h>
 
 #import "Constants.h"
+#import "FavoritesController.h"
 #import "Preferences.h"
 #import "ToggleButton.h"
 
 
-@implementation GeneralController
+@implementation TabsController
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
-        self.title = @"General";
+        self.title = @"Tabs";
     }
     return self;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    // Reset the table by deselecting the current selection
+    [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
 }
 
 #pragma mark - UITableViewDataSource
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 2;
+	return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
 {
-    return (section == 0) ? @"Enabled Tabs" : @"Always start with...";
+    static NSString *titles[] = {@"Enabled Tabs", @"Always start with...", @"Tab Options"};
+    return titles[section];
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return (section == 0) ? 4 : 5;
+    static int rows[] = {4, 5, 1};
+    return rows[section];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -113,9 +122,14 @@
             cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
             cell.selectionStyle = UITableViewCellSelectionStyleGray;
         }
-        cell.textLabel.text = cellTitles[indexPath.row];
-        cell.accessoryType = ([[Preferences sharedInstance] integerForKey:kInitialView] == indexPath.row) ?
-            UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        if (indexPath.section == 2) {
+            cell.textLabel.text = @"Favorites";
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        } else {
+            cell.textLabel.text = cellTitles[indexPath.row];
+            cell.accessoryType = ([[Preferences sharedInstance] integerForKey:kInitialView] == indexPath.row) ?
+                UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        }
     }
 
     return cell;
@@ -129,6 +143,9 @@
         // Store the selected option
         [[Preferences sharedInstance] setInteger:indexPath.row forKey:kInitialView];
         [tableView reloadData];
+    } else if (indexPath.section == 2) {
+        UIViewController *vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
+        [[self navigationController] pushViewController:vc animated:YES];
     }
 }
 

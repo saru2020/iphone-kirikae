@@ -1,0 +1,232 @@
+/**
+ * Name: Kirikae
+ * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
+ * Description: a task manager/switcher for iPhoneOS
+ * Author: Lance Fetters (aka. ashikase)
+ * Last-modified: 2010-02-22 00:55:48
+ */
+
+/**
+ * Copyright (C) 2009  Lance Fetters (aka. ashikase)
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. The name of the author may not be used to endorse or promote
+ *    products derived from this software without specific prior
+ *    written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+#import "ColorPickerController.h"
+
+#import <CoreGraphics/CGGeometry.h>
+
+#import <Foundation/Foundation.h>
+#import <QuartzCore/QuartzCore.h>
+
+#import "Constants.h"
+#import "GradientSlider.h"
+#import "Preferences.h"
+#import "ToggleButton.h"
+
+
+@interface ColorPickerController (Private)
+- (void)updateColor;
+@end
+
+//==============================================================================
+
+@implementation ColorPickerController
+
+@synthesize delegate;
+@synthesize red;
+@synthesize green;
+@synthesize blue;;
+@synthesize alpha;
+
+- (id)initWithRed:(float)red_ green:(float)green_ blue:(float)blue_ alpha:(float)alpha_
+{
+    self = [super initWithNibName:nil bundle:nil];
+    if (self) {
+        self.title = @"Select a Color";
+        red = red_;
+        green = green_;
+        blue = blue_;
+        alpha = alpha_;
+    }
+    return self;
+}
+
+- (void)loadView
+{
+    // Create container view
+    UIView *view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+    view.backgroundColor = [UIColor groupTableViewBackgroundColor];
+
+    // Create color preview view
+    colorView = [[UIView alloc] initWithFrame:CGRectMake(20.0f, 20.0f, 280.0f, 120.0f)];
+    colorView.layer.cornerRadius = 10.0f;
+    colorView.layer.borderWidth = 1.0f;
+    colorView.layer.borderColor = [[UIColor blackColor] CGColor];
+    [view addSubview:colorView];
+
+    // Create a slider for red
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(20.0f, 157.0f, 32.0f, 21.0f)];
+    label.text = @"Red";
+    label.backgroundColor = [UIColor clearColor];
+    [view addSubview:label];
+    [label release];
+
+    redValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(271.0f, 157.0f, 29.0f, 21.0f)];
+    redValueLabel.text = @"255";
+    redValueLabel.textAlignment = UITextAlignmentRight;
+    redValueLabel.backgroundColor = [UIColor clearColor];
+    [view addSubview:redValueLabel];
+
+    redSlider = [[GradientSlider alloc] initWithFrame:CGRectMake(18.0f, 186.0f, 284.0f, 23.0f)];
+    redSlider.value = red;
+    [redSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [view addSubview:redSlider];
+
+    // Create a slider for green
+    label = [[UILabel alloc] initWithFrame:CGRectMake(20.0f, 221.0f, 48.0f, 21.0f)];
+    label.text = @"Green";
+    label.backgroundColor = [UIColor clearColor];
+    [view addSubview:label];
+    [label release];
+
+    greenValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(271.0f, 221.0f, 29.0f, 21.0f)];
+    greenValueLabel.text = @"255";
+    greenValueLabel.textAlignment = UITextAlignmentRight;
+    greenValueLabel.backgroundColor = [UIColor clearColor];
+    [view addSubview:greenValueLabel];
+
+    greenSlider = [[GradientSlider alloc] initWithFrame:CGRectMake(18.0f, 250.0f, 284.0f, 23.0f)];
+    greenSlider.value = green;
+    [greenSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [view addSubview:greenSlider];
+
+    // Create a slider for blue
+    label = [[UILabel alloc] initWithFrame:CGRectMake(20.0f, 283.0f, 35.0f, 21.0f)];
+    label.text = @"Blue";
+    label.backgroundColor = [UIColor clearColor];
+    [view addSubview:label];
+    [label release];
+
+    blueValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(271.0f, 283.0f, 29.0f, 21.0f)];
+    blueValueLabel.text = @"255";
+    blueValueLabel.textAlignment = UITextAlignmentRight;
+    blueValueLabel.backgroundColor = [UIColor clearColor];
+    [view addSubview:blueValueLabel];
+
+    blueSlider = [[GradientSlider alloc] initWithFrame:CGRectMake(18.0f, 312.0f, 284.0f, 23.0f)];
+    blueSlider.value = blue;
+    [blueSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [view addSubview:blueSlider];
+
+    // Create a slider for alpha
+    label = [[UILabel alloc] initWithFrame:CGRectMake(20.0f, 342.0f, 44.0f, 21.0f)];
+    label.text = @"Alpha";
+    label.backgroundColor = [UIColor clearColor];
+    [view addSubview:label];
+    [label release];
+
+    alphaValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(271.0f, 342.0f, 29.0f, 21.0f)];
+    alphaValueLabel.text = @"255";
+    alphaValueLabel.textAlignment = UITextAlignmentRight;
+    alphaValueLabel.backgroundColor = [UIColor clearColor];
+    [view addSubview:alphaValueLabel];
+
+    alphaSlider = [[GradientSlider alloc] initWithFrame:CGRectMake(18.0f, 371.0f, 284.0f, 23.0f)];
+    alphaSlider.value = alpha;
+    [alphaSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [view addSubview:alphaSlider];
+
+    self.view = view;
+    [view release];
+
+    // Manually call color update method to set the intial gradient/preview colors
+    [self updateColor];
+}
+
+- (void)dealloc
+{
+    [alphaSlider release];
+    [blueSlider release];
+    [greenSlider release];
+    [redSlider release];
+    [colorView release];
+
+    [super dealloc];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    if ([delegate respondsToSelector:@selector(colorPickerController:didUpdateColorWithRed:green:blue:alpha:)])
+        [delegate colorPickerController:self didUpdateColorWithRed:red green:green blue:blue alpha:alpha];
+}
+
+#pragma mark - Color actions
+
+- (void)updateColor
+{
+    // Get current values
+    red = redSlider.value;
+    green = greenSlider.value;
+    blue = blueSlider.value;
+    alpha = alphaSlider.value;
+
+    // Update the color preview
+    colorView.backgroundColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+
+    // Update red slider gradient
+    redSlider.startColor = [UIColor colorWithRed:0.0f green:green blue:blue alpha:1.0f];
+    redSlider.endColor = [UIColor colorWithRed:1.0f green:green blue:blue alpha:1.0f];
+    [redSlider setNeedsDisplay];
+    redValueLabel.text = [NSString stringWithFormat:@"%d", (int)(red * 255)];
+
+    // Update green slider gradient
+    greenSlider.startColor = [UIColor colorWithRed:red green:0.0f blue:blue alpha:1.0f];
+    greenSlider.endColor = [UIColor colorWithRed:red green:1.0f blue:blue alpha:1.0f];
+    [greenSlider setNeedsDisplay];
+    greenValueLabel.text = [NSString stringWithFormat:@"%d", (int)(green * 255)];
+
+    // Update blue slider gradient
+    blueSlider.startColor = [UIColor colorWithRed:red green:green blue:0.0f alpha:1.0f];
+    blueSlider.endColor = [UIColor colorWithRed:red green:green blue:1.0f alpha:1.0f];
+    [blueSlider setNeedsDisplay];
+    blueValueLabel.text = [NSString stringWithFormat:@"%d", (int)(blue * 255)];
+
+    // Update alpha slider gradient
+    alphaSlider.startColor = [UIColor colorWithRed:red green:green blue:blue alpha:0.0f];
+    alphaSlider.endColor = [UIColor colorWithRed:red green:green blue:blue alpha:1.0f];
+    [alphaSlider setNeedsDisplay];
+    alphaValueLabel.text = [NSString stringWithFormat:@"%d", (int)(alpha * 255)];
+}
+
+@end
+
+/* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

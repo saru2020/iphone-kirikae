@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-11-30 01:30:45
+ * Last-modified: 2010-02-22 00:18:41
  */
 
 /**
@@ -43,10 +43,46 @@
 #import <UIKit/UIKit.h>
 
 
-@interface GeneralController : UITableViewController
+@class GradientSlider;
+
+@protocol ColorPickerControllerDelegate;
+
+@interface ColorPickerController : UIViewController
 {
+    id<ColorPickerControllerDelegate> delegate;
+
+    float red;
+    float green;
+    float blue;
+    float alpha;
+
+    UIView *colorView;
+
+    GradientSlider *redSlider;
+    GradientSlider *greenSlider;
+    GradientSlider *blueSlider;
+    GradientSlider *alphaSlider;
+
+    UILabel *redValueLabel;
+    UILabel *greenValueLabel;
+    UILabel *blueValueLabel;
+    UILabel *alphaValueLabel;
 }
 
+@property(nonatomic, assign) id<ColorPickerControllerDelegate> delegate;
+
+@property(nonatomic, readonly) float red;
+@property(nonatomic, readonly) float green;
+@property(nonatomic, readonly) float blue;
+@property(nonatomic, readonly) float alpha;
+
+- (id)initWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha;
+
+@end
+
+@protocol ColorPickerControllerDelegate <NSObject>
+- (void)colorPickerController:(ColorPickerController *)controller didUpdateColorWithRed:(float)red
+    green:(float)green blue:(float)blue alpha:(float)alpha;
 @end
 
 /* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

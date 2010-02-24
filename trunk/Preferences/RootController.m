@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-21 15:18:48
+ * Last-modified: 2010-02-24 00:27:05
  */
 
 /**
@@ -53,10 +53,9 @@
 #import "AppearanceController.h"
 #import "Constants.h"
 #import "DocumentationController.h"
-#import "GeneralController.h"
 #import "HtmlDocController.h"
-#import "FavoritesController.h"
 #import "Preferences.h"
+#import "TabsController.h"
 
 //==============================================================================
 
@@ -117,7 +116,7 @@
 - (void)viewDidLoad
 {
     // Create and add footer view
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 144.0f)];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 188.0f)];
 
     // Donation button
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -159,7 +158,7 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    static int rows[] = {4, 1};
+    static int rows[] = {3, 1};
     return rows[section];
 }
 
@@ -171,7 +170,7 @@
 
     UITableViewCell *cell = nil;
     if (indexPath.section == 0) {
-        if (indexPath.row == 2) {
+        if (indexPath.row == 1) {
             // Try to retrieve from the table view a now-unused cell with the given identifier
             cell = [tableView dequeueReusableCellWithIdentifier:reuseIdRightValue];
             if (cell == nil) {
@@ -183,7 +182,7 @@
             cell.textLabel.text = @"Control";
             cell.detailTextLabel.text = @"(via Activator)";
         } else {
-            static NSString *cellTitles[] = {@"General", @"Appearance", nil, @"Favorites"};
+            static NSString *cellTitles[] = {@"Appearance", nil, @"Tabs"};
 
             // Try to retrieve from the table view a now-unused cell with the given identifier
             cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -220,22 +219,19 @@
     if (indexPath.section == 0) {
         switch (indexPath.row) {
             case 0:
-                // General
-                vc = [[[GeneralController alloc] initWithStyle:1] autorelease];
-                break;
-            case 1:
                 // Appearance
                 vc = [[[AppearanceController alloc] initWithStyle:1] autorelease];
                 break;
-            case 2:
+            case 1:
                 // Control
                 vc = [[[KirikaeSettingsViewController alloc] init] autorelease];
                 [(KirikaeSettingsViewController *)vc setListenerName:@APP_ID];
                 break;
-            case 3:
+            case 2:
+                // Tabs
+                vc = [[[TabsController alloc] initWithStyle:1] autorelease];
+                break;
             default:
-                // Favorites
-                vc = [[[FavoritesController alloc] initWithStyle:1] autorelease];
                 break;
         }
     } else {

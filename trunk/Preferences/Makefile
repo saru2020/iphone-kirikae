@@ -10,12 +10,12 @@ Preferences_OBJC_FILES = main.m \
 						 ColorPickerController.m \
 						 DocumentationController.m \
 						 FavoritesController.m \
-						 GeneralController.m \
 						 GradientSlider.m \
 						 HtmlDocController.m \
 						 Preferences.m \
 						 RootController.m \
 						 SpectrumSlider.m \
+						 TabsController.m \
 						 ToggleButton.m
 Preferences_CFLAGS = -std=gnu99 -DAPP_ID=\"$(APP_ID)\"
 Preferences_LDFLAGS = -lactivator
