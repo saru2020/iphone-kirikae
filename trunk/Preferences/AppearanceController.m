@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-15 00:07:49
+ * Last-modified: 2010-02-22 00:21:50
  */
 
 /**
@@ -46,6 +46,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import "ColorsController.h"
 #import "Constants.h"
 #import "Preferences.h"
 #import "ToggleButton.h"
@@ -66,7 +67,7 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 3;
+	return 4;
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
@@ -76,44 +77,70 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *reuseIdToggle = @"ToggleCell";
     static NSString *cellTitles[] = {@"Animate switching", @"Use Large Rows", @"Use Themed Icons"};
 
-    // Try to retrieve from the table view a now-unused cell with the given identifier
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
-    if (cell == nil) {
-        // Cell does not exist, create a new one
-        cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    UITableViewCell *cell = nil;
+    if (indexPath.section == 3) {
+        // Try to retrieve from the table view a now-unused cell with the given identifier
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
+        if (cell == nil) {
+            // Cell does not exist, create a new one
+            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdSimple] autorelease];
+            cell.selectionStyle = UITableViewCellSelectionStyleGray;
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        }
+        cell.textLabel.text = @"Colors";
+    } else {
+        // Try to retrieve from the table view a now-unused cell with the given identifier
+        cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
+        if (cell == nil) {
+            // Cell does not exist, create a new one
+            cell = [[[UITableViewCell alloc] initWithFrame:CGRectZero reuseIdentifier:reuseIdToggle] autorelease];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
-        UISwitch *toggle = [[UISwitch alloc] init];
-        [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:UIControlEventValueChanged];
-        cell.accessoryView = toggle;
-        [toggle release];
+            // FIXME: Assigning accessoryView twice
+            UISwitch *toggle = [[UISwitch alloc] init];
+            [toggle addTarget:self action:@selector(switchToggled:) forControlEvents:UIControlEventValueChanged];
+            cell.accessoryView = toggle;
+            [toggle release];
 
-        ToggleButton *button = [ToggleButton button];
-        [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
-        cell.accessoryView = button;
-    }
-    cell.text = cellTitles[indexPath.section];
+            ToggleButton *button = [ToggleButton button];
+            [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
+            cell.accessoryView = button;
+        }
+        cell.text = cellTitles[indexPath.section];
 
-    UIButton *button = (UIButton *)cell.accessoryView;
-	Preferences *prefs = [Preferences sharedInstance];
-    switch (indexPath.section) {
-        case 0:
-            button.selected = prefs.animationsEnabled;
-            break;
-        case 1:
-            button.selected = prefs.useLargeRows;
-            break;
-        case 2:
-            button.selected = prefs.useThemedIcons;
-            break;
-        default:
-            break;
+        UIButton *button = (UIButton *)cell.accessoryView;
+        Preferences *prefs = [Preferences sharedInstance];
+        switch (indexPath.section) {
+            case 0:
+                button.selected = prefs.animationsEnabled;
+                break;
+            case 1:
+                button.selected = prefs.useLargeRows;
+                break;
+            case 2:
+                button.selected = prefs.useThemedIcons;
+                break;
+            default:
+                break;
+        }
     }
 
     return cell;
+}
+
+#pragma mark - UITableViewCellDelegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 3) {
+        // Colors
+        UIViewController *vc = [[[ColorsController alloc] initWithStyle:UITableViewStyleGrouped] autorelease];
+        [self.navigationController pushViewController:vc animated:YES];
+    }
 }
 
 #pragma mark - Switch delegate
