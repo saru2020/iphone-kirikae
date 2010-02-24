@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:56:23
+ * Last-modified: 2010-02-24 10:40:56
  */
 
 /**
@@ -63,7 +63,7 @@
         slider = [[UISlider alloc] initWithFrame:CGRectMake(0, (frame.size.height - 23.0f) / 2.0f, frame.size.width, 23.0f)];
         [slider setMinimumTrackImage:nil forState:UIControlStateNormal];
         [slider setMaximumTrackImage:nil forState:UIControlStateNormal];
-        [slider setThumbImage:[UIImage imageNamed:@"gradient_slider_btn.png"] forState:UIControlStateNormal];
+        [slider setThumbImage:[UIImage imageNamed:@"slider_btn.png"] forState:UIControlStateNormal];
         [self addSubview:slider];
     }
     return self;
