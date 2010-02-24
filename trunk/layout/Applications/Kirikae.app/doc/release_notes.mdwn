@@ -1,3 +1,16 @@
+> # Version svn.r206
+> - - -
+> * NEW: Added support for color theming.
+> * NEW: Added support for background image in active/favorites tab.
+> * FIX: Updating preferences caused "home double tap" to be reassigned to Kirikae.
+> * FIX: With animations off, selecting "SpringBoard" while SpringBoard is active would not dismiss Kirikae.
+> * MOD: Preferences:
+>    * Most options now update immediately and no longer require a respring.
+>    * Renamed General page to Tabs; moved Favorites link to Tabs page.
+> * MOD: Renamed image files used for tab buttons and moved the files to Kirikae.app
+
+- - -
+
 > # Version svn.r179
 > - - -
 > * NEW: Activator support; all control is now handled via Ryan Petrich's libactivator.
