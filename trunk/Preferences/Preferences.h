@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 16:23:57
+ * Last-modified: 2010-02-23 23:13:47
  */
 
 /**
@@ -40,64 +40,31 @@
  */
 
 
-#import <Foundation/NSObject.h>
+#define kFirstRun              @"firstRun"
+#define kAnimationsEnabled     @"animationsEnabled"
+#define kUseLargeRows          @"useLargeRows"
+#define kUseThemedIcons        @"useThemedIcons"
+#define kShowActive            @"showActive"
+#define kShowFavorites         @"showFavorites"
+#define kShowSpotlight         @"showSpotlight"
+#define kShowSpringBoard       @"showSpringBoard"
+#define kInitialView           @"initialView"
+#define kFavorites             @"favorites"
+#define kBackgroundColor       @"backgroundColor"
+#define kHeaderTextColor       @"headerTextColor"
+#define kHeaderTextShadowColor @"headerTextShadowColor"
+#define kItemTextColor         @"itemTextColor"
+#define kSeparatorColor        @"separatorColor"
 
-
-@class NSArray;
-@class NSDictionary;
-@class NSString;
-
-@interface Preferences : NSObject
+@interface Preferences : NSUserDefaults
 {
     NSDictionary *initialValues;
-    NSDictionary *onDiskValues;
-
-    BOOL firstRun;
-    BOOL animationsEnabled;
-    BOOL useLargeRows;
-    BOOL useThemedIcons;
-    BOOL showActive;
-    BOOL showFavorites;
-    BOOL showSpotlight;
-    BOOL showSpringBoard;
-    unsigned int initialView;
-    NSArray *favorites;
-
-    unsigned int backgroundColor;
-    unsigned int headerTextColor;
-    unsigned int headerTextShadowColor;
-    unsigned int itemTextColor;
-    unsigned int separatorColor;
-
+    BOOL needsRespring;
 }
 
-@property(nonatomic) BOOL firstRun;
-@property(nonatomic) BOOL animationsEnabled;
-@property(nonatomic) BOOL useLargeRows;
-@property(nonatomic) BOOL useThemedIcons;
-@property(nonatomic) BOOL showActive;
-@property(nonatomic) BOOL showFavorites;
-@property(nonatomic) BOOL showSpotlight;
-@property(nonatomic) BOOL showSpringBoard;
-@property(nonatomic) unsigned int initialView;
-@property(nonatomic, retain) NSArray *favorites;
-
-@property(nonatomic) unsigned int backgroundColor;
-@property(nonatomic) unsigned int headerTextColor;
-@property(nonatomic) unsigned int headerTextShadowColor;
-@property(nonatomic) unsigned int itemTextColor;
-@property(nonatomic) unsigned int separatorColor;
+@property(nonatomic, readonly) BOOL needsRespring;
 
 + (Preferences *)sharedInstance;
-
-- (NSDictionary *)dictionaryRepresentation;
-
-- (BOOL)isModified;
-- (BOOL)needsRespring;
-
-- (void)registerDefaults;
-- (void)readFromDisk;
-- (void)writeToDisk;
 
 @end
 

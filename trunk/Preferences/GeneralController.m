@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-15 00:13:11
+ * Last-modified: 2010-02-23 23:29:33
  */
 
 /**
@@ -103,23 +103,8 @@
         cell.text = cellTitles[indexPath.row];
 
         UIButton *button = (UIButton *)cell.accessoryView;
-		Preferences *prefs = [Preferences sharedInstance];
-        switch (indexPath.row) {
-            case 0:
-                button.selected = prefs.showActive;
-                break;
-            case 1:
-                button.selected = prefs.showFavorites;
-                break;
-            case 2:
-                button.selected = prefs.showSpotlight;
-                break;
-            case 3:
-                button.selected = prefs.showSpringBoard;
-                break;
-            default:
-                break;
-        }
+        NSString *keys[] = {kShowActive, kShowFavorites, kShowSpotlight, kShowSpringBoard};
+        button.selected = [[Preferences sharedInstance] boolForKey:keys[indexPath.row]];
     } else {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
@@ -129,7 +114,7 @@
             cell.selectionStyle = UITableViewCellSelectionStyleGray;
         }
         cell.textLabel.text = cellTitles[indexPath.row];
-        cell.accessoryType = ([[Preferences sharedInstance] initialView] == indexPath.row) ?
+        cell.accessoryType = ([[Preferences sharedInstance] integerForKey:kInitialView] == indexPath.row) ?
             UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
     }
 
@@ -142,7 +127,7 @@
 {
     if (indexPath.section == 1) {
         // Store the selected option
-        [[Preferences sharedInstance] setInitialView:indexPath.row];
+        [[Preferences sharedInstance] setInteger:indexPath.row forKey:kInitialView];
         [tableView reloadData];
     }
 }
@@ -154,24 +139,10 @@
     // Update selected state of button
     button.selected = !button.selected;
 
-	Preferences *prefs = [Preferences sharedInstance];
+    // Save the preference
     NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
-    switch (indexPath.row) {
-		case 0:
-			prefs.showActive = button.selected;
-			break;
-		case 1:
-			prefs.showFavorites = button.selected;
-			break;
-		case 2:
-			prefs.showSpotlight = button.selected;
-			break;
-		case 3:
-			prefs.showSpringBoard = button.selected;
-			break;
-		default:
-			break;
-	}
+    NSString *keys[] = {kShowActive, kShowFavorites, kShowSpotlight, kShowSpringBoard};
+    [[Preferences sharedInstance] setBool:button.selected forKey:keys[indexPath.row]];
 }
 
 @end

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 16:24:23
+ * Last-modified: 2010-02-23 23:16:55
  */
 
 /**
@@ -42,32 +42,18 @@
 
 #import "Preferences.h"
 
-#import <Foundation/Foundation.h>
+#include <notify.h>
 
 
-// Allowed values
-static NSArray *allowedInitialViews = nil;
+@interface Preferences (Private)
+- (NSDictionary *)defaults;
+@end;
+
+//==============================================================================
 
 @implementation Preferences
 
-@synthesize firstRun;
-@synthesize animationsEnabled;
-@synthesize useLargeRows;
-@synthesize useThemedIcons;
-@synthesize showActive;
-@synthesize showFavorites;
-@synthesize showSpotlight;
-@synthesize showSpringBoard;
-@synthesize initialView;
-@synthesize favorites;
-
-@synthesize backgroundColor;       
-@synthesize headerTextColor;       
-@synthesize headerTextShadowColor; 
-@synthesize itemTextColor;         
-@synthesize separatorColor;        
-
-#pragma mark - Methods
+@synthesize needsRespring;
 
 + (Preferences *)sharedInstance
 {
@@ -81,147 +67,71 @@ static NSArray *allowedInitialViews = nil;
 {
     self = [super init];
     if (self) {
-        allowedInitialViews = [[NSArray alloc] initWithObjects:
-            @"active", @"favorites", @"spotlight", @"springboard", @"lastUsed", nil];
-
-        // Setup default values
-        [self registerDefaults];
-
-        // Load preference values into memory
-        [self readFromDisk];
+        // Set default values for options that are not already
+        // set in the application's on-disk preferences list.
+        [self registerDefaults:[self defaults]];
 
         // Retain a copy of the initial values of the preferences
         initialValues = [[self dictionaryRepresentation] retain];
-
-        // The on-disk values at startup are the same as initialValues
-        onDiskValues = [initialValues retain];
     }
     return self;
 }
 
 - (void)dealloc
 {
-    [onDiskValues release];
     [initialValues release];
-    [allowedInitialViews release];
-
     [super dealloc];
 }
 
-#pragma mark - Other
-
-- (NSDictionary *)dictionaryRepresentation
+- (NSDictionary *)defaults
 {
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:4];
 
-    [dict setObject:[NSNumber numberWithBool:firstRun] forKey:@"firstRun"];
-    [dict setObject:[NSNumber numberWithBool:animationsEnabled] forKey:@"animationsEnabled"];
-    [dict setObject:[NSNumber numberWithBool:useLargeRows] forKey:@"useLargeRows"];
-    [dict setObject:[NSNumber numberWithBool:useThemedIcons] forKey:@"useThemedIcons"];
-    [dict setObject:[NSNumber numberWithBool:showActive] forKey:@"showActive"];
-    [dict setObject:[NSNumber numberWithBool:showFavorites] forKey:@"showFavorites"];
-    [dict setObject:[NSNumber numberWithBool:showSpotlight] forKey:@"showSpotlight"];
-    [dict setObject:[NSNumber numberWithBool:showSpringBoard] forKey:@"showSpringBoard"];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kFirstRun];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kAnimationsEnabled];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kUseLargeRows];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kUseThemedIcons];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kShowActive];
+    [dict setObject:[NSNumber numberWithBool:YES] forKey:kShowFavorites];
+    [dict setObject:[NSNumber numberWithBool:NO] forKey:kShowSpotlight];
+    [dict setObject:[NSNumber numberWithBool:NO] forKey:kShowSpringBoard];
+    [dict setObject:[NSString stringWithString:@"active"] forKey:kInitialView];
+    [dict setObject:[NSArray array] forKey:kFavorites];
 
-    [dict setObject:[NSNumber numberWithUnsignedInt:backgroundColor] forKey:@"backgroundColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:headerTextColor] forKey:@"headerTextColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:headerTextShadowColor] forKey:@"headerTextShadowColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:itemTextColor] forKey:@"itemTextColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:separatorColor] forKey:@"separatorColor"];
-
-    NSString *string = nil;
-    @try {
-        string = [allowedInitialViews objectAtIndex:initialView];
-        [dict setObject:[string copy] forKey:@"initialView"];
-    }
-    @catch (NSException *exception) {
-        // Ignore the exception (assumed to be NSRangeException)
-    }
-
-    [dict setObject:[favorites copy] forKey:@"favorites"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:kBackgroundColor];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:kHeaderTextColor];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00000000] forKey:kHeaderTextShadowColor];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x000000ff] forKey:kItemTextColor];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x7f7f7fff] forKey:kSeparatorColor];
 
     return dict;
 }
 
-#pragma mark - Status
-
-- (BOOL)isModified
+- (NSArray *)keysRequiringRespring
 {
-    return ![[self dictionaryRepresentation] isEqual:onDiskValues];
+    return [NSArray arrayWithObject:kAnimationsEnabled];
 }
 
-- (BOOL)needsRespring
+- (void)setObject:(id)value forKey:(NSString *)defaultName
 {
-    return ![[self dictionaryRepresentation] isEqual:initialValues];
-}
+    [super setObject:value forKey:defaultName];
 
-#pragma mark - Read/Write methods
+    // Immediately write to disk
+    [self synchronize];
 
-- (void)registerDefaults
-{
-    // NOTE: This method sets default values for options that are not already
-    //       set in the application's on-disk preferences list.
+    // Check if the selected key requires a respring
+    if ([[self keysRequiringRespring] containsObject:defaultName]) {
+        // Make sure that the value has actually changed
+        id initialValue = [initialValues objectForKey:defaultName];
+        BOOL valuesDiffer = ![value isEqual:initialValue];
+        if (valuesDiffer)
+            // FIXME: Write to disk, remove on respring
+            // FIXME: Show drop down to indicate respring is needed
+            needsRespring = YES;
+    }
 
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:4];
-
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"firstRun"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"animationsEnabled"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"useLargeRows"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"useThemedIcons"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showActive"];
-    [dict setObject:[NSNumber numberWithBool:YES] forKey:@"showFavorites"];
-    [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpotlight"];
-    [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpringBoard"];
-    [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
-    [dict setObject:[NSArray array] forKey:@"favorites"];
-
-    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:@"backgroundColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:@"headerTextColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x00000000] forKey:@"headerTextShadowColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x000000ff] forKey:@"itemTextColor"];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x7f7f7fff] forKey:@"separatorColor"];
-
-    [defaults registerDefaults:dict];
-}
-
-- (void)readFromDisk
-{
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    
-    firstRun = [defaults boolForKey:@"firstRun"];
-    animationsEnabled = [defaults boolForKey:@"animationsEnabled"];
-    useLargeRows = [defaults boolForKey:@"useLargeRows"];
-    useThemedIcons = [defaults boolForKey:@"useThemedIcons"];
-    showActive = [defaults boolForKey:@"showActive"];
-    showFavorites = [defaults boolForKey:@"showFavorites"];
-    showSpotlight = [defaults boolForKey:@"showSpotlight"];
-    showSpringBoard = [defaults boolForKey:@"showSpringBoard"];
-
-    backgroundColor = (unsigned int)[defaults integerForKey:@"backgroundColor"];
-    headerTextColor = (unsigned int)[defaults integerForKey:@"headerTextColor"];
-    headerTextColor = (unsigned int)[defaults integerForKey:@"headerTextShadowColor"];
-    itemTextColor = (unsigned int)[defaults integerForKey:@"itemTextColor"];
-    separatorColor = (unsigned int)[defaults integerForKey:@"separatorColor"];
-
-    NSString *string = [defaults stringForKey:@"initialView"];
-    unsigned int index = [allowedInitialViews indexOfObject:string];
-    initialView = (index == NSNotFound) ? 0 : index;
-
-    favorites = [[defaults arrayForKey:@"favorites"] retain];
-}
-
-- (void)writeToDisk
-{
-    NSDictionary *dict = [self dictionaryRepresentation];
-
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setPersistentDomain:dict forName:[[NSBundle mainBundle] bundleIdentifier]];
-    [defaults synchronize];
-
-    // Update the list of on-disk values
-    [onDiskValues release];
-    onDiskValues = [dict retain];
+    // Send notification that a preference has changed
+    notify_post(APP_ID".preferenceChanged");
 }
 
 @end

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-06 02:41:03
+ * Last-modified: 2010-02-23 19:28:12
  */
 
 /**
@@ -56,7 +56,7 @@
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
     Preferences *prefs = [Preferences sharedInstance];
-    if ([prefs firstRun]) {
+    if ([prefs boolForKey:kFirstRun]) {
         // Show a once-only warning
         NSString *title = [NSString stringWithFormat:@"Welcome to %@", @APP_TITLE];
         NSString *message = @FIRST_RUN_MSG;
@@ -65,8 +65,7 @@
         [alert show];
 
         // Save settings so that this warning will not be shown again
-        [prefs setFirstRun:NO];
-        [prefs writeToDisk];
+        [prefs setBool:NO forKey:kFirstRun];
     }
 
     // Create our navigation controller with the initial view controller
@@ -92,14 +91,9 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     Preferences *prefs = [Preferences sharedInstance];
-    if ([prefs isModified]) {
-        // Write preferences to disk
-        [prefs writeToDisk];
-
-        // Respring SpringBoard
-        if ([prefs needsRespring])
-            notify_post("com.apple.language.changed");
-    }
+    // Respring SpringBoard
+    if ([prefs needsRespring])
+        notify_post("com.apple.language.changed");
 }
 
 @end

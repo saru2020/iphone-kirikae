@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 14:12:23
+ * Last-modified: 2010-02-23 23:30:42
  */
 
 /**
@@ -95,28 +95,8 @@
     }
     cell.text = cellTitles[indexPath.section];
 
-    Preferences *prefs = [Preferences sharedInstance];
-    unsigned int color;
-    switch (indexPath.section) {
-        case 0:
-            color = prefs.backgroundColor;
-            break;
-        case 1:
-            color = prefs.headerTextColor;
-            break;
-        case 2:
-            color = prefs.headerTextShadowColor;
-            break;
-        case 3:
-            color = prefs.itemTextColor;
-            break;
-        case 4:
-            color = prefs.separatorColor;
-            break;
-        default:
-            color = 0;
-    }
-
+    NSString *keys[] = {kBackgroundColor, kHeaderTextColor, kHeaderTextShadowColor, kItemTextColor, kSeparatorColor};
+    unsigned int color = [[Preferences sharedInstance] integerForKey:keys[indexPath.section]];
     float h = ((color >> 21) & 0x1ff) / 360.0f;
     float s = ((color >> 14) & 0x7f) / 100.0f;
     float b = ((color >> 7) & 0x7f) / 100.0f;
@@ -130,28 +110,8 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    Preferences *prefs = [Preferences sharedInstance];
-    unsigned int color;
-    switch (indexPath.section) {
-        case 0:
-            color = prefs.backgroundColor;
-            break;
-        case 1:
-            color = prefs.headerTextColor;
-            break;
-        case 2:
-            color = prefs.headerTextShadowColor;
-            break;
-        case 3:
-            color = prefs.itemTextColor;
-            break;
-        case 4:
-            color = prefs.separatorColor;
-            break;
-        default:
-            color = 0;
-    }
-
+    NSString *keys[] = {kBackgroundColor, kHeaderTextColor, kHeaderTextShadowColor, kItemTextColor, kSeparatorColor};
+    unsigned int color = [[Preferences sharedInstance] integerForKey:keys[indexPath.section]];
     unsigned short h = (color >> 21) & 0x1ff;
     unsigned char s = (color >> 14) & 0x7f;
     unsigned char b = (color >> 7) & 0x7f;
@@ -173,27 +133,9 @@
 {
     // Save the new color value and update the table
     unsigned int color = (h << 21) | (s << 14) | (b << 7) | a;
-    Preferences *prefs = [Preferences sharedInstance];
     NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-    switch (indexPath.section) {
-        case 0:
-            prefs.backgroundColor = color;
-            break;
-        case 1:
-            prefs.headerTextColor = color;
-            break;
-        case 2:
-            prefs.headerTextShadowColor = color;
-            break;
-        case 3:
-            prefs.itemTextColor = color;
-            break;
-        case 4:
-            prefs.separatorColor = color;
-            break;
-        default:
-            break;
-    }
+    NSString *keys[] = {kBackgroundColor, kHeaderTextColor, kHeaderTextShadowColor, kItemTextColor, kSeparatorColor};
+    [[Preferences sharedInstance] setInteger:color forKey:keys[indexPath.section]];
 
     [self.tableView reloadData];
 }

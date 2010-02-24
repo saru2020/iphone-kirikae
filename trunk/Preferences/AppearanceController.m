@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-22 00:21:50
+ * Last-modified: 2010-02-23 23:27:50
  */
 
 /**
@@ -113,20 +113,8 @@
         cell.text = cellTitles[indexPath.section];
 
         UIButton *button = (UIButton *)cell.accessoryView;
-        Preferences *prefs = [Preferences sharedInstance];
-        switch (indexPath.section) {
-            case 0:
-                button.selected = prefs.animationsEnabled;
-                break;
-            case 1:
-                button.selected = prefs.useLargeRows;
-                break;
-            case 2:
-                button.selected = prefs.useThemedIcons;
-                break;
-            default:
-                break;
-        }
+        NSString *keys[] = {kAnimationsEnabled, kUseLargeRows, kUseThemedIcons};
+        button.selected = [[Preferences sharedInstance] integerForKey:keys[indexPath.section]];
     }
 
     return cell;
@@ -150,21 +138,10 @@
     // Update selected state of button
     button.selected = !button.selected;
 
-	Preferences *prefs = [Preferences sharedInstance];
+    // Save the preference
     NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
-    switch (indexPath.section) {
-        case 0:
-            prefs.animationsEnabled = button.selected;
-            break;
-        case 1:
-            prefs.useLargeRows = button.selected;
-            break;
-        case 2:
-            prefs.useThemedIcons = button.selected;
-            break;
-        default:
-            break;
-    }
+    NSString *keys[] = {kAnimationsEnabled, kUseLargeRows, kUseThemedIcons};
+    [[Preferences sharedInstance] setBool:button.selected forKey:keys[indexPath.section]];
 }
 
 @end

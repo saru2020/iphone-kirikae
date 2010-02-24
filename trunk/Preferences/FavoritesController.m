@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-22 13:42:56
+ * Last-modified: 2010-02-23 20:54:57
  */
 
 /**
@@ -160,7 +160,7 @@ static NSArray *applicationDisplayIdentifiers()
 
         // Get a copy of the list of favorites
         favorites = [[NSMutableArray alloc]
-            initWithArray:[[Preferences sharedInstance] favorites]];
+            initWithArray:[[Preferences sharedInstance] objectForKey:kFavorites]];
     }
     return self;
 }
@@ -217,7 +217,7 @@ static NSArray *applicationDisplayIdentifiers()
     if (isModified) {
         // Sort list of favorites by display name and save to preferences file
         NSArray *sortedArray = [favorites sortedArrayUsingFunction:compareDisplayNames context:NULL];
-        [[Preferences sharedInstance] setFavorites:sortedArray];
+        [[Preferences sharedInstance] setObject:sortedArray forKey:kFavorites];
     }
 }
 
