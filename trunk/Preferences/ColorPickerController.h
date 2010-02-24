@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 01:08:28
+ * Last-modified: 2010-02-23 23:47:29
  */
 
 /**
@@ -68,6 +68,8 @@
     UILabel *saturationValueLabel;
     UILabel *brightnessValueLabel;
     UILabel *alphaValueLabel;
+
+    BOOL valueChanged;
 }
 
 @property(nonatomic, assign) id<ColorPickerControllerDelegate> delegate;

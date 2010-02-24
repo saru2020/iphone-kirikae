@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:30:42
+ * Last-modified: 2010-02-23 23:55:01
  */
 
 /**
@@ -60,6 +60,12 @@
         self.title = @"Color";
     }
     return self;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    // Colors may have changed; reload cells to show change
+    [self.tableView reloadData];
 }
 
 #pragma mark - UITableViewDataSource
@@ -136,8 +142,6 @@
     NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
     NSString *keys[] = {kBackgroundColor, kHeaderTextColor, kHeaderTextShadowColor, kItemTextColor, kSeparatorColor};
     [[Preferences sharedInstance] setInteger:color forKey:keys[indexPath.section]];
-
-    [self.tableView reloadData];
 }
 
 @end

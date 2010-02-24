@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 14:11:46
+ * Last-modified: 2010-02-23 23:55:57
  */
 
 /**
@@ -109,6 +109,7 @@
     hueSlider.slider.maximumValue = 359.0f;
     hueSlider.value = hue;
     [hueSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [hueSlider.slider addTarget:self action:@selector(notifyDelegate) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:hueSlider];
 
     // Create a slider for saturation
@@ -128,6 +129,7 @@
     saturationSlider.slider.maximumValue = 100.0f;
     saturationSlider.value = saturation;
     [saturationSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [saturationSlider.slider addTarget:self action:@selector(notifyDelegate) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:saturationSlider];
 
     // Create a slider for brightness
@@ -147,6 +149,7 @@
     brightnessSlider.slider.maximumValue = 100.0f;
     brightnessSlider.value = brightness;
     [brightnessSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [brightnessSlider.slider addTarget:self action:@selector(notifyDelegate) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:brightnessSlider];
 
     // Create a slider for alpha
@@ -166,6 +169,7 @@
     alphaSlider.slider.maximumValue = 100.0f;
     alphaSlider.value = alpha;
     [alphaSlider.slider addTarget:self action:@selector(updateColor) forControlEvents:UIControlEventValueChanged];
+    [alphaSlider.slider addTarget:self action:@selector(notifyDelegate) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:alphaSlider];
 
     self.view = view;
@@ -184,12 +188,6 @@
     [colorView release];
 
     [super dealloc];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-    if ([delegate respondsToSelector:@selector(colorPickerController:didUpdateColorWithHue:saturation:brightness:alpha:)])
-        [delegate colorPickerController:self didUpdateColorWithHue:hue saturation:saturation brightness:brightness alpha:alpha];
 }
 
 #pragma mark - Color actions
@@ -229,6 +227,22 @@
     alphaSlider.startColor = [UIColor colorWithHue:h saturation:s brightness:b alpha:0.0f];
     alphaSlider.endColor = [UIColor colorWithHue:h saturation:s brightness:b alpha:1.0f];
     alphaValueLabel.text = [NSString stringWithFormat:@"%d%%", alpha];
+
+    // Note that the value has changed
+    valueChanged = YES;
+}
+
+- (void)notifyDelegate
+{
+    // NOTE: Only notify the delegate if the value has actually changed
+    // NOTE: UISlider sends *two* touch up inside events; this works around that
+    // FIXME: It seems that value changed gets called twice as well, so this
+    //        doesn't quite solve the issue.
+    if (valueChanged) {
+        if ([delegate respondsToSelector:@selector(colorPickerController:didUpdateColorWithHue:saturation:brightness:alpha:)])
+            [delegate colorPickerController:self didUpdateColorWithHue:hue saturation:saturation brightness:brightness alpha:alpha];
+        valueChanged = NO;
+    }
 }
 
 @end
