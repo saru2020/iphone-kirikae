@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-09-21 16:05:03
+ * Last-modified: 2010-02-24 00:56:52
  */
 
 /**
@@ -40,10 +40,6 @@
  */
 
 
-#import <UIKit/UIKit.h>
-
-
-@class NSMutableArray;
 @class RootController;
 @class UIProgressHUD;
 

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 00:19:38
+ * Last-modified: 2010-02-24 00:56:23
  */
 
 /**
@@ -42,7 +42,7 @@
 
 #import "GradientSlider.h"
 
-#import "QuartzCore/QuartzCore.h"
+#import <QuartzCore/QuartzCore.h>
 
 
 @implementation GradientSlider

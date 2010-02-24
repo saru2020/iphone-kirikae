@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-08-26 00:47:32
+ * Last-modified: 2010-02-24 00:55:48
  */
 
 /**
@@ -38,12 +38,6 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-
-#import <UIKit/UIApplication.h>
-
-@class UIWindow;
-@class UINavigationController;
 
 
 @interface Application : UIApplication

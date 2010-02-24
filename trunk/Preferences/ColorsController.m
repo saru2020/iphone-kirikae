@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:10:58
+ * Last-modified: 2010-02-24 00:53:25
  */
 
 /**
@@ -42,8 +42,6 @@
 
 #import "ColorsController.h"
 
-#import <CoreGraphics/CGGeometry.h>
-#import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
 
 #import "Constants.h"
