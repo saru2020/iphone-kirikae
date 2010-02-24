@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:55:01
+ * Last-modified: 2010-02-24 00:10:58
  */
 
 /**
@@ -57,7 +57,7 @@
 {
     self = [super initWithStyle:style];
     if (self) {
-        self.title = @"Color";
+        self.title = @"Colors";
     }
     return self;
 }
@@ -83,7 +83,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdToggle = @"ColorCell";
-    static NSString *cellTitles[] = {@"Background", @"Header Text", @"Header Text Shadow", @"Item Text", @"Separator"};
+    static NSString *cellTitles[] = {@"Background", @"Header Text", @"Header Text Shadow", @"Item Text", @"Item Separator"};
 
     // Try to retrieve from the table view a now-unused cell with the given identifier
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
