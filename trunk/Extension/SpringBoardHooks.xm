@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 15:58:49
+ * Last-modified: 2010-02-25 01:34:06
  */
 
 /**
@@ -91,16 +91,14 @@ static BOOL shouldDismiss = NO;
 static void loadPreferences()
 {
     // Animate switching
-    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("animationsEnabled"), CFSTR(APP_ID));
-    if (propList) {
-        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-            animationsEnabled = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-        CFRelease(propList);
-    }
+    Boolean valid;
+    animationsEnabled = CFPreferencesGetAppBooleanValue(CFSTR("animationsEnabled"), CFSTR(APP_ID), &valid);
+    if (!valid)
+        animationsEnabled = YES;
 
     // Invocation type
     // NOTE: This setting is from pre-libactivator; convert and remove
-    propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
+    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("invocationMethod"), CFSTR(APP_ID));
     if (propList) {
         NSString *eventName = nil;
         if ([(NSString *)propList isEqualToString:@"homeSingleTap"])
@@ -753,20 +751,14 @@ void initSpringBoardHooks()
 #endif
 
     // Check if Spotlight or SpringBoard tabs are enabled
-    BOOL showSpotlight = NO;
-    BOOL showSpringBoard = NO;
-    CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
-    if (propList) {
-        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-            showSpotlight = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-        CFRelease(propList);
-    }
-    propList = CFPreferencesCopyAppValue(CFSTR("showSpringBoard"), CFSTR(APP_ID));
-    if (propList) {
-        if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-            showSpringBoard = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-        CFRelease(propList);
-    }
+    Boolean valid;
+    BOOL showSpotlight = CFPreferencesGetAppBooleanValue(CFSTR("showSpotlight"), CFSTR(APP_ID), &valid);
+    if (!valid)
+        showSpotlight = NO;
+
+    BOOL showSpringBoard = CFPreferencesGetAppBooleanValue(CFSTR("showSpringBoard"), CFSTR(APP_ID), &valid);
+    if (!valid)
+        showSpringBoard = NO;
 
     if (showSpotlight || showSpringBoard)
         %init(GSpotSpringTabs);

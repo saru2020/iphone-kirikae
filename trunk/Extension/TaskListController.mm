@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 23:11:25
+ * Last-modified: 2010-02-25 00:49:38
  */
 
 /**
@@ -83,7 +83,7 @@ static unsigned int itemTextColor;
         // Setup tab bar button
         NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
         UIImage *image = [[UIImage alloc] initWithContentsOfFile:[bundle pathForResource:@"active_tab" ofType:@"png"]];
-        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:image tag:2];
+        UITabBarItem *item = [[UITabBarItem alloc] initWithTitle:@"Active" image:image tag:0];
         self.tabBarItem = item;
         [item release];
         [image release];

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 11:26:58
+ * Last-modified: 2010-02-25 01:28:07
  */
 
 /**
@@ -164,36 +164,25 @@ static BOOL showSpringBoard = NO;
         CFPreferencesAppSynchronize(CFSTR(APP_ID));
 
         // Determine whether or not to show Active tab
-        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("showActive"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                showActive = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        Boolean valid;
+        showActive = CFPreferencesGetAppBooleanValue(CFSTR("showActive"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            showActive = YES;
 
         // Determine whether or not to show Favorites tab
-        propList = CFPreferencesCopyAppValue(CFSTR("showFavorites"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                showFavorites = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        showFavorites = CFPreferencesGetAppBooleanValue(CFSTR("showFavorites"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            showFavorites = YES;
 
         // Determine whether or not to show Spotlight tab
-        propList = CFPreferencesCopyAppValue(CFSTR("showSpotlight"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                showSpotlight = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        showSpotlight = CFPreferencesGetAppBooleanValue(CFSTR("showSpotlight"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            showSpotlight = NO;
 
         // Determine whether or not to show SpringBoard tab
-        propList = CFPreferencesCopyAppValue(CFSTR("showSpringBoard"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                showSpringBoard = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        showSpringBoard = CFPreferencesGetAppBooleanValue(CFSTR("showSpringBoard"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            showSpringBoard = NO;
 
         // Create and setup tab bar controller and view controllers
         KKTabBarController *&tbCont = MSHookIvar<KKTabBarController *>(self, "tabBarController");
@@ -241,7 +230,7 @@ static BOOL showSpringBoard = NO;
 
         // Check preferences to determine which tab to start with
         unsigned int initialIndex = 0;
-        propList = CFPreferencesCopyAppValue(CFSTR("initialView"), CFSTR(APP_ID));
+        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("initialView"), CFSTR(APP_ID));
         if (propList) {
             if (CFGetTypeID(propList) == CFStringGetTypeID()) {
                 if ([(NSString *)propList isEqualToString:@"lastUsed"]) {
