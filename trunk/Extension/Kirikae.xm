@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-05 00:45:54
+ * Last-modified: 2010-02-21 15:17:28
  */
 
 /**
@@ -42,7 +42,7 @@
 
 #import "Kirikae.h"
 
-#import "common.h"
+#import <objc/runtime.h>
 
 //#import <SpringBoard/SBStatusBarController.h>
 #import <SpringBoard/SBSearchController.h>
