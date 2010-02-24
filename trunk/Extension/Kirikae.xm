@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-21 15:17:28
+ * Last-modified: 2010-02-24 11:26:58
  */
 
 /**
@@ -148,7 +148,17 @@ static BOOL showSpringBoard = NO;
     objc_super $super = {self, objc_getClass("SBAlertDisplay")};
     self = objc_msgSendSuper(&$super, @selector(initWithFrame:), rect);
     if (self) {
-        [self setBackgroundColor:[UIColor colorWithWhite:0.30 alpha:1]];
+        NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+        UIImage *bgImage = [[UIImage alloc] initWithContentsOfFile:
+            [bundle pathForResource:@"background" ofType:@"png"]];
+        if (bgImage != nil) {
+            // Use tiled image for background
+            self.backgroundColor = [UIColor colorWithPatternImage:bgImage];
+            [bgImage release];
+        } else {
+            // Use a solid color (dark grey) for background
+            self.backgroundColor = [UIColor colorWithWhite:0.30 alpha:1];
+        }
 
         // Preferences may have changed since last read; synchronize
         CFPreferencesAppSynchronize(CFSTR(APP_ID));
