@@ -7,7 +7,6 @@ Preferences_OBJC_FILES = main.m \
 						 AppearanceController.m \
 						 ApplicationCell.m \
 						 Application.m \
-						 ControlController.m \
 						 DocumentationController.m \
 						 FavoritesController.m \
 						 GeneralController.m \
