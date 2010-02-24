@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:27:50
+ * Last-modified: 2010-02-24 00:08:05
  */
 
 /**
@@ -67,22 +67,32 @@
 
 - (int)numberOfSectionsInTableView:(UITableView *)tableView
 {
-	return 4;
+	return 2;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
+{
+    return (section == 0) ? @"General" : @"Theming";
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(int)section
+{
+    return (section == 0) ? @"* Changing this option requires restarting SpringBoard. Will restart upon exit." : nil;
 }
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return 1;
+    return (section == 0) ? 3 : 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *reuseIdToggle = @"ToggleCell";
-    static NSString *cellTitles[] = {@"Animate switching", @"Use Large Rows", @"Use Themed Icons"};
+    static NSString *cellTitles[] = {@"Animate switching *", @"Use Large Rows", @"Use Themed Icons"};
 
     UITableViewCell *cell = nil;
-    if (indexPath.section == 3) {
+    if (indexPath.section == 1) {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdSimple];
         if (cell == nil) {
@@ -110,11 +120,11 @@
             [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
             cell.accessoryView = button;
         }
-        cell.text = cellTitles[indexPath.section];
+        cell.text = cellTitles[indexPath.row];
 
         UIButton *button = (UIButton *)cell.accessoryView;
         NSString *keys[] = {kAnimationsEnabled, kUseLargeRows, kUseThemedIcons};
-        button.selected = [[Preferences sharedInstance] integerForKey:keys[indexPath.section]];
+        button.selected = [[Preferences sharedInstance] integerForKey:keys[indexPath.row]];
     }
 
     return cell;
@@ -124,7 +134,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 3) {
+    if (indexPath.section == 1) {
         // Colors
         UIViewController *vc = [[[ColorsController alloc] initWithStyle:UITableViewStyleGrouped] autorelease];
         [self.navigationController pushViewController:vc animated:YES];
@@ -141,7 +151,7 @@
     // Save the preference
     NSIndexPath *indexPath = [self.tableView indexPathForCell:(UITableViewCell *)[button superview]];
     NSString *keys[] = {kAnimationsEnabled, kUseLargeRows, kUseThemedIcons};
-    [[Preferences sharedInstance] setBool:button.selected forKey:keys[indexPath.section]];
+    [[Preferences sharedInstance] setBool:button.selected forKey:keys[indexPath.row]];
 }
 
 @end
