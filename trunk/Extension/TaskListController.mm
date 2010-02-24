@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-01-03 23:16:10
+ * Last-modified: 2010-02-24 10:51:42
  */
 
 /**
@@ -58,6 +58,22 @@
 - (NSString *)displayIdentifierAtIndexPath:(NSIndexPath *)indexPath;
 @end
 
+static UIColor *colorFromPreferenceValue(unsigned int value)
+{
+    float h = ((value >> 21) & 0x1ff) / 360.0f;
+    float s = ((value >> 14) & 0x7f) / 100.0f;
+    float b = ((value >> 7) & 0x7f) / 100.0f;
+    float a = (value & 0x7f) / 100.0f;
+
+    return [UIColor colorWithHue:h saturation:s brightness:b alpha:a];
+}
+
+//==============================================================================
+
+static unsigned int headerTextColor;
+static unsigned int headerTextShadowColor;
+static unsigned int itemTextColor;
+
 @implementation TaskListController
 
 - (id)initWithStyle:(UITableViewStyle)style
@@ -77,13 +93,11 @@
             [bundle pathForResource:@"terminate_btn_pressed" ofType:@"png"]];
 
         // Determine the row height and badge padding to use
-        BOOL useLargeRows = YES;
-        CFPropertyListRef propList = CFPreferencesCopyAppValue(CFSTR("useLargeRows"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                useLargeRows = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        Boolean valid;
+        BOOL useLargeRows = CFPreferencesGetAppBooleanValue(CFSTR("useLargeRows"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            useLargeRows = YES;
+
         if (useLargeRows) {
             rowHeight = 60.0f;
             badgePadding = 8.0f;
@@ -93,13 +107,38 @@
         }
 
         // Determine whether to use themed or unthemed icons
-        useThemedIcons = YES;
-        propList = CFPreferencesCopyAppValue(CFSTR("useThemedIcons"), CFSTR(APP_ID));
-        if (propList) {
-            if (CFGetTypeID(propList) == CFBooleanGetTypeID())
-                useThemedIcons = CFBooleanGetValue(reinterpret_cast<CFBooleanRef>(propList));
-            CFRelease(propList);
-        }
+        useThemedIcons = CFPreferencesGetAppBooleanValue(CFSTR("useThemedIcons"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            useThemedIcons = YES;
+
+        // Determine color to use for table background
+        unsigned int backgroundColor = CFPreferencesGetAppIntegerValue(CFSTR("backgroundColor"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            backgroundColor = 0x00003264; // White
+
+        self.tableView.backgroundColor = colorFromPreferenceValue(backgroundColor);
+
+        // Determine color to use for header text
+        headerTextColor = CFPreferencesGetAppIntegerValue(CFSTR("headerTextColor"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            headerTextColor = 0x00003264; // White
+            
+        // Determine color to use for header text shadow
+        headerTextShadowColor = CFPreferencesGetAppIntegerValue(CFSTR("headerTextShadowColor"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            headerTextShadowColor = 0x00001664; // 44% White
+            
+        // Determine color to use for cell text
+        itemTextColor = CFPreferencesGetAppIntegerValue(CFSTR("itemTextColor"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            itemTextColor = 0x00000064; // Black
+            
+        // Determine color to use for cell separator
+        unsigned int separatorColor = CFPreferencesGetAppIntegerValue(CFSTR("separatorColor"), CFSTR(APP_ID), &valid);
+        if (!valid)
+            separatorColor = 0x00002c64; // 88% White
+
+        self.tableView.separatorColor = colorFromPreferenceValue(separatorColor);
     }
     return self;
 }
@@ -182,12 +221,6 @@
 	return 3;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
-{
-    static NSString *titles[] =  {@"Home Screen", @"Foreground Application", @"Background Applications"};
-    return (section == 1 && fgAppId == nil) ? nil : titles[section];
-}
-
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
     int rows = 0;
@@ -233,6 +266,7 @@
 
     // Set the cell's text to the name of the application
     cell.textLabel.text = [icon displayName];
+    cell.textLabel.textColor = colorFromPreferenceValue(itemTextColor);
 
     // Set the cell's image to the application's icon image
     UIImage *image = nil;
@@ -292,6 +326,43 @@
 }
 
 #pragma mark - UITableViewCellDelegate
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 22.0f;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    static NSString *titles[] =  {@"Home Screen", @"Foreground Application", @"Background Applications"};
+
+    if (section == 1 && fgAppId == nil)
+        // Foreground section and no current foreground app; hide header
+        return nil;
+
+    NSString *title = titles[section];
+
+    // Create the background for the header
+    UIView *view = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320.0f, 22.0f)] autorelease];;
+    NSBundle *bundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"/Applications/Kirikae.app"]];
+    UIImage *image = [[UIImage alloc] initWithContentsOfFile:
+        [bundle pathForResource:@"header_background" ofType:@"png"]];
+    view.backgroundColor = [UIColor colorWithPatternImage:image];
+    [image release];
+
+    // Create the text label
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(12.0f, 0, 308.0f, 22.0f)];
+    label.font = [UIFont boldSystemFontOfSize:18.0f];
+    label.text = title;
+    label.backgroundColor = [UIColor clearColor];
+    label.shadowColor = colorFromPreferenceValue(headerTextShadowColor);
+    label.shadowOffset = CGSizeMake(0, 1.0f);
+    label.textColor = colorFromPreferenceValue(headerTextColor);
+    [view addSubview:label];
+    [label release];
+
+    return view;
+}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
