@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:50:24
+ * Last-modified: 2010-02-24 01:47:50
  */
 
 /**
@@ -102,11 +102,11 @@
     [dict setObject:[NSString stringWithString:@"active"] forKey:kInitialView];
     [dict setObject:[NSArray array] forKey:kFavorites];
 
-    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:kBackgroundColor];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:kHeaderTextColor];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x00000000] forKey:kHeaderTextShadowColor];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x000000ff] forKey:kItemTextColor];
-    [dict setObject:[NSNumber numberWithUnsignedInt:0x7f7f7fff] forKey:kSeparatorColor];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00003264] forKey:kBackgroundColor];       // White
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00003264] forKey:kHeaderTextColor];       // White
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00001664] forKey:kHeaderTextShadowColor]; // 44% White
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00000064] forKey:kItemTextColor];         // Black
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00002c64] forKey:kSeparatorColor];        // 88% White
 
     return dict;
 }
