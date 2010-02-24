@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-22 00:11:43
+ * Last-modified: 2010-02-23 16:24:23
  */
 
 /**
@@ -47,7 +47,6 @@
 
 // Allowed values
 static NSArray *allowedInitialViews = nil;
-static NSArray *allowedInvocationMethods = nil;
 
 @implementation Preferences
 
@@ -60,7 +59,6 @@ static NSArray *allowedInvocationMethods = nil;
 @synthesize showSpotlight;
 @synthesize showSpringBoard;
 @synthesize initialView;
-@synthesize invocationMethod;
 @synthesize favorites;
 
 @synthesize backgroundColor;       
@@ -86,9 +84,6 @@ static NSArray *allowedInvocationMethods = nil;
         allowedInitialViews = [[NSArray alloc] initWithObjects:
             @"active", @"favorites", @"spotlight", @"springboard", @"lastUsed", nil];
 
-        allowedInvocationMethods = [[NSArray alloc] initWithObjects:
-            @"homeDoubleTap", @"homeSingleTap", @"homeShortHold", @"powerShortHold", @"none", nil];
-
         // Setup default values
         [self registerDefaults];
 
@@ -108,7 +103,6 @@ static NSArray *allowedInvocationMethods = nil;
 {
     [onDiskValues release];
     [initialValues release];
-    [allowedInvocationMethods release];
     [allowedInitialViews release];
 
     [super dealloc];
@@ -139,14 +133,6 @@ static NSArray *allowedInvocationMethods = nil;
     @try {
         string = [allowedInitialViews objectAtIndex:initialView];
         [dict setObject:[string copy] forKey:@"initialView"];
-    }
-    @catch (NSException *exception) {
-        // Ignore the exception (assumed to be NSRangeException)
-    }
-
-    @try {
-        string = [allowedInvocationMethods objectAtIndex:invocationMethod];
-        [dict setObject:[string copy] forKey:@"invocationMethod"];
     }
     @catch (NSException *exception) {
         // Ignore the exception (assumed to be NSRangeException)
@@ -188,7 +174,6 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpotlight"];
     [dict setObject:[NSNumber numberWithBool:NO] forKey:@"showSpringBoard"];
     [dict setObject:[NSString stringWithString:@"active"] forKey:@"initialView"];
-    [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
 
     [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:@"backgroundColor"];
@@ -222,10 +207,6 @@ static NSArray *allowedInvocationMethods = nil;
     NSString *string = [defaults stringForKey:@"initialView"];
     unsigned int index = [allowedInitialViews indexOfObject:string];
     initialView = (index == NSNotFound) ? 0 : index;
-
-    string = [defaults stringForKey:@"invocationMethod"];
-    index = [allowedInvocationMethods indexOfObject:string];
-    invocationMethod = (index == NSNotFound) ? 0 : index;
 
     favorites = [[defaults arrayForKey:@"favorites"] retain];
 }
