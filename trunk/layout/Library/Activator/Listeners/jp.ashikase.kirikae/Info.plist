@@ -1,0 +1,5 @@
+{
+	title = "Kirikae";
+	description = "Task Switcher/Launcher";
+	"compatible-modes" = ("springboard", "application");
+}
