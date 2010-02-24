@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 16:38:39
+ * Last-modified: 2010-02-22 00:11:43
  */
 
 /**
@@ -62,6 +62,12 @@ static NSArray *allowedInvocationMethods = nil;
 @synthesize initialView;
 @synthesize invocationMethod;
 @synthesize favorites;
+
+@synthesize backgroundColor;       
+@synthesize headerTextColor;       
+@synthesize headerTextShadowColor; 
+@synthesize itemTextColor;         
+@synthesize separatorColor;        
 
 #pragma mark - Methods
 
@@ -123,6 +129,12 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSNumber numberWithBool:showSpotlight] forKey:@"showSpotlight"];
     [dict setObject:[NSNumber numberWithBool:showSpringBoard] forKey:@"showSpringBoard"];
 
+    [dict setObject:[NSNumber numberWithUnsignedInt:backgroundColor] forKey:@"backgroundColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:headerTextColor] forKey:@"headerTextColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:headerTextShadowColor] forKey:@"headerTextShadowColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:itemTextColor] forKey:@"itemTextColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:separatorColor] forKey:@"separatorColor"];
+
     NSString *string = nil;
     @try {
         string = [allowedInitialViews objectAtIndex:initialView];
@@ -179,6 +191,12 @@ static NSArray *allowedInvocationMethods = nil;
     [dict setObject:[NSString stringWithString:@"homeDoubleTap"] forKey:@"invocationMethod"];
     [dict setObject:[NSArray array] forKey:@"favorites"];
 
+    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:@"backgroundColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0xffffffff] forKey:@"headerTextColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x00000000] forKey:@"headerTextShadowColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x000000ff] forKey:@"itemTextColor"];
+    [dict setObject:[NSNumber numberWithUnsignedInt:0x7f7f7fff] forKey:@"separatorColor"];
+
     [defaults registerDefaults:dict];
 }
 
@@ -194,6 +212,12 @@ static NSArray *allowedInvocationMethods = nil;
     showFavorites = [defaults boolForKey:@"showFavorites"];
     showSpotlight = [defaults boolForKey:@"showSpotlight"];
     showSpringBoard = [defaults boolForKey:@"showSpringBoard"];
+
+    backgroundColor = (unsigned int)[defaults integerForKey:@"backgroundColor"];
+    headerTextColor = (unsigned int)[defaults integerForKey:@"headerTextColor"];
+    headerTextColor = (unsigned int)[defaults integerForKey:@"headerTextShadowColor"];
+    itemTextColor = (unsigned int)[defaults integerForKey:@"itemTextColor"];
+    separatorColor = (unsigned int)[defaults integerForKey:@"separatorColor"];
 
     NSString *string = [defaults stringForKey:@"initialView"];
     unsigned int index = [allowedInitialViews indexOfObject:string];

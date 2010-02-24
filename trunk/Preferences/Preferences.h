@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-19 16:37:22
+ * Last-modified: 2010-02-22 00:03:01
  */
 
 /**
@@ -63,6 +63,13 @@
     unsigned int initialView;
     unsigned int invocationMethod;
     NSArray *favorites;
+
+    unsigned int backgroundColor;
+    unsigned int headerTextColor;
+    unsigned int headerTextShadowColor;
+    unsigned int itemTextColor;
+    unsigned int separatorColor;
+
 }
 
 @property(nonatomic) BOOL firstRun;
@@ -76,6 +83,12 @@
 @property(nonatomic) unsigned int initialView;
 @property(nonatomic) unsigned int invocationMethod;
 @property(nonatomic, retain) NSArray *favorites;
+
+@property(nonatomic) unsigned int backgroundColor;
+@property(nonatomic) unsigned int headerTextColor;
+@property(nonatomic) unsigned int headerTextShadowColor;
+@property(nonatomic) unsigned int itemTextColor;
+@property(nonatomic) unsigned int separatorColor;
 
 + (Preferences *)sharedInstance;
 
