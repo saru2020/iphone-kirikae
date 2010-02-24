@@ -9,7 +9,6 @@ body > hr {
 
 blockquote {
     margin: 0 0 10px 0;
-    padding: 0;
     background: #fff;
     border: 1px solid #999;
     -webkit-border-radius: 10px;
@@ -30,6 +29,10 @@ blockquote > h2 {
 
 blockquote > hr {
     border-top: 1px dashed #999;
+}
+
+blockquote > p {
+    margin: 10px;
 }
 
 ul {

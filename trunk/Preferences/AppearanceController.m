@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:56:01
+ * Last-modified: 2010-02-24 16:33:19
  */
 
 /**
@@ -44,6 +44,7 @@
 
 #import "ColorsController.h"
 #import "Constants.h"
+#import "HtmlDocController.h"
 #import "Preferences.h"
 #import "ToggleButton.h"
 
@@ -78,14 +79,16 @@
 
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return (section == 0) ? 3 : 1;
+    return (section == 0) ? 3 : 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *reuseIdSimple = @"SimpleCell";
     static NSString *reuseIdToggle = @"ToggleCell";
-    static NSString *cellTitles[] = {@"Animate switching *", @"Use Large Rows", @"Use Themed Icons"};
+    static NSString *cellTitles[][3] = {
+        {@"Animate switching *", @"Use Large Rows", @"Use Themed Icons"},
+        {@"Colors", @"Images", nil}};
 
     UITableViewCell *cell = nil;
     if (indexPath.section == 1) {
@@ -97,7 +100,6 @@
             cell.selectionStyle = UITableViewCellSelectionStyleGray;
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
-        cell.textLabel.text = @"Colors";
     } else {
         // Try to retrieve from the table view a now-unused cell with the given identifier
         cell = [tableView dequeueReusableCellWithIdentifier:reuseIdToggle];
@@ -116,12 +118,12 @@
             [button addTarget:self action:@selector(buttonToggled:) forControlEvents:UIControlEventTouchUpInside];
             cell.accessoryView = button;
         }
-        cell.text = cellTitles[indexPath.row];
 
         UIButton *button = (UIButton *)cell.accessoryView;
         NSString *keys[] = {kAnimationsEnabled, kUseLargeRows, kUseThemedIcons};
         button.selected = [[Preferences sharedInstance] integerForKey:keys[indexPath.row]];
     }
+    cell.text = cellTitles[indexPath.section][indexPath.row];
 
     return cell;
 }
@@ -131,8 +133,17 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (indexPath.section == 1) {
-        // Colors
-        UIViewController *vc = [[[ColorsController alloc] initWithStyle:UITableViewStyleGrouped] autorelease];
+        UIViewController *vc = nil;
+        if (indexPath.row == 0) {
+            // Colors
+            vc = [[[ColorsController alloc] initWithStyle:UITableViewStyleGrouped] autorelease];
+        } else {
+            // Images
+            vc = [[[HtmlDocController alloc]
+                initWithContentsOfFile:@"image_theming.html" title:@"Images"]
+                autorelease];
+            [(HtmlDocController *)vc setTemplateFileName:@"template.html"];
+        }
         [self.navigationController pushViewController:vc animated:YES];
     }
 }
