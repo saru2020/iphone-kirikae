@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-19 23:38:43
+ * Last-modified: 2010-02-24 15:58:49
  */
 
 /**
@@ -229,24 +229,28 @@ static BOOL canInvoke()
 }
 
 %new(v@:@)
-- (void)switchToAppWithDisplayIdentifier:(NSString *)identifier
+- (void)switchToAppWithDisplayIdentifier:(NSString *)displayId
 {
-    BOOL switchingToSpringBoard = [identifier isEqualToString:@"com.apple.springboard"];
-
     SBApplication *fromApp = [SBWActiveDisplayStack topApplication];
-    NSString *fromIdent = fromApp ? [fromApp displayIdentifier] : @"com.apple.springboard";
-    if (![fromIdent isEqualToString:identifier]) {
-        // App to switch to is not the current app
-        // NOTE: Save the identifier for later use
-        //deactivatingApp = [fromIdent copy];
+    NSString *fromDisplayId = fromApp ? fromApp.displayIdentifier : @"com.apple.springboard";
 
-        SBApplication *toApp = [[objc_getClass("SBApplicationController") sharedInstance]
-            applicationWithDisplayIdentifier:identifier];
-        if (toApp) {
-            // FIXME: Handle case when toApp == nil
-            if ([fromIdent isEqualToString:@"com.apple.springboard"]) {
+    // Make sure that the target app is not the same as the current app
+    // NOTE: This is checked as there is no point in proceeding otherwise
+    if (![fromDisplayId isEqualToString:displayId]) {
+        // Not the same application; switch
+
+        // NOTE: Save the identifier for later use
+        //deactivatingApp = [fromDisplayId copy];
+
+        BOOL switchingToSpringBoard = [displayId isEqualToString:@"com.apple.springboard"];
+
+        SBApplication *app = [[objc_getClass("SBApplicationController") sharedInstance]
+            applicationWithDisplayIdentifier:displayId];
+        if (app) {
+            // FIXME: Handle case when app == nil
+            if ([fromDisplayId isEqualToString:@"com.apple.springboard"]) {
                 // Switching from SpringBoard; simply activate the target app
-                [toApp setDisplaySetting:0x4 flag:YES]; // animate
+                [app setDisplaySetting:0x4 flag:YES]; // animate
                 if (!animationsEnabled)
                     // NOTE: animationStart can be used to delay or skip the act/deact
                     //       animation. Based on current uptime, setting it to a future
@@ -255,31 +259,31 @@ static BOOL canInvoke()
                     //       unset, causes the animation to begin immediately.
                     // NOTE: The proper way to set this would be via CACurrentMediaTime(),
                     //       but using 1 (not 0) appears to work okay.
-                    [toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
+                    [app setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                 // Activate the target application
-                [SBWPreActivateDisplayStack pushDisplay:toApp];
+                [SBWPreActivateDisplayStack pushDisplay:app];
             } else {
                 // Switching from another app
                 if (!switchingToSpringBoard) {
                     // Switching to another app; setup app-to-app
-                    [toApp setActivationSetting:0x40 flag:YES]; // animateOthersSuspension
-                    [toApp setActivationSetting:0x20000 flag:YES]; // appToApp
-                    [toApp setDisplaySetting:0x4 flag:YES]; // animate
+                    [app setActivationSetting:0x40 flag:YES]; // animateOthersSuspension
+                    [app setActivationSetting:0x20000 flag:YES]; // appToApp
+                    [app setDisplaySetting:0x4 flag:YES]; // animate
 
                     if (!animationsEnabled)
-                        [toApp setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
+                        [app setActivationSetting:0x1000 value:[NSNumber numberWithDouble:1]]; // animationStart
 
                     // Activate the target application (will wait for
                     // deactivation of current app)
-                    [SBWPreActivateDisplayStack pushDisplay:toApp];
+                    [SBWPreActivateDisplayStack pushDisplay:app];
                 }
 
                 // Deactivate the current application
 
                 // If Backgrounder is installed, enable backgrounding for current application
                 if ([self respondsToSelector:@selector(setBackgroundingEnabled:forDisplayIdentifier:)])
-                    [self setBackgroundingEnabled:YES forDisplayIdentifier:fromIdent];
+                    [self setBackgroundingEnabled:YES forDisplayIdentifier:fromDisplayId];
 
                 // NOTE: Must set animation flag for deactivation, otherwise
                 //       application window does not disappear (reason yet unknown)
@@ -292,24 +296,26 @@ static BOOL canInvoke()
                 [SBWActiveDisplayStack popDisplay:fromApp];
                 [SBWSuspendingDisplayStack pushDisplay:fromApp];
             }
+
+            if (!switchingToSpringBoard) {
+                // If CategoriesSB is installed, dismiss any open categories
+                SBUIController *uiCont = [objc_getClass("SBUIController") sharedInstance];
+                if ([uiCont respondsToSelector:@selector(categoriesSBCloseAll)])
+                    [uiCont performSelector:@selector(categoriesSBCloseAll)];
+            }
+        }
+
+        if (!animationsEnabled) {
+            // NOTE: With animations off, wait until other app appears before
+            //       dismissing. This is to avoid an ugly flash between the old
+            //       and new app.
+            shouldDismiss = YES;
+            return;
         }
     }
 
-    if (!switchingToSpringBoard) {
-        // If CategoriesSB is installed, dismiss any open categories
-        SBUIController *uiCont = [objc_getClass("SBUIController") sharedInstance];
-        if ([uiCont respondsToSelector:@selector(categoriesSBCloseAll)])
-            [uiCont performSelector:@selector(categoriesSBCloseAll)];
-    }
-
-    if (animationsEnabled)
-        // Hide the task menu
-        [self dismissKirikae];
-    else
-        // NOTE: With animations off, wait until other app appears before
-        //       dismissing. This is to avoid an ugly flash between old
-        //       and new app.
-        shouldDismiss = YES;
+    // Hide the task menu
+    [self dismissKirikae];
 }
 
 %new(v@:@)
