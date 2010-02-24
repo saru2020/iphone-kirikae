@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:16:55
+ * Last-modified: 2010-02-24 00:50:24
  */
 
 /**
@@ -53,7 +53,7 @@
 
 @implementation Preferences
 
-@synthesize needsRespring;
+@dynamic needsRespring;
 
 + (Preferences *)sharedInstance
 {
@@ -73,12 +73,16 @@
 
         // Retain a copy of the initial values of the preferences
         initialValues = [[self dictionaryRepresentation] retain];
+
+        // Create an array to hold requests for respring
+        respringRequestors = [[NSMutableArray alloc] init];
     }
     return self;
 }
 
 - (void)dealloc
 {
+    [respringRequestors release];
     [initialValues release];
     [super dealloc];
 }
@@ -114,6 +118,7 @@
 
 - (void)setObject:(id)value forKey:(NSString *)defaultName
 {
+    // Update the value
     [super setObject:value forKey:defaultName];
 
     // Immediately write to disk
@@ -121,17 +126,26 @@
 
     // Check if the selected key requires a respring
     if ([[self keysRequiringRespring] containsObject:defaultName]) {
-        // Make sure that the value has actually changed
+        // Make sure that the value differe from the initial value
         id initialValue = [initialValues objectForKey:defaultName];
         BOOL valuesDiffer = ![value isEqual:initialValue];
-        if (valuesDiffer)
-            // FIXME: Write to disk, remove on respring
-            // FIXME: Show drop down to indicate respring is needed
-            needsRespring = YES;
+        // FIXME: Write to disk, remove on respring
+        // FIXME: Show drop down to indicate respring is needed
+        if (valuesDiffer) {
+            if (![respringRequestors containsObject:defaultName])
+                [respringRequestors addObject:defaultName];
+        } else {
+            [respringRequestors removeObject:defaultName];
+        }
     }
 
     // Send notification that a preference has changed
     notify_post(APP_ID".preferenceChanged");
+}
+
+- (BOOL)needsRespring
+{
+    return ([respringRequestors count] != 0);
 }
 
 @end

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-23 23:13:47
+ * Last-modified: 2010-02-24 00:50:16
  */
 
 /**
@@ -59,7 +59,7 @@
 @interface Preferences : NSUserDefaults
 {
     NSDictionary *initialValues;
-    BOOL needsRespring;
+    NSMutableArray *respringRequestors;
 }
 
 @property(nonatomic, readonly) BOOL needsRespring;
