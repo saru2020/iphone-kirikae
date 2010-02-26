@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-26 00:31:15
+ * Last-modified: 2010-02-26 01:18:23
  */
 
 /**
@@ -188,7 +188,7 @@ static unsigned int itemTextColor;
 
     if ([favorites count] == 0) {
         // No favorites
-        [self.tableView setHidden:YES];
+        self.tableView.hidden = YES;
 
         // Create a notice to inform use how to add favorites
         // FIXME: Try to find a simpler/cleaner way to implement this
@@ -230,6 +230,19 @@ static unsigned int itemTextColor;
 
         [self.view addSubview:view];
         [view release];
+    } else {
+        // Put table into editing mode so that favorites can be rearranged
+        self.tableView.editing = YES;
+        self.tableView.allowsSelectionDuringEditing = YES;
+    }
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    if (isModified) {
+        // Save updated favorites to disk
+        CFPreferencesSetAppValue(CFSTR("favorites"), favorites, CFSTR(APP_ID));
+        CFPreferencesAppSynchronize(CFSTR(APP_ID));
     }
 }
 
@@ -336,6 +349,47 @@ static unsigned int itemTextColor;
     return cell;
 }
 
+#if 0
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	return YES;
+}
+#endif
+
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath
+	toIndexPath:(NSIndexPath *)destinationIndexPath
+{
+	unsigned int fromRow = sourceIndexPath.row;
+	unsigned int toRow = destinationIndexPath.row;
+	
+    // Remove item from current position
+	NSString *item = [[favorites objectAtIndex:fromRow] retain];
+    [favorites removeObjectAtIndex:fromRow];
+
+    // Insert cell at new position
+    if (fromRow < toRow) {
+        // Moving Down
+        if (toRow == [favorites count])
+            // Add to end of cell array
+            [favorites addObject:item];
+        else
+            [favorites insertObject:item atIndex:toRow];
+    } else {
+        // Moving Up
+        [favorites insertObject:item atIndex:toRow];
+    }
+    [item release];
+
+    // Record that favorites have been modified
+    isModified = YES;
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Prevent delete button from being displayed
+    return UITableViewCellEditingStyleNone;
+}
+
 #pragma mark - UITableViewCellDelegate
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
@@ -367,6 +421,12 @@ static unsigned int itemTextColor;
     [label release];
 
     return view;
+}
+
+- (BOOL)tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath;
+{
+    // By default, rows are indented while editing (even if delete button is hidden)
+    return NO;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
