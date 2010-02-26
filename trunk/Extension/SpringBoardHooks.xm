@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-25 01:34:06
+ * Last-modified: 2010-02-26 00:55:00
  */
 
 /**
@@ -63,6 +63,11 @@
 #import <SpringBoard/SpringBoard.h>
 
 @interface UIKeyboard : UIView
+@end
+
+@interface UIWebClip
+@property(retain) NSURL *pageURL;
++ (id)webClipWithIdentifier:(id)identifier;
 @end
 
 @interface SPSearchResult : NSObject
@@ -232,10 +237,18 @@ static BOOL canInvoke()
     SBApplication *fromApp = [SBWActiveDisplayStack topApplication];
     NSString *fromDisplayId = fromApp ? fromApp.displayIdentifier : @"com.apple.springboard";
 
+    // FIXME: If possible, find a better method/place for checking if web clip
+    UIWebClip *clip = [UIWebClip webClipWithIdentifier:displayId];
+    NSURL *url = nil;
+    if (![clip.pageURL.absoluteString isEqualToString:@"about:blank"]) {
+        url = clip.pageURL;
+        displayId = @"com.apple.mobilesafari";
+    }
+
     // Make sure that the target app is not the same as the current app
     // NOTE: This is checked as there is no point in proceeding otherwise
-    if (![fromDisplayId isEqualToString:displayId]) {
-        // Not the same application; switch
+    if (![fromDisplayId isEqualToString:displayId] || url != nil) {
+        // Is either a different application or is a web clip; switch
 
         // NOTE: Save the identifier for later use
         //deactivatingApp = [fromDisplayId copy];
@@ -245,6 +258,9 @@ static BOOL canInvoke()
         SBApplication *app = [[objc_getClass("SBApplicationController") sharedInstance]
             applicationWithDisplayIdentifier:displayId];
         if (app) {
+            if (url != nil)
+                [app setActivationSetting:0x4 value:url];
+
             // FIXME: Handle case when app == nil
             if ([fromDisplayId isEqualToString:@"com.apple.springboard"]) {
                 // Switching from SpringBoard; simply activate the target app

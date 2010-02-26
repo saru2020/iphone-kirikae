@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 23:08:49
+ * Last-modified: 2010-02-26 00:31:15
  */
 
 /**
@@ -54,6 +54,10 @@
 #import "SpringBoardHooks.h"
 #import "TaskListCell.h"
 
+@interface UIWebClip
++ (id)pathForWebClipWithIdentifier:(id)identifier;
+@end
+
 
 static UIColor *colorFromPreferenceValue(unsigned int value)
 {
@@ -95,16 +99,24 @@ static unsigned int itemTextColor;
                 favorites = [[NSMutableArray alloc] init];
 
                 SBApplicationController *appCont = [objc_getClass("SBApplicationController") sharedInstance];
-                for (NSString *displayId in (NSArray *)propList) {
+                Class $NSString = [NSString class];
+                for (id item in (NSArray *)propList) {
                     // Check that favorite still exists, add to list if it does
-                    SBApplication *app = [appCont applicationWithDisplayIdentifier:displayId];
-                    if (app)
-                        // Favorite exists
-                        [favorites addObject:displayId];
+                    if ([item isKindOfClass:$NSString]) {
+                        // Check that item still exists
+                        if ([appCont applicationWithDisplayIdentifier:item] == nil)
+                            // Application does not exist; may be a webclip
+                            if (![NSFileManager.defaultManager fileExistsAtPath:
+                                    [UIWebClip pathForWebClipWithIdentifier:item]])
+                                    continue;
+
+                        // If it made it this far, the favorite exists
+                        [favorites addObject:item];
+                    }
                 }
 
                 if ([favorites count] != [(NSArray *)propList count]) {
-                    // Some favorites were missing; update  preferences file
+                    // Some favorites were missing; update preferences file
                     CFPreferencesSetAppValue(CFSTR("favorites"), favorites, CFSTR(APP_ID));
                     CFPreferencesAppSynchronize(CFSTR(APP_ID));
                 }
