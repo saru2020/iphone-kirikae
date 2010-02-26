@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-25 00:49:33
+ * Last-modified: 2010-02-26 10:33:34
  */
 
 /**
@@ -109,14 +109,9 @@
         // NOTE: WinterBoard does this in order to add a background image
         contentViewHasWrapper = YES;
 
-    // Use dock's alpha value as indicator of scatter status
-    // NOTE: Cannot use SBIconList, as only the current list will be
-    //       scattered; when the current view is the Spotlight page, no
-    //       list is scattered.
-    // FIXME: Would it be better to instead use topApplication == nil?
-    //       
-    SBButtonBar *dock = [[objc_getClass("SBIconModel") sharedInstance] buttonBar];
-    wasScattered = (dock.alpha == 0);
+    // Determine if icons are scattered by checking for a visible app
+    SpringBoard *springBoard = (SpringBoard *)[UIApplication sharedApplication];
+    wasScattered = ([springBoard topApplication] != nil);
     if (wasScattered)
         [uiCont restoreIconList:NO];
 
