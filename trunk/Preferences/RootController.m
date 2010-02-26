@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:52:46
+ * Last-modified: 2010-02-26 01:37:00
  */
 
 /**
@@ -88,9 +88,6 @@
 
 @implementation RootController
 
-@synthesize displayIdentifiers;
-
-
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
@@ -100,12 +97,6 @@
             style:UIBarButtonItemStyleBordered target:nil action:nil] autorelease];
     }
     return self;
-}
-
-- (void)dealloc
-{
-    [displayIdentifiers release];
-    [super dealloc];
 }
 
 - (void)viewDidLoad

@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:55:41
+ * Last-modified: 2010-02-26 01:37:16
  */
 
 /**
@@ -51,6 +51,9 @@
 
 @implementation Application
 
+@synthesize applicationIdentifiers;
+@synthesize webClipIdentifiers;
+
 - (void)applicationDidFinishLaunching:(UIApplication *)application
 {
     Preferences *prefs = [Preferences sharedInstance];
@@ -80,6 +83,8 @@
 
 - (void)dealloc
 {
+    [webClipIdentifiers release];
+    [applicationIdentifiers release];
     [navController release];
     [window release];
 

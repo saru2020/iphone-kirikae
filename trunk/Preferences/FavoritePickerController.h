@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-25 23:13:01
+ * Last-modified: 2010-02-25 23:57:07
  */
 
 /**
@@ -40,14 +40,30 @@
  */
 
 
-#import "FavoritePickerController.h"
+@class UIProgressHUD;
 
-@interface FavoritesController : UITableViewController <FavoritePickerControllerDelegate>
+@protocol FavoritePickerControllerDelegate;
+
+@interface FavoritePickerController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 {
+    id<FavoritePickerControllerDelegate> delegate;
+
+    UITableView *itemsTableView;
+    UINavigationItem *navItem;
+    UIProgressHUD *busyIndicator;
+
     // Variables to track changes made on this page
-    NSMutableArray *favorites;
+    NSMutableArray *apps;
+    NSMutableArray *webClips;
+    NSMutableArray *items;
 }
 
+@property(nonatomic, assign) id<FavoritePickerControllerDelegate> delegate;
+
+@end
+
+@protocol FavoritePickerControllerDelegate <NSObject>
+- (void)favoritePickerController:(FavoritePickerController *)controller didSelectItemWithIdentifier:(NSString *)identifier;
 @end
 
 /* vim: set syntax=objc sw=4 ts=4 sts=4 expandtab textwidth=80 ff=unix: */

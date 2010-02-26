@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:54:20
+ * Last-modified: 2010-02-26 00:04:08
  */
 
 /**
@@ -42,176 +42,55 @@
 
 #import "FavoritesController.h"
 
-//#import <objc/runtime.h>
-
 #import "ApplicationCell.h"
 #import "HtmlDocController.h"
 #import "Preferences.h"
-#import "RootController.h"
 
 // SpringBoardServices
 extern NSString * SBSCopyLocalizedApplicationNameForDisplayIdentifier(NSString *identifier);
 extern NSString * SBSCopyIconImagePathForDisplayIdentifier(NSString *identifier);
 
-#define HELP_FILE "favorites.html"
-
-
-@interface UIProgressHUD : UIView
-
-- (id)initWithWindow:(id)fp8;
-- (void)setText:(id)fp8;
-- (void)show:(BOOL)fp8;
-- (void)hide;
-
+@interface UIWebClip : NSObject
+@property(copy) NSString *identifier;
+@property(copy) NSString *title;
+@property(retain) UIImage *iconImage;
++ (id)webClips;
++ (UIWebClip *)webClipWithIdentifier:(id)identifier;
 @end
 
-//________________________________________________________________________________
-//________________________________________________________________________________
-
-static NSInteger compareDisplayNames(NSString *a, NSString *b, void *context)
-{
-    NSInteger ret;
-
-    NSString *name_a = SBSCopyLocalizedApplicationNameForDisplayIdentifier(a);
-    NSString *name_b = SBSCopyLocalizedApplicationNameForDisplayIdentifier(b);
-    ret = [name_a caseInsensitiveCompare:name_b];
-    [name_a release];
-    [name_b release];
-
-    return ret;
-}
-
-//________________________________________________________________________________
-//________________________________________________________________________________
+//==============================================================================
 
 @implementation FavoritesController
-
-static NSArray *applicationDisplayIdentifiers()
-{
-    // First, get a list of all possible application paths
-    NSMutableArray *paths = [NSMutableArray array];
-
-    // ... scan /Applications (System/Jailbreak applications)
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    for (NSString *path in [fileManager directoryContentsAtPath:@"/Applications"]) {
-        if ([path hasSuffix:@".app"] && ![path hasPrefix:@"."])
-           [paths addObject:[NSString stringWithFormat:@"/Applications/%@", path]];
-    }
-
-    // ... scan /var/mobile/Applications (AppStore applications)
-    for (NSString *path in [fileManager directoryContentsAtPath:@"/var/mobile/Applications"]) {
-        for (NSString *subpath in [fileManager directoryContentsAtPath:
-                [NSString stringWithFormat:@"/var/mobile/Applications/%@", path]]) {
-            if ([subpath hasSuffix:@".app"])
-                [paths addObject:[NSString stringWithFormat:@"/var/mobile/Applications/%@/%@", path, subpath]];
-        }
-    }
-
-    // Then, go through paths and record valid application identifiers
-    NSMutableArray *identifiers = [NSMutableArray array];
-
-    for (NSString *path in paths) {
-        NSBundle *bundle = [NSBundle bundleWithPath:path];
-        if (bundle) {
-            NSString *identifier = [bundle bundleIdentifier];
-
-            // Filter out non-applications and apps that should remain hidden
-            // FIXME: The proper fix is to only show non-hidden apps and apps
-            //        that are in Categories; unfortunately, the design of
-            //        Categories does not make it easy to determine what apps
-            //        a given folder contains.
-            if (identifier &&
-                ![identifier hasPrefix:@"jp.ashikase.springjumps."] &&
-                ![identifier hasPrefix:@"com.apple.mobileslideshow"] &&
-                ![identifier hasPrefix:@"com.apple.mobileipod"] &&
-                ![identifier isEqualToString:@"com.iptm.bigboss.sbsettings"] &&
-                ![identifier isEqualToString:@"com.apple.webapp"])
-            [identifiers addObject:identifier];
-        }
-    }
-
-    // Finally, add identifiers for apps known to have multiple roles
-    [identifiers addObject:[NSString stringWithString:@"com.apple.mobileslideshow-Camera"]];
-    [identifiers addObject:[NSString stringWithString:@"com.apple.mobileslideshow-Photos"]];
-    if ([[[UIDevice currentDevice] model] hasPrefix:@"iPhone"]) {
-        // iPhone
-        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-MediaPlayer"]];
-    } else {
-        // iPod Touch
-        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-AudioPlayer"]];
-        [identifiers addObject:[NSString stringWithString:@"com.apple.mobileipod-VideoPlayer"]];
-    }
-
-    return identifiers;
-}
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
     if (self) {
         self.title = @"Favorites";
+        self.navigationItem.rightBarButtonItem =
+             [[UIBarButtonItem alloc] initWithTitle:@"Add" style:5
+                target:self action:@selector(addButtonTapped)];
 
         // Get a copy of the list of favorites
         favorites = [[NSMutableArray alloc]
             initWithArray:[[Preferences sharedInstance] objectForKey:kFavorites]];
+
+        self.tableView.editing = YES;
     }
     return self;
 }
 
-- (void)loadView
-{
-    // Retain a reference to the root controller for accessing cached info
-    // FIXME: Consider passing the display id array in as an init parameter
-    rootController = [[self.navigationController.viewControllers objectAtIndex:0] retain];
-
-    [super loadView];
-}
-
 - (void)dealloc
 {
-    [busyIndicator release];
     [favorites release];
-    [rootController release];
-
     [super dealloc];
 }
 
-- (void)enumerateApplications
+- (void)viewWillAppear:(BOOL)animated
 {
-    NSArray *array = applicationDisplayIdentifiers();
-    NSArray *sortedArray = [array sortedArrayUsingFunction:compareDisplayNames context:NULL];
-    [rootController setDisplayIdentifiers:sortedArray];
     [self.tableView reloadData];
-
-    // Remove the progress indicator
-    [busyIndicator hide];
-    [busyIndicator release];
-    busyIndicator = nil;
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    if ([rootController displayIdentifiers] != nil)
-        // Application list already loaded
-        return;
-
-    // Show a progress indicator
-    busyIndicator = [[UIProgressHUD alloc] initWithWindow:[[UIApplication sharedApplication] keyWindow]];
-    [busyIndicator setText:@"Loading applications..."];
-    [busyIndicator show:YES];
-
-    // Enumerate applications
-    // NOTE: Must call via performSelector, or busy indicator does not show in time
-    [self performSelector:@selector(enumerateApplications) withObject:nil afterDelay:0.1f];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-    if (isModified) {
-        // Sort list of favorites by display name and save to preferences file
-        NSArray *sortedArray = [favorites sortedArrayUsingFunction:compareDisplayNames context:NULL];
-        [[Preferences sharedInstance] setObject:sortedArray forKey:kFavorites];
-    }
+    /// Reset the table by deselecting the current selection
+    //[self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:YES];
 }
 
 #pragma mark - UITableViewDataSource
@@ -221,14 +100,9 @@ static NSArray *applicationDisplayIdentifiers()
     return 1;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(int)section
-{
-    return nil;
-}
-
 - (int)tableView:(UITableView *)tableView numberOfRowsInSection:(int)section
 {
-    return [[rootController displayIdentifiers] count];
+    return [favorites count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -243,53 +117,102 @@ static NSArray *applicationDisplayIdentifiers()
         cell.selectionStyle = UITableViewCellSelectionStyleGray;
     }
 
-    NSString *identifier = [[rootController displayIdentifiers] objectAtIndex:indexPath.row];
-
-    NSString *displayName = SBSCopyLocalizedApplicationNameForDisplayIdentifier(identifier);
-    [cell setText:displayName];
-    [displayName release];
-
+    NSString *identifier = [favorites objectAtIndex:indexPath.row];
+    NSString *name = nil;
     UIImage *icon = nil;
-    NSString *iconPath = SBSCopyIconImagePathForDisplayIdentifier(identifier);
-    if (iconPath != nil) {
-        icon = [UIImage imageWithContentsOfFile:iconPath];
-        [iconPath release];
-    }
-    [cell setImage:icon];
+    NSRange range = [identifier rangeOfString:@"."];
+    if (range.location == NSNotFound && [identifier length] == 32) {
+        // Identifier is 32 characters long and has no periods; assume web clip
+        UIWebClip *clip = [UIWebClip webClipWithIdentifier:identifier];
+        name = clip.title;
+        icon = clip.iconImage;
+    } else {
+        // Application
+        name = SBSCopyLocalizedApplicationNameForDisplayIdentifier(identifier);
 
-    cell.accessoryType = [favorites containsObject:identifier] ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        NSString *iconPath = SBSCopyIconImagePathForDisplayIdentifier(identifier);
+        if (iconPath != nil) {
+            icon = [UIImage imageWithContentsOfFile:iconPath];
+            [iconPath release];
+        }
+    }
+    cell.textLabel.text = name;
+    cell.imageView.image = icon;
+
 
     return cell;
 }
 
-#pragma mark - UITableViewCellDelegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *identifier = [[rootController displayIdentifiers] objectAtIndex:indexPath.row];
+	return YES;
+}
 
-    // Update the list of favorites and toggle the cell's checkmark
-    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-    if (cell.accessoryType == UITableViewCellAccessoryNone) {
-        [favorites addObject:identifier];
-        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath
+	toIndexPath:(NSIndexPath *)destinationIndexPath
+{
+	int fromRow = sourceIndexPath.row;
+	int toRow = destinationIndexPath.row;
+	
+    // Remove item from current position
+	NSString *item = [[favorites objectAtIndex:fromRow] retain];
+    [favorites removeObjectAtIndex:fromRow];
+
+    // Insert cell at new position
+    if (fromRow < toRow) {
+        // Moving Down
+        if (toRow == [favorites count])
+            // Add to end of cell array
+            [favorites addObject:item];
+        else
+            [favorites insertObject:item atIndex:toRow];
     } else {
-        [favorites removeObject:identifier];
-        cell.accessoryType = UITableViewCellAccessoryNone;
+        // Moving Up
+        [favorites insertObject:item atIndex:toRow];
     }
-    isModified = YES;
+    [item release];
 
-    // Reset the table by deselecting the current selection
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    // Immediately save updated favorites to disk
+    [[Preferences sharedInstance] setObject:favorites forKey:kFavorites];
+}
+ 
+- (BOOL)table:(UITableView*)table canDeleteRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	return YES;
+}
+
+- (void)tableView:(UITableView *)tableView
+	commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	if (editingStyle == UITableViewCellEditingStyleDelete) {
+		// Remove the item from the table
+        [favorites removeObjectAtIndex:indexPath.row];
+		[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+
+        // Immediately save updated favorites to disk
+        [[Preferences sharedInstance] setObject:favorites forKey:kFavorites];
+	}
 }
 
 #pragma mark - Navigation bar delegates
 
-- (void)helpButtonTapped
+- (void)addButtonTapped
 {
     // Create and show help page
-    [[self navigationController] pushViewController:[[[HtmlDocController alloc]
-        initWithContentsOfFile:@HELP_FILE title:@"Explanation"] autorelease] animated:YES];
+    FavoritePickerController *picker = [[[FavoritePickerController alloc] init] autorelease];
+    picker.delegate = self;
+    [self presentModalViewController:picker animated:YES];
+}
+
+#pragma mark - Favorite picker delegate
+
+- (void)favoritePickerController:(FavoritePickerController *)controller didSelectItemWithIdentifier:(NSString *)identifier
+{
+    // Update the list of favorites
+    [favorites addObject:identifier];
+
+    // Immediately save updated favorites to disk
+    [[Preferences sharedInstance] setObject:favorites forKey:kFavorites];
 }
 
 @end

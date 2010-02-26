@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:54:49
+ * Last-modified: 2010-02-26 01:33:11
  */
 
 /**
@@ -42,12 +42,7 @@
 
 @interface RootController : UITableViewController
 {
-    // List of applications, used by enabled applications page
-    // NOTE: Stored here for caching purposes
-    NSArray *displayIdentifiers;
 }
-
-@property(nonatomic, retain) NSArray *displayIdentifiers;
 
 @end
 

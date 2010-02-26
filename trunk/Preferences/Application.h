@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-24 00:55:48
+ * Last-modified: 2010-02-26 01:33:28
  */
 
 /**
@@ -44,7 +44,15 @@
 {
     UIWindow *window;
     UINavigationController *navController;
+
+    // Lists of applications and webclips, used by favorites picker
+    // NOTE: Stored here for caching purposes
+    NSArray *applicationIdentifiers;
+    NSArray *webClipIdentifiers;
 }
+
+@property(nonatomic, retain) NSArray *applicationIdentifiers;
+@property(nonatomic, retain) NSArray *webClipIdentifiers;
 
 @end
 

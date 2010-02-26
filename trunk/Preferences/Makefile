@@ -9,6 +9,7 @@ Preferences_OBJC_FILES = main.m \
 						 ColorsController.m \
 						 ColorPickerController.m \
 						 DocumentationController.m \
+						 FavoritePickerController.m \
 						 FavoritesController.m \
 						 GradientSlider.m \
 						 HtmlDocController.m \
