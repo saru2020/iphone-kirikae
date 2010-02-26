@@ -1,3 +1,12 @@
+> # Version svn.r2xx
+> - - -
+> * NEW: Added support for web clips in favorites tab.
+> * MOD: Can now rearrange favorites in both the preferences and the favorite tab.
+> * FIX: Fixed item text transparency issue in active and favorite tabs.
+> * FIX: Launching an app via the Spotlight tab and then switching to the SpringBoard tab would show a blank page.
+
+- - -
+
 > # Version svn.r206
 > - - -
 > * NEW: Added support for color theming.

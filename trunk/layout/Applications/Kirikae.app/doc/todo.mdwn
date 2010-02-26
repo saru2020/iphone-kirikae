@@ -2,7 +2,6 @@
 > ## (These *might* be implemented)
 > - - -
 > * Add option to select page to jump to when showing SpringBoard tab
-> * Add ability to manually sort favorites.
 > * Display process info (processor/memory usage).
 
 - - -
