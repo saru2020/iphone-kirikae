@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2009-12-17 01:25:04
+ * Last-modified: 2010-02-25 12:45:49
  */
 
 /**
@@ -67,6 +67,10 @@
     CGRect frame = self.textLabel.frame;
     frame.origin.x = useLargeRows ? 68.0f : 43.0f;
     self.textLabel.frame = frame;
+
+    // Make the text label's background transparent
+    // NOTE: Setting this in cellForRowAtIndexPath does not work
+    self.textLabel.backgroundColor = [UIColor clearColor];
 
     // Set accessory view position
     if (self.accessoryView != nil) {
