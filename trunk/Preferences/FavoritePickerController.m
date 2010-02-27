@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-26 01:40:12
+ * Last-modified: 2010-02-27 18:44:41
  */
 
 /**
@@ -177,7 +177,6 @@ static NSArray *applicationDisplayIdentifiers()
         Application *application = (Application *)[UIApplication sharedApplication];
         apps = [application.applicationIdentifiers copy];
         webClips = [application.webClipIdentifiers copy];
-        NSLog(@"=== INST, apps: %@", apps);
     }
     return self;
 }
@@ -240,7 +239,6 @@ static NSArray *applicationDisplayIdentifiers()
     Application *application = (Application *)[UIApplication sharedApplication];
     application.applicationIdentifiers = apps;
     application.webClipIdentifiers = webClips;
-    NSLog(@"=== DISA, apps: %@", apps);
 }
 
 #pragma mark - Item enumeration
