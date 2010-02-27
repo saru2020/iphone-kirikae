@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-27 17:39:21
+ * Last-modified: 2010-02-27 17:38:28
  */
 
 /**
@@ -48,6 +48,7 @@
 #import <SpringBoard/SBApplication.h>
 #import <SpringBoard/SBApplicationController.h>
 #import <SpringBoard/SBApplicationIcon.h>
+#import <SpringBoard/SBBookmarkIcon.h>
 #import <SpringBoard/SBIconBadge.h>
 #import <SpringBoard/SBIconModel.h>
 
@@ -55,6 +56,7 @@
 #import "TaskListCell.h"
 
 @interface UIWebClip
+@property(readonly, assign) NSString *iconImagePath;
 + (id)pathForWebClipWithIdentifier:(id)identifier;
 @end
 
@@ -301,7 +303,7 @@ static unsigned int itemTextColor;
 
     // Get the application icon object
     SBIconModel *iconModel = [objc_getClass("SBIconModel") sharedInstance];
-    SBApplicationIcon *icon = [iconModel iconForDisplayIdentifier:identifier];
+    SBIcon *icon = [iconModel iconForDisplayIdentifier:identifier];
     if (!icon) {
         // Application may have multiple roles; try again with default role
         // FIXME: This check is being done twice (also in height check)
@@ -320,24 +322,29 @@ static unsigned int itemTextColor;
         if (useThemedIcons) {
             image = [icon icon];
         } else {
-            SBApplication *app = [icon application];
-            NSString *bundlePath = [app path];
-            NSString *roleId = [app roleIdentifier];
-            if (roleId != nil) {
-                // NOTE: Should only be true for iPod/Video/Audio and Camera/Photos
-                image = [UIImage imageWithContentsOfFile:
-                    [NSString stringWithFormat:@"%@/icon-%@.png", bundlePath, roleId]];
+            if ([icon isMemberOfClass:objc_getClass("SBBookmarkIcon")]) {
+                UIWebClip *webClip = [(SBBookmarkIcon *)icon webClip];
+                image = [UIImage imageWithContentsOfFile:webClip.iconImagePath];
             } else {
-                // Try to retrieve filename of icon from app's property list
-                NSString *infoPlist = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
-                NSString *iconFile = [[NSDictionary dictionaryWithContentsOfFile:infoPlist] objectForKey:@"CFBundleIconFile"];
-                image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:iconFile]];
-                if (image == nil) {
-                    // Not found in property list; try standard filename
-                    image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Icon.png"]];
-                    if (image == nil)
-                        // Try again with lowercase filename
-                        image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"icon.png"]];
+                SBApplication *app = [(SBApplicationIcon *)icon application];
+                NSString *bundlePath = [app path];
+                NSString *roleId = [app roleIdentifier];
+                if (roleId != nil) {
+                    // NOTE: Should only be true for iPod/Video/Audio and Camera/Photos
+                    image = [UIImage imageWithContentsOfFile:
+                        [NSString stringWithFormat:@"%@/icon-%@.png", bundlePath, roleId]];
+                } else {
+                    // Try to retrieve filename of icon from app's property list
+                    NSString *infoPlist = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
+                    NSString *iconFile = [[NSDictionary dictionaryWithContentsOfFile:infoPlist] objectForKey:@"CFBundleIconFile"];
+                    image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:iconFile]];
+                    if (image == nil) {
+                        // Not found in property list; try standard filename
+                        image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Icon.png"]];
+                        if (image == nil)
+                            // Try again with lowercase filename
+                            image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"icon.png"]];
+                    }
                 }
             }
         }
