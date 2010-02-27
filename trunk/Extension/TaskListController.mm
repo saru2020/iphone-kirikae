@@ -3,7 +3,7 @@
  * Type: iPhone OS SpringBoard extension (MobileSubstrate-based)
  * Description: a task manager/switcher for iPhoneOS
  * Author: Lance Fetters (aka. ashikase)
- * Last-modified: 2010-02-25 00:49:38
+ * Last-modified: 2010-02-27 17:38:22
  */
 
 /**
@@ -288,11 +288,17 @@ static unsigned int itemTextColor;
                 image = [UIImage imageWithContentsOfFile:
                     [NSString stringWithFormat:@"%@/icon-%@.png", bundlePath, roleId]];
             } else {
-                // First try with uppercase filename
-                image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Icon.png"]];
-                if (image == nil)
-                    // Try again with lowercase filename
-                    image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"icon.png"]];
+                // Try to retrieve filename of icon from app's property list
+                NSString *infoPlist = [bundlePath stringByAppendingPathComponent:@"Info.plist"];
+                NSString *iconFile = [[NSDictionary dictionaryWithContentsOfFile:infoPlist] objectForKey:@"CFBundleIconFile"];
+                image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:iconFile]];
+                if (image == nil) {
+                    // Not found in property list; try standard filename
+                    image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Icon.png"]];
+                    if (image == nil)
+                        // Try again with lowercase filename
+                        image = [UIImage imageWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"icon.png"]];
+                }
             }
         }
     }
