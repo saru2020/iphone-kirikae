@@ -1,4 +1,12 @@
-> # Version svn.r2xx
+> # Version svn.r216
+> - - -
+> * FIX: Two issues that occurred with "Use Themed Icons" set to NO
+>    * Having web clips in favorites would cause favorites tab to crash.
+>    * Some applications would not show an icon.
+
+- - -
+
+> # Version svn.r212
 > - - -
 > * NEW: Added support for web clips in favorites tab.
 > * MOD: Can now rearrange favorites in both the preferences and the favorite tab.
